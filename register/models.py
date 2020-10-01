@@ -25,6 +25,7 @@ class Register(models.Model):
     morning = models.BooleanField(default=False)
     evening = models.BooleanField(default=False)
     quantity = models.FloatField(null=False, blank=False, default=None)
+    current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None )
 
 
 
