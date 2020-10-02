@@ -74,7 +74,7 @@ def index(request, year=None, month=None):
         'm_register': m_register,
         'e_register': e_register,
         'days': cal_days,
-        'max_date': f'{date.today().year}-{date.today().month}-{days[1] + 1}',
+        'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
         'active_customers': active_customers,
         'default_price': milk.price,
     })

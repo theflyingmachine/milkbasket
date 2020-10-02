@@ -2,22 +2,29 @@
 
 <!-- Navbar content -->
 {% block content %}
-
-
-  <a class="btn" href="addcustomer">+ Add new customer</a>
-  <div class="row justify-content-center">
-    <div class="col-lg-10 col-md-12">
-      <h2 class="pt-5 mt-4 text-center">View Customers</h2>
+<button type="button" class="btn btn-info m-3" href="addcustomer">+ Add new customer</button>
+<div class="row mt-2 justify-content-center">
+  <div class="col-lg-10 col-md-12">
+    <h2 class="text-center">View Customers</h2>
+  </div>
+</div>
+<hr>
+<div class="container mb-5">
       {% if customers %}
-        <div class="card-columns">
-          {% for customer in customers %}
-
-            <div class="card mb-5 text-white bg-success" style="width: 18rem;">
-              <img class="card-img-top" height="225"
-                   src="{{ customer.img }}"
-{#                   src="https://store-images.s-microsoft.com/image/apps.33967.13510798887182917.246b0a3d-c3cc-46fc-9cea-021069d15c09.392bf5f5-ade4-4b36-aa63-bb15d5c3817a"#}
-                   alt="Card image cap">
+        {% for customer in customers %}
+        {% if forloop.first %}<div class="row">{% endif %}
+          <div class="col-md-4 p-3 col-sm-12">
+            <div class="card text-white bg-info" >
+              <img class="card-img-top" src="{{ customer.img }}" alt="Card image cap">
               <div class="card-body">
+                <span class="card-title h4"><b>{{ customer.name }}</b></span><br>
+                {% if customer.contact %}<span class="card-text">{{ customer.contact }}</span><br>{% endif %}
+                {% if customer.email %}<span class="card-text">{{ customer.email }}</span><br>{% endif %}
+                <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>
+                  <div class="row justify-content-center">
+                    <button type="button" class="btn btn-secondary col-5 m-2">History</button>
+                    <button type="button" class="btn btn-secondary col-5 m-2"">Edit</button>
+                  </div>
                 <h5 class="card-title">{{ customer.name }}</h5>
                 {% if customer.contact %}<p class="card-text">{{ customer.contact }}</p>{% endif %}
                 {% if customer.email %}<p class="card-text">{{ customer.email }}</p>{% endif %}
@@ -37,9 +44,10 @@
               </div>
               </div>
             </div>
-          {% endfor %}
-        </div>
-
+          </div>
+          {% if forloop.counter|divisibleby:3 %}</div><hr><div class="row">{% endif %}
+          {% if forloop.last %}</div>{% endif %}
+        {% endfor %}
       {% else %}
         <h3 class="pt-5 mt-4 text-center">No Customers to display</h3>
       {% endif %}
