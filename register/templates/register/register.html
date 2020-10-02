@@ -24,10 +24,22 @@
 
   </style>
 
-  <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
-          data-target="#exampleModal1"
-          data-whatever="@fat">+ Add new Entry
-  </button>
+<div class="d-flex bd-highlight mb-3">
+  <div class="col-6 mr-auto p-2 bd-highlight">
+    <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+            data-target="#exampleModal1"
+            data-whatever="@fat">+ Add new Entry </button>
+  </div>
+  <div class="justify-content-end inline p-2 bd-highlight">
+    <form name="view_selectrecord" action="{% url 'view_selectrecord' %}" method="post">{% csrf_token %}
+    <label for="myDate" class="col-form-label">Select Register:</label>
+    <input class="inline" type="month" name="register_month" id="mydate"
+           value="{% now 'Y-m' %}">
+    <button type="submit" class="btn btn-info">GO</button>
+    </form>
+  </div>
+</div>
+<hr>
   <div class="row justify-content-center">
     <div class="col">
       <h2 class="pt-2 text-center">Register - {{ month_year }}</h2>
@@ -182,7 +194,7 @@
             </div>
             <div class="form-group">
               <label for="myDate" class="col-form-label">Date:</label>
-              <input class="form-control" type="date" name="log_date" id="mydate"
+              <input class="form-control" type="date" name="log_date" id="mydate" min="{% now 'Y-m-01' %}" max="{{max_date}}"
                      value="{% now 'Y-m-d' %}">
             </div>
           </div>

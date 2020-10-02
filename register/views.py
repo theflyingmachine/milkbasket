@@ -74,6 +74,7 @@ def index(request, year=None, month=None):
         'm_register': m_register,
         'e_register': e_register,
         'days': cal_days,
+        'max_date': f'{date.today().year}-{date.today().month}-{days[1] + 1}',
         'active_customers': active_customers,
         'default_price': milk.price,
     })
@@ -195,3 +196,13 @@ def account(request):
 def daterange(date1, date2):
     for n in range(int((date2 - date1).days) + 1):
         yield date1 + timedelta(n)
+
+def selectrecord(request):
+    full_register_date = request.POST.get("register_month", None)
+    print(full_register_date)
+    register_month = str(full_register_date).split("-")[1]
+    register_year = str(full_register_date).split("-")[0]
+    print(full_register_date.split("-")[0])
+
+    return redirect(f'/register/{register_year}/{register_month}/')
+
