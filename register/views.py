@@ -1,13 +1,8 @@
-import base64
 from calendar import monthrange
 from datetime import datetime, date, timedelta
-from io import BytesIO
 
-import date_range as date_range
-import image
 import qrcode
-from PIL.Image import Image
-from django.http import HttpResponse
+
 from django.shortcuts import render, redirect
 
 # Create your views here.
@@ -73,9 +68,6 @@ def index(request, year=None, month=None):
     days = monthrange(register_date.year, register_date.month)
     month_year = register_date.strftime("%B, %Y")
     cal_days = range(1, days[1] + 1)
-    # start_dt = date(register_date.year, register_date.month, 1)
-    # end_dt = date(register_date.year, register_date.month, days[1])
-    # cal_days = daterange(start_dt, end_dt)
 
     context.update({
         'month_year': month_year,
@@ -166,15 +158,16 @@ def customers(request):
     }
     customers = Customer.objects.filter(status=1)
     for customer in customers:
-        qr = qrcode.make(customer.id)
-
-        # img = Image.fromarray(qr, 'RGB')  # Crée une image à partir de la matrice
-        # buffer = BytesIO()
-        # img.save(buffer, format="JPEG")  # Enregistre l'image dans le buffer
-        # myimage = buffer.getvalue()
-        # # print
-        # # "data:image/jpeg;base64," + base64.b64encode(myimage)
-        # print(base64.b64encode(myimage))
+        # Creating an instance of qrcode
+        qr = qrcode.QRCode(
+            version=1,
+            box_size=10,
+            border=1)
+        qr.add_data(customer.id)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+        img.save(f'register/static/qrcode{customer.id}.png')
+        customer.img = f'/static/qrcode{customer.id}.png'
 
         if customer.morning and not customer.evening:
             customer.schedule = 'Morning'
