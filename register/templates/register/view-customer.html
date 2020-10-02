@@ -24,7 +24,16 @@
                 <p class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</p>
               <div class="row">
                 <div class="col-6"><button type="button" class="btn btn-info">History</button></div>
-                <div class="col-6"><button type="button" class="btn btn-info">Edit</button></div>
+                <div class="col-6"><button type="button" class="btn btn-info" data-toggle="modal"
+            data-target="#exampleModal"
+            data-name="{{ customer.name }}"
+            data-id="{{ customer.id }}"
+                data-contact="{{ customer.contact }}"
+                data-email="{{ customer.email }}"
+                data-quantity="{{ customer.quantity }}"
+                data-morning="{{ customer.morning }}"
+                data-evening="{{ customer.evening }}"
+                >Edit</button></div>
               </div>
               </div>
             </div>
@@ -36,6 +45,84 @@
       {% endif %}
     </div>
   </div>
+
+
+  {#  Modal #}
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add Entry</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addnew" action="addcustomer" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="recipient-id" name="id">
+    <div class="p-4">
+      <div class="form-row">
+        <div class="form-group col-md-12">
+          <label for="name">Name</label>
+          <input type="text" class="form-control" id="recipient_name" name="name" placeholder="Name">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-12">
+          <label for="inputEmail4">Contact</label>
+          <input type="text" class="form-control" id="recipient_contact" name="contact" placeholder="Contact">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-12">
+          <label for="inputEmail4">Email</label>
+          <input type="text" class="form-control" id="recipient_email" name="email" placeholder="Email">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-md-12">
+          <label for="inputState">Schedule: </label>
+
+
+          <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_morning" name="morning" value="1">
+          <label for="vehicle1"> Morning</label>
+          <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_evening" name="evening" value="1">
+          <label for="vehicle2"> Evening</label><br>
+
+           <label for="inputZip">Quantity</label>
+        <input type="number" class="form-control" id="recipient-quantity" name="quantity" placeholder="ML">
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary justify-content-center col-12">Add Customer</button>
+  </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $('#exampleModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var recipient_name = button.data('name') // Extract info from data-* attributes
+      var recipient_quantity = button.data('quantity') // Extract info from data-* attributes
+      var recipient_email = button.data('email') // Extract info from data-* attributesc
+      var recipient_contact = button.data('contact') // Extract info from data-* attributesc
+      var recipient_id = button.data('id') // Extract info from data-* attributesc
+      var recipient_morning = button.data('morning') // Extract info from data-* attributesc
+      var recipient_evening = button.data('evening') // Extract info from data-* attributesc
+      // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+      // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+      var modal = $(this)
+      modal.find('#recipient_name').val(recipient_name)
+      modal.find('#recipient-quantity').val(recipient_quantity)
+      modal.find('#recipient-id').val(recipient_id)
+      modal.find('#recipient_email').val(recipient_email)
+      modal.find('#recipient_morning').val(recipient_morning)
+      modal.find('#recipient_evening').val(recipient_evening)
+    })
+  </script>
 
 {% endblock %}
 <!-- Footer -->
