@@ -10,6 +10,7 @@ urlpatterns = [
     path('customers', views.customers, name='view_customers'),
     path('account', views.account, name='view_account'),
     path('addentry', views.addentry, name='view_addentry'),
+    path('selectrecord', views.selectrecord, name='view_selectrecord'),
     # ex: /polls/5/
     # path('<int:question_id>/', views.detail, name='detail'),
     # # ex: /polls/5/results/
