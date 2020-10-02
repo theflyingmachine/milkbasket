@@ -33,6 +33,7 @@
   <div class="justify-content-end inline p-2 bd-highlight">
     <form name="view_selectrecord" action="{% url 'view_selectrecord' %}" method="post">{% csrf_token %}
     <label for="myDate" class="col-form-label">Select Register:</label>
+      <input type="hidden" name="nav-type" value="register" id="nav">
     <input class="inline" type="month" name="register_month" id="mydate"
            value="{% now 'Y-m' %}">
     <button type="submit" class="btn btn-info">GO</button>

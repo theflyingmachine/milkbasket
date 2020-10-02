@@ -181,10 +181,16 @@ def customers(request):
     return render(request, template, context)
 
 
-def account(request):
+def account(request, year=None, month=None):
     template = 'register/account.html'
     today = date.today()
-    month_year = today.strftime("%B, %Y")
+    if year and month:
+        time = f'{year}-{month}-01'
+        # Create date object in given time format yyyy-mm-dd
+        report_month = datetime.strptime(time, "%Y-%m-%d")
+        month_year = report_month.strftime("%B, %Y")
+    else:
+        month_year = today.strftime("%B, %Y")
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
@@ -198,11 +204,14 @@ def daterange(date1, date2):
         yield date1 + timedelta(n)
 
 def selectrecord(request):
+    formated_url = ''
     full_register_date = request.POST.get("register_month", None)
-    print(full_register_date)
     register_month = str(full_register_date).split("-")[1]
     register_year = str(full_register_date).split("-")[0]
-    print(full_register_date.split("-")[0])
-
-    return redirect(f'/register/{register_year}/{register_month}/')
+    nav_url = request.POST.get("nav-type", None)
+    if nav_url == 'register':
+        formated_url = f'/register/{register_year}/{register_month}/'
+    elif nav_url == 'account':
+        formated_url = f'/register/account/{register_year}/{register_month}/'
+    return redirect(formated_url)
 
