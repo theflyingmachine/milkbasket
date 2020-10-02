@@ -113,27 +113,44 @@ def addcustomer(request):
 def addentry(request, year=None, month=None):
     if request.method == "POST":
         milk = Milk.objects.last()
-        form = RegisterForm(request.POST)
-        customer = request.POST.get("id", None)
-        log_date = request.POST.get("log_date", None)
-        full_log_date = datetime.strptime(log_date, '%d %B, %Y')
-        yes = request.POST.get("yes", None)
-        yes_or_no = 'yes' if yes else 'no'
-        schedule = request.POST.get("schedule", 'morning').lower()
-        full_schedule = f'{schedule.lower()}-{yes_or_no}'
-        quantity = form['quantity'].value() or False
-        current_price = milk.price
-
-        # check if entry exists for give day and schedule
-        check_record = Register.objects.filter(customer_id=customer, log_date=full_log_date,
-                                               schedule__startswith=schedule).first()
-        if not check_record:
-            entry = Register(customer_id=customer, log_date=full_log_date, schedule=full_schedule,
-                             quantity=quantity, current_price=current_price)
-            entry.save()
+        if request.POST.get("add-new-entry", None):
+            customer = request.POST.get("customer", None)
+            customer_info = Customer.objects.filter(id=customer, status=1).first()
+            schedule = request.POST.get("schedule", None)
+            log_date = request.POST.get("log_date", None)
+            full_log_date = datetime.strptime(log_date, '%Y-%m-%d')
+            current_price = milk.price
+            # check if entry exists for give day and schedule
+            check_record = Register.objects.filter(customer_id=customer, log_date=full_log_date,
+                                                   schedule__startswith=schedule).first()
+            if not check_record:
+                entry = Register(customer_id=customer_info.id, log_date=full_log_date, schedule=schedule,
+                                 quantity=customer_info.quantity, current_price=current_price)
+                entry.save()
         else:
-            check_record.schedule = full_schedule
-            check_record.save()
+            form = RegisterForm(request.POST)
+            customer = request.POST.get("id", None)
+            log_date = request.POST.get("log_date", None)
+            full_log_date = datetime.strptime(log_date, '%d %B, %Y')
+            yes = request.POST.get("yes", None)
+            yes_or_no = 'yes' if yes else 'no'
+            schedule = request.POST.get("schedule", 'morning').lower()
+            full_schedule = f'{schedule.lower()}-{yes_or_no}'
+            quantity = form['quantity'].value() or False
+            current_price = milk.price
+
+            # check if entry exists for give day and schedule
+            check_record = Register.objects.filter(customer_id=customer, log_date=full_log_date,
+                                                   schedule__startswith=schedule).first()
+            if not check_record:
+                entry = Register(customer_id=customer, log_date=full_log_date, schedule=full_schedule,
+                                 quantity=quantity, current_price=current_price)
+                entry.save()
+            else:
+                check_record.schedule = full_schedule
+                check_record.quantity = quantity
+                check_record.save()
+
     if year and month:
         month = month if len(str(month)) > 1 else f'0{month}'
         return redirect(f'/register/{year}/{month}/')
