@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 
 # Create your views here.
 from register.forms import CustomerForm, RegisterForm
-from register.models import Customer, Register, Milk
+from register.models import Customer, Register, Milk, Expense
 
 
 def index(request, year=None, month=None):
@@ -88,16 +88,27 @@ def addcustomer(request):
         'menu_customer': True,
     }
     if request.method == "POST":
-        form = CustomerForm(request.POST)
-        name = form['name'].value()
-        contact = form['contact'].value() or None
-        email = form['email'].value() or None
-        morning = form['morning'].value() or False
-        evening = form['evening'].value() or False
-        quantity = form['quantity'].value()
-        customer = Customer(name=name, contact=contact, email=email, morning=morning,
-                            evening=evening, quantity=quantity)
-        customer.save()
+        customer_id = request.POST.get("id", None)
+        if customer_id:
+            customer = Customer(id=customer_id)
+            customer.name = customer.name
+            customer_contact = request.POST.get("contact")
+            customer_email = request.POST.get("email")
+            customer_morning = True if request.POST.get("morning", False) else False
+            customer_evening = True if request.POST.get("evening", False) else False
+            customer_quantity = request.POST.get("quantity", None)
+            Customer.objects.filter(id=customer_id).update(contact=customer_contact, email=customer_email, morning=customer_morning, evening=customer_evening, quantity=customer_quantity)
+        else:
+            form = CustomerForm(request.POST)
+            name = form['name'].value()
+            contact = form['contact'].value()
+            email = form['email'].value()
+            morning = form['morning'].value() or False
+            evening = form['evening'].value() or False
+            quantity = form['quantity'].value()
+            customer = Customer(name=name, contact=contact, email=email, morning=morning,
+                                evening=evening, quantity=quantity)
+            customer.save()
         return redirect('view_customers')
     else:
         return render(request, template, context)
@@ -183,19 +194,21 @@ def customers(request):
 
 def account(request, year=None, month=None):
     template = 'register/account.html'
-    today = date.today()
+    custom_month = None
     if year and month:
-        time = f'{year}-{month}-01'
-        # Create date object in given time format yyyy-mm-dd
-        report_month = datetime.strptime(time, "%Y-%m-%d")
-        month_year = report_month.strftime("%B, %Y")
-    else:
-        month_year = today.strftime("%B, %Y")
+        date_time_str = f'01/{month}/{year} 01:01:01'
+        custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
+    register_date = custom_month if custom_month else date.today()
+    # expenses = Expense.objects.filter(log_date=register_date.month)
+    expenses = Expense.objects.all()
+    month_year = register_date.strftime("%B, %Y")
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
         'menu_account': True,
+        'expenses': expenses,
     }
+    print(context)
     return render(request, template, context)
 
 

@@ -20,70 +20,54 @@
   </style>
 
   <div class="d-flex bd-highlight">
-  <div class="col-6 mr-auto p-2 bd-highlight">
-    <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
-            data-target="#exampleModal1"
-            data-whatever="@fat">+ Add new Entry </button>
+    <div class="col-6 mr-auto p-2 bd-highlight">
+      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+              data-target="#exampleModal1"
+              data-whatever="@fat">+ Add new Entry
+      </button>
+    </div>
+    <div class="justify-content-end inline p-2 bd-highlight">
+      <form name="view_selectrecord" action="{% url 'view_selectrecord' %}"
+            method="post">{% csrf_token %}
+        <label for="myDate" class="col-form-label">Select Report:</label>
+        <input type="hidden" name="nav-type" value="account" id="nav">
+        <input class="inline" type="month" name="register_month" id="mydate"
+               value="{% now 'Y-m' %}">
+        <button type="submit" class="btn btn-info">GO</button>
+      </form>
+    </div>
   </div>
-  <div class="justify-content-end inline p-2 bd-highlight">
-    <form name="view_selectrecord" action="{% url 'view_selectrecord' %}" method="post">{% csrf_token %}
-    <label for="myDate" class="col-form-label">Select Register:</label>
-    <input type="hidden" name="nav-type" value="account" id="nav">
-    <input class="inline" type="month" name="register_month" id="mydate"
-           value="{% now 'Y-m' %}">
-    <button type="submit" class="btn btn-info">GO</button>
-    </form>
-  </div>
-</div>
   <hr>
   <div class="row justify-content-center">
     <div class="col">
       <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
-      {% if register %}
-        <h5 class="pt-2 mt-2 text-center">Morning</h5>
-        <div style="overflow-x:auto;">
-          <table class="table table-hover">
-            <tbody>
-            {% for entry in register %}
-              <tr>
-                {% if entry.customer.morning %}
-                  <td>{{ entry.customer.name }}</td>
-                  {% for day in days %}
-                    <td class="
-
-                     {% if entry.log_date.day == day %}{% if entry.schedule == 'morning-yes' %} cal-yes {% elif entry.schedule == 'morning-no' %} cal-no{% endif %}{% endif %}">{{ day }}</td>
-                  {% endfor %}
-                {% endif %}
-
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <h5 class="pt-2 mt-2 text-center">Evening</h5>
-        <div style="overflow-x:auto;">
-          <table class="table table-hover">
-            <tbody>
-            {% for entry in register %}
-              <tr>
-                {% if entry.customer.evening %}
-                  <td>{{ entry.customer.name }}</td>
-                  {% for day in days %}
-                    <td
-                     class="
-                      {% if entry.log_date.day == day %}{% if entry.schedule == 'evening-yes' %} cal-yes {% elif entry.schedule == 'evening-no' %} cal-no{% endif %}{% endif %}">{{ day }}</td>
-                  {% endfor %}
-                {% endif %}
-
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
+      {% if expenses %}
+        <h5 class="pt-2 mt-2 text-center">Expenses</h5>
+        <table class="table table-sm">
+          <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Description</th>
+            <th scope="col">Cost</th>
+            <th scope="col">Log Date</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for entry in expenses %}
+            <tr>
+              <th scope="row">{{ entry.id }}</th>
+              <td>{{ entry.description }}</td>
+              <td>{{ entry.cost }}</td>
+              <td>{{ entry.log_date }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
         </div>
       {% else %}
         <h3 class="pt-5 mt-4 text-center">Nothing to display at the moment</h3>
       {% endif %}
-    </div>
+  </div>
   </div>
 {% endblock %}
 <!-- Footer -->

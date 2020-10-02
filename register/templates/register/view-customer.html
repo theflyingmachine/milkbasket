@@ -2,56 +2,64 @@
 
 <!-- Navbar content -->
 {% block content %}
-<button type="button" class="btn btn-info m-3" href="addcustomer">+ Add new customer</button>
-<div class="row mt-2 justify-content-center">
-  <div class="col-lg-10 col-md-12">
-    <h2 class="text-center">View Customers</h2>
+  <div class="d-flex bd-highlight mb-3">
+  <div class="col-6 mr-auto p-2 bd-highlight">
+    <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+            data-target="#exampleModal"
+            data-whatever="@fat">+ Add New Customer </button>
   </div>
 </div>
-<hr>
-<div class="container mb-5">
-      {% if customers %}
-        {% for customer in customers %}
-        {% if forloop.first %}<div class="row">{% endif %}
-          <div class="col-md-4 p-3 col-sm-12">
-            <div class="card text-white bg-info" >
-              <img class="card-img-top" src="{{ customer.img }}" alt="Card image cap">
-              <div class="card-body">
-                <span class="card-title h4"><b>{{ customer.name }}</b></span><br>
-                {% if customer.contact %}<span class="card-text">{{ customer.contact }}</span><br>{% endif %}
-                {% if customer.email %}<span class="card-text">{{ customer.email }}</span><br>{% endif %}
-                <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>
-                  <div class="row justify-content-center">
-                    <button type="button" class="btn btn-secondary col-5 m-2">History</button>
-                    <button type="button" class="btn btn-secondary col-5 m-2"">Edit</button>
-                  </div>
-                <h5 class="card-title">{{ customer.name }}</h5>
-                {% if customer.contact %}<p class="card-text">{{ customer.contact }}</p>{% endif %}
-                {% if customer.email %}<p class="card-text">{{ customer.email }}</p>{% endif %}
-                <p class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</p>
-              <div class="row">
-                <div class="col-6"><button type="button" class="btn btn-info">History</button></div>
-                <div class="col-6"><button type="button" class="btn btn-info" data-toggle="modal"
-            data-target="#exampleModal"
-            data-name="{{ customer.name }}"
-            data-id="{{ customer.id }}"
-                data-contact="{{ customer.contact }}"
-                data-email="{{ customer.email }}"
-                data-quantity="{{ customer.quantity }}"
-                data-morning="{{ customer.morning }}"
-                data-evening="{{ customer.evening }}"
-                >Edit</button></div>
-              </div>
-              </div>
-            </div>
-          </div>
-          {% if forloop.counter|divisibleby:3 %}</div><hr><div class="row">{% endif %}
-          {% if forloop.last %}</div>{% endif %}
-        {% endfor %}
-      {% else %}
-        <h3 class="pt-5 mt-4 text-center">No Customers to display</h3>
-      {% endif %}
+
+{#  <button type="button" class="btn btn-info m-3" href="addcustomer">+ Add new customer</button>#}
+  <div class="row mt-2 justify-content-center">
+    <div class="col-lg-10 col-md-12">
+      <h2 class="text-center">View Customers</h2>
     </div>
+  </div>
+
+  <hr>
+  <div class="container mb-5">
+    {% if customers %}
+      {% for customer in customers %}
+        {% if forloop.first %}
+          <div class="row">{% endif %}
+      <div class="col-md-4 p-3 col-sm-12">
+        <div class="card text-white bg-info">
+          <img class="card-img-top" src="{{ customer.img }}" alt="Card image cap">
+          <div class="card-body">
+            <span class="card-title h4"><b>{{ customer.name }}</b></span><br>
+            {% if customer.contact %}<span class="card-text">{{ customer.contact }}</span>
+              <br>{% endif %}
+            {% if customer.email %}<span class="card-text">{{ customer.email }}</span>
+              <br>{% endif %}
+            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>
+            <div class="row justify-content-center">
+              <button type="button" class="btn btn-secondary col-5 m-2">History</button>
+              <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
+                      data-target="#exampleModal"
+                      data-name="{{ customer.name }}"
+                      data-id="{{ customer.id }}"
+                      data-contact="{{ customer.contact }}"
+                      data-email="{{ customer.email }}"
+                      data-quantity="{{ customer.quantity }}"
+                      data-morning="{{ customer.morning }}"
+                      data-evening="{{ customer.evening }}"
+              >Edit
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {% if forloop.counter|divisibleby:3 %}</div>
+        <hr>
+        <div class="row">{% endif %}
+      {% if forloop.last %}</div>{% endif %}
+      {% endfor %}
+    {% else %}
+      <h3 class="pt-5 mt-4 text-center">No Customers to display</h3>
+    {% endif %}
+  </div>
   </div>
 
 
@@ -67,45 +75,53 @@
           </button>
         </div>
         <form name="addnew" action="addcustomer" method="post">{% csrf_token %}
-          <input type="hidden" class="form-control" id="recipient-id" name="id">
-    <div class="p-4">
-      <div class="form-row">
-        <div class="form-group col-md-12">
-          <label for="name">Name</label>
-          <input type="text" class="form-control" id="recipient_name" name="name" placeholder="Name">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-md-12">
-          <label for="inputEmail4">Contact</label>
-          <input type="text" class="form-control" id="recipient_contact" name="contact" placeholder="Contact">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-md-12">
-          <label for="inputEmail4">Email</label>
-          <input type="text" class="form-control" id="recipient_email" name="email" placeholder="Email">
-        </div>
-      </div>
+          <input type="hidden" class="form-control" id="recipient_id" name="id">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="recipient_name" name="name"
+                       placeholder="Name">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="inputEmail4">Contact</label>
+                <input type="text" class="form-control" id="recipient_contact" name="contact"
+                       placeholder="Contact">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="inputEmail4">Email</label>
+                <input type="text" class="form-control" id="recipient_email" name="email"
+                       placeholder="Email">
+              </div>
+            </div>
 
-      <div class="form-row">
-        <div class="form-group col-md-12">
-          <label for="inputState">Schedule: </label>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="inputState">Schedule: </label>
 
 
-          <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_morning" name="morning" value="1">
-          <label for="vehicle1"> Morning</label>
-          <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_evening" name="evening" value="1">
-          <label for="vehicle2"> Evening</label><br>
+                <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_morning"
+                       name="morning">
+                <label for="vehicle1"> Morning</label>
+                <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_evening"
+                       name="evening">
+                <label for="vehicle2"> Evening</label><br>
 
-           <label for="inputZip">Quantity</label>
-        <input type="number" class="form-control" id="recipient-quantity" name="quantity" placeholder="ML">
-        </div>
-      </div>
-    </div>
+                <label for="inputZip">Quantity</label>
+                <input type="number" class="form-control" id="recipient-quantity" name="quantity"
+                       placeholder="ML">
+              </div>
+            </div>
+          </div>
 
-    <button type="submit" class="btn btn-primary justify-content-center col-12">Add Customer</button>
-  </form>
+          <button type="submit" class="btn btn-primary justify-content-center col-12">Add
+            Customer
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -120,16 +136,32 @@
       var recipient_id = button.data('id') // Extract info from data-* attributesc
       var recipient_morning = button.data('morning') // Extract info from data-* attributesc
       var recipient_evening = button.data('evening') // Extract info from data-* attributesc
+      console.log(recipient_id)
+      console.log(recipient_morning)
       // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
       // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
       var modal = $(this)
-      modal.find('#recipient_name').val(recipient_name)
+      if (recipient_name) {
+        modal.find('#recipient_name').val(recipient_name)
+        $('#recipient_name').prop('disabled', true);
+      }
+      modal.find('#recipient_id').val(recipient_id)
       modal.find('#recipient-quantity').val(recipient_quantity)
-      modal.find('#recipient-id').val(recipient_id)
+      modal.find('#recipient_email').val(recipient_id)
+      if (recipient_morning !== 'None')
       modal.find('#recipient_email').val(recipient_email)
-      modal.find('#recipient_morning').val(recipient_morning)
-      modal.find('#recipient_evening').val(recipient_evening)
+      modal.find('#recipient_contact').val(recipient_contact)
+      if (recipient_morning === 'True')
+      $('#recipient_morning').prop('checked',true);
+      else
+      $('#recipient_morning').prop('checked',false);
+
+      if (recipient_evening === 'True')
+      $('#recipient_evening').prop('checked',true);
+      else
+      $('#recipient_evening').prop('checked',false);
     })
+
   </script>
 
 {% endblock %}

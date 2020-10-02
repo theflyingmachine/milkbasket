@@ -4,14 +4,14 @@ from django.db import models
 
 
 class Customer(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     contact = models.CharField(max_length=10, null=True, default=None)
     email = models.CharField(max_length=50, null=True, default=None)
     morning = models.BooleanField(default=True)
     evening = models.BooleanField(default=True)
     quantity = models.FloatField(null=False, blank=False, default=None)
     status = models.BooleanField(default=True)
-    member_since = models.DateTimeField(auto_now_add=True)
+    member_since = models.DateTimeField(auto_now_add=True, null=True)
 
 
 class Milk(models.Model):
@@ -27,7 +27,9 @@ class Register(models.Model):
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None )
 
 
-
-
+class Expense(models.Model):
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=1000, null=False, default='Description')
+    log_date = models.DateTimeField(auto_now_add=True, null=True)
 
 
