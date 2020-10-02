@@ -1,0 +1,163 @@
+{% include "register/header.html" %}
+
+<!-- Navbar content -->
+{% block content %}
+  <style>
+      .cal-yes {
+          border: 1px solid green;
+          background-color: #80ced6;
+      }
+
+      .cal-no {
+          border: 1px solid red;
+          background-color: #f18973;
+      }
+
+      .cal-nodata {
+          border: 1px solid grey;
+      }
+
+      td a {
+          display: block;
+          width: 100%;
+      }
+  </style>
+
+  <a class="p-2 btn" href="addentry">+ Add new Entry</a>
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"
+          data-whatever="@fat">+ Add new Entry
+  </button>
+  <div class="row justify-content-center">
+    <div class="col">
+      <h2 class="pt-2 text-center">Register - {{ month_year }}</h2>
+      {% if m_register %}
+        <h5 class="pt-2 mt-2 text-center">Morning</h5>
+        <div style="overflow-x:auto;">
+          <table class="table table-hover">
+            <tbody>
+            {% for entry in m_register %}
+              <tr>
+                <td>{{ entry.customer_name }}</td>
+                {% for day in days %}
+                  <td{% for single_entry in entry.register_entry %}
+                    {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
+                      class="cal-yes" title="{{ single_entry.quantity }} ML"
+                    {% elif single_entry.log_date.day == day and single_entry.schedule == 'morning-no' %}
+                      class="cal-no"  {% endif %}{% endfor %} >
+                    <button type="button" class="btn" data-toggle="modal"
+                            data-target="#exampleModal" data-id="{{ entry.customer_id }}"
+                            data-schedule="Morning" data-whatever="{{ entry.customer_name }}"
+                            data-date_log="{{ day }} {{ month_year }}"
+                            data-quantity="{{ entry.customer_quantity }}"
+                            data-price="{{ entry.default_price }}">{{ day }}</button>
+                  </td></td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <h5 class="pt-2 mt-2 text-center">Evening</h5>
+        <div style="overflow-x:auto;">
+          <table class="table table-hover">
+            <tbody>
+            {% for entry in e_register %}
+              <tr>
+                <td>{{ entry.customer_name }}</td>
+                {% for day in days %}
+                  <td{% for single_entry in entry.register_entry %}
+                    {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
+                      class="cal-yes" title="{{ single_entry.quantity }} ML"
+                    {% elif single_entry.log_date.day == day and single_entry.schedule == 'evening-no' %}
+                      class="cal-no"  {% endif %}{% endfor %} >
+                    <button type="button" class="btn" data-toggle="modal"
+                            data-target="#exampleModal" data-id="{{ entry.customer_id }}"
+                            data-schedule="Evening" data-whatever="{{ entry.customer_name }}"
+                            data-date_log="{{ day }} {{ month_year }}"
+                            data-quantity="{{ entry.customer_quantity }}"
+                            data-price="{{ entry.default_price }}">{{ day }}</button>
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <h3 class="pt-5 mt-4 text-center">No Entry to display</h3>
+      {% endif %}
+    </div>
+  </div>
+
+  {#  Modal #}
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add Entry</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addnewentry" action="addentry" method="post">{% csrf_token %}
+          <div class="modal-body">
+
+            <input type="hidden" class="form-control" name="id" id="recipient-id">
+            <input type="hidden" class="form-control" name="log_date" id="date_log">
+            <input type="hidden" class="form-control" name="schedule" id="recipient_schedule">
+            <div class="form-group">
+              <label for="recipient-price" class="col-form-label">Price / L:</label>
+              <input type="text" class="form-control" disabled name="selling_price"
+                     id="recipient-price">
+            </div>
+            <div class="form-group">
+              <label for="recipient-quantity" class="col-form-label">Quantity:</label>
+              <input type="number" class="form-control" name="quantity" id="recipient-quantity">
+            </div>
+            <div class="form-group">
+              <label for="yn">Attendance:</label>
+              <div id='yn' class="form-check form-check-inline p-3">
+                <input class="form-check-input" type="radio" name="yes" id="inlineRadio1"
+                       value="1">
+                <label class="form-check-label" for="yes">Yes</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="no" id="inlineRadio2" value="0">
+                <label class="form-check-label" for="no">No</label>
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Add Entry</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $('#exampleModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var recipient = button.data('whatever') // Extract info from data-* attributes
+      var date_log = button.data('date_log') // Extract info from data-* attributes
+      var recipient_quantity = button.data('quantity') // Extract info from data-* attributes
+      var recipient_price = button.data('price') // Extract info from data-* attributesc
+      var recipient_schedule = button.data('schedule') // Extract info from data-* attributesc
+      var recipient_id = button.data('id') // Extract info from data-* attributesc
+      // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+      // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+      var modal = $(this)
+      modal.find('.modal-title').text(recipient + ' - ' + date_log + ' - ' + recipient_schedule)
+      modal.find('#recipient-quantity').val(recipient_quantity)
+      modal.find('#recipient-price').val(recipient_price)
+      modal.find('#recipient-id').val(recipient_id)
+      modal.find('#date_log').val(date_log)
+      modal.find('#recipient_schedule').val(recipient_schedule)
+    })
+  </script>
+{% endblock %}
+<!-- Footer -->
+{% include "register/footer.html" %}

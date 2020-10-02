@@ -1,0 +1,48 @@
+{% include "register/header.html" %}
+
+<!-- Navbar content -->
+{% block content %}
+
+  <div class="container">
+  <a class="btn" href="addcustomer">+ Add new customer</a>
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-md-12">
+        <h2 class="pt-5 mt-4 text-center">View Customers</h2>
+        {% if customers %}
+          <table class="table table-hover">
+
+
+            <thead>
+            <tr>
+              <th scope="col">QR</th>
+              <th scope="col">Name</th>
+              <th scope="col">Contact</th>
+              <th scope="col">Email</th>
+              <th scope="col">Schedule</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for customer in customers %}
+            <tr>
+{#              <th scope="row">{{ customer.id }}</th>#}
+              <td><img src="data:image/png;base64,{{ customer.qr }}" alt="Girl in a jacket" width="50" height="50"></td>
+              <td>{{ customer.name }}</td>
+              <td>{{ customer.contact }}</td>
+              <td>{{ customer.email }}</td>
+              <td>{{ customer.schedule }}</td>
+              <td>{{ customer.quantity }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <h3 class="pt-5 mt-4 text-center">No Customers to display</h3>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
+<!-- Footer -->
+{% include "register/footer.html" %}

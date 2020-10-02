@@ -21,9 +21,8 @@ class Milk(models.Model):
 
 class Register(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
-    date = models.DateTimeField()
-    morning = models.BooleanField(default=False)
-    evening = models.BooleanField(default=False)
+    log_date = models.DateTimeField()
+    schedule = models.CharField(max_length=15, null=True, default=None)
     quantity = models.FloatField(null=False, blank=False, default=None)
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None )
 
