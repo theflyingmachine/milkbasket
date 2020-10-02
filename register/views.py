@@ -23,6 +23,7 @@ def index(request, year=None, month=None):
     }
     custom_month = None
     milk = Milk.objects.last()
+    active_customers = Customer.objects.filter(status=1)
     if year and month:
         date_time_str = f'01/{month}/{year} 01:01:01'
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
@@ -81,6 +82,8 @@ def index(request, year=None, month=None):
         'm_register': m_register,
         'e_register': e_register,
         'days': cal_days,
+        'active_customers': active_customers,
+        'default_price': milk.price,
     })
     return render(request, template, context)
 

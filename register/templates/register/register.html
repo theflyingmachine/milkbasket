@@ -23,8 +23,7 @@
       }
   </style>
 
-  <a class="p-2 btn" href="addentry">+ Add new Entry</a>
-  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"
+  <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal" data-target="#exampleModal1"
           data-whatever="@fat">+ Add new Entry
   </button>
   <div class="row justify-content-center">
@@ -138,6 +137,67 @@
     </div>
   </div>
 
+
+  {#  Modal #}
+  <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add Entry</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addnewentry" action="addentry" method="post">{% csrf_token %}
+          <div class="modal-body">
+
+            <input type="hidden" class="form-control" name="id" id="recipient-id">
+            <input type="hidden" class="form-control" name="log_date" id="date_log">
+            <input type="hidden" class="form-control" name="schedule" id="recipient_schedule">
+            <div class="form-group">
+             <label for="exampleFormControlSelect1">Customer</label>
+    <select class="form-control" name="customer" id="exampleFormControlSelect1">
+      {%  for customer in active_customers %}
+      <option value="{{ customer.id }}">{{ customer.name }} | {{ customer.quantity }} ML</option>
+      {% endfor %}
+    </select>
+            </div>
+            <div class="form-group">
+              <label for="recipient-price" class="col-form-label">Price / L:</label>
+              <input type="text" class="form-control" disabled name="selling_price"
+                     id="recipient-price" value="{{ default_price }}">
+            </div>
+
+          <div class="mt-4 form-group row">
+  <label for="schedulepicker" class="col-2 col-form-label">Schedule</label>
+
+     <select class="col-10 form-control" name='schedule' id="exampleFormControlSelect1">
+      <option value="morning-yes">Morning - YES</option>
+      <option value="eveming-yes">Evening - YES</option>
+      <option value="morning-no">Morning - NO</option>
+      <option value="eveming-no">Evening - NO</option>
+    </select>
+
+
+          <div class="mt-4 form-group row">
+  <label for="myDate" class="col-2 col-form-label">Date</label>
+  <div class="col-10">
+    <input class="form-control" type="date" id="myDate">
+  </div>
+</div>
+
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Add Entry</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
     $('#exampleModal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget) // Button that triggered the modal
@@ -157,6 +217,13 @@
       modal.find('#date_log').val(date_log)
       modal.find('#recipient_schedule').val(recipient_schedule)
     })
+
+_today: function () {
+  var myDate = document.querySelector(myDate);
+  var today = new Date();
+  myDate.value = today.toISOString().substr(0, 10);
+},
+
   </script>
 {% endblock %}
 <!-- Footer -->
