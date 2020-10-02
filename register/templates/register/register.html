@@ -169,23 +169,21 @@
                      id="recipient-price" value="{{ default_price }}">
             </div>
 
-          <div class="mt-4 form-group row">
-  <label for="schedulepicker" class="col-2 col-form-label">Schedule</label>
+          <div class="form-group">
+             <label for="schedulepicker" class="col-form-label">Schedule:</label>
+             <select class="form-control" name='schedule' id="exampleFormControlSelect1">
+                <option value="morning-yes">Morning - YES</option>
+                <option value="eveming-yes">Evening - YES</option>
+                <option value="morning-no">Morning - NO</option>
+                <option value="eveming-no">Evening - NO</option>
+             </select>
+          </div>
 
-     <select class="col-10 form-control" name='schedule' id="exampleFormControlSelect1">
-      <option value="morning-yes">Morning - YES</option>
-      <option value="eveming-yes">Evening - YES</option>
-      <option value="morning-no">Morning - NO</option>
-      <option value="eveming-no">Evening - NO</option>
-    </select>
 
-
-          <div class="mt-4 form-group row">
-  <label for="myDate" class="col-2 col-form-label">Date</label>
-  <div class="col-10">
-    <input class="form-control" type="date" id="myDate">
-  </div>
-</div>
+          <div class="form-group">
+            <label for="myDate" class="col-form-label">Date:</label>
+            <input class="form-control" type="date" id="myDate" value="{% now 'Y-m-d' %}">
+          </div>
 
 
           </div>
