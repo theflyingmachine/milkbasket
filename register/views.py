@@ -82,7 +82,7 @@ def index(request, year=None, month=None):
 
 
 def addcustomer(request):
-    template = 'register/add-customer.html'
+    template = 'register/customer.html'
     context = {
         'page_title': 'Milk Basket - Add new customer',
         'menu_customer': True,
@@ -163,7 +163,7 @@ def addentry(request, year=None, month=None):
 
 
 def customers(request):
-    template = 'register/view-customer.html'
+    template = 'register/customer.html'
     context = {
         'page_title': 'Milk Basket - View customers',
         'menu_customer': True,
@@ -187,7 +187,19 @@ def customers(request):
             customer.schedule = 'Evening'
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
-    context.update({'customers': customers})
+
+    inactive_customers = Customer.objects.filter(status=0)
+    for customer in inactive_customers:
+        if customer.morning and not customer.evening:
+            customer.schedule = 'Morning'
+        if not customer.morning and customer.evening:
+            customer.schedule = 'Evening'
+        if customer.morning and customer.evening:
+            customer.schedule = 'Morning and Evening'
+    context.update({
+        'customers': customers,
+        'inactive_customers': inactive_customers,
+    })
 
     return render(request, template, context)
 
@@ -199,8 +211,7 @@ def account(request, year=None, month=None):
         date_time_str = f'01/{month}/{year} 01:01:01'
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     register_date = custom_month if custom_month else date.today()
-    # expenses = Expense.objects.filter(log_date=register_date.month)
-    expenses = Expense.objects.all()
+    expenses = Expense.objects.filter(log_date__month=register_date.month)
     month_year = register_date.strftime("%B, %Y")
     context = {
         'page_title': 'Milk Basket - Accounts',

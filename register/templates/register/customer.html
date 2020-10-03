@@ -59,6 +59,47 @@
     {% else %}
       <h3 class="pt-5 mt-4 text-center">No Customers to display</h3>
     {% endif %}
+
+
+{#  INACTIVE CUSTOMERS #}
+   {% if inactive_customers %}
+     <hr>
+     <h3 class="pt-5 mt-4 text-center">Inactive Customers</h3>
+      {% for customer in inactive_customers %}
+        {% if forloop.first %}
+          <div class="row">{% endif %}
+      <div class="col-md-4 p-3 col-sm-12">
+        <div class="card text-white bg-secondary">
+          <div class="card-body">
+            <span class="card-title h4"><b>{{ customer.name }}</b></span><br>
+            {% if customer.contact %}<span class="card-text">{{ customer.contact }}</span>
+              <br>{% endif %}
+            {% if customer.email %}<span class="card-text">{{ customer.email }}</span>
+              <br>{% endif %}
+            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>
+            <div class="row justify-content-center">
+              <button type="button" class="btn btn-secondary col-5 m-2">History</button>
+              <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
+                      data-target="#exampleModal"
+                      data-name="{{ customer.name }}"
+                      data-id="{{ customer.id }}"
+                      data-contact="{{ customer.contact }}"
+                      data-email="{{ customer.email }}"
+                      data-quantity="{{ customer.quantity }}"
+                      data-morning="{{ customer.morning }}"
+                      data-evening="{{ customer.evening }}"
+              >Edit
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% if forloop.counter|divisibleby:3 %}</div>
+        <hr>
+        <div class="row">{% endif %}
+      {% if forloop.last %}</div>{% endif %}
+      {% endfor %}
+    {% endif %}
   </div>
   </div>
 
