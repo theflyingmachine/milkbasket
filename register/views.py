@@ -3,13 +3,13 @@ from calendar import monthrange
 from datetime import datetime, date, timedelta, time
 
 import qrcode
-from django.db.models import Sum
 
+from django.db import transaction
 from django.shortcuts import render, redirect
 
 # Create your views here.
 from register.forms import CustomerForm, RegisterForm
-from register.models import Customer, Register, Milk, Expense
+from register.models import Customer, Register, Milk, Expense, Payment
 
 
 def index(request, year=None, month=None):
@@ -229,7 +229,7 @@ def account(request, year=None, month=None):
         payment_due_amount = 0
         for due in payment_due:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
-        customer['payment_due'] = payment_due_amount
+        customer['payment_due'] = round(payment_due_amount, 2)
         total_payment += payment_due_amount
 
     # Get paid customer
@@ -291,5 +291,42 @@ def manage_expense(request, year=None, month=None):
         desc = request.POST.get("exp_desc", None)
         new_expense = Expense(cost=cost, description=desc, log_date=expense_date)
         new_expense.save()
+
+    return redirect(formated_url)
+
+
+@transaction.atomic
+def accept_payment(request, year=None, month=None):
+    # Update Payment Table
+    payment_date = date.today()
+    formated_url = '/register/account'
+    if year and month:
+        formated_url = f'/register/account/{year}/{month}/'
+        date_time_str = f'25/{month}/{year} 01:01:01'
+        payment_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
+    c_id = request.POST.get("c_id", None)
+    payment_amount = request.POST.get("c_payment", None)
+    if c_id and payment_amount:
+        payment_amount = int(float(payment_amount))
+        new_payment = Payment(customer_id=c_id, amount=payment_amount)
+        new_payment.save()
+
+        # Update Register
+        accepting_payment = Register.objects.filter(customer_id=c_id,
+                                              log_date__month=payment_date.month,
+                                              schedule__endswith='yes', paid=0).order_by('log_date')
+        for entry in accepting_payment:
+            print('------------')
+            print(entry.id)
+            if payment_amount > 0:
+                entry_cost = (entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
+                print(entry_cost)
+                print(payment_amount)
+                if payment_amount - entry_cost >= 0:
+                    print('updating record', entry.id)
+                    Register.objects.filter(id=entry.id).update(paid=True)
+                    payment_amount = payment_amount - entry_cost
+                elif payment_amount != 0:
+                    Payment.objects.filter(id=new_payment.id).update(adjusted_amount=payment_amount)
 
     return redirect(formated_url)

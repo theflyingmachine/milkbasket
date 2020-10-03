@@ -85,7 +85,7 @@
         {#    Payment due#}
         {% if due_customer %}
           <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
-          <table class="table table-sm">
+          <table class="table table-sm m-5 p-5">
             <thead>
             <tr>
               <th scope="col">#</th>
@@ -140,7 +140,7 @@
           </div>
         {% endif %}
 
-
+        <p class="m-5 p-5">--- End of Page ---</p>
       {% else %}
         <h3 class="pt-5 mt-4 text-center">Nothing to display at the moment</h3>
       {% endif %}
@@ -223,8 +223,7 @@
           </button>
         </div>
         <form name="addexp" action="acceptpayment" method="post">{% csrf_token %}
-          <input type="hidden" class="form-control" id="modal_id" name="month_year"
-                 value="{{ month_year }}">
+          <input type="hidden" class="form-control" id="c_id" name="c_id">
           <div class="p-4">
             <div class="form-row">
               <div class="form-group col-md-12">
@@ -280,6 +279,7 @@
       modal.find('#c_id').val(c_id)
       modal.find('#c_name').val(c_name)
       modal.find('#c_dueamount').val(c_dueamount)
+      modal.find('#c_payment').val(c_dueamount)
     })
   </script>
 {% endblock %}
