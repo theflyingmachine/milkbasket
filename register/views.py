@@ -253,7 +253,7 @@ def account(request, year=None, month=None):
         'due_customer': due_customer,
         'paid_customer': paid_customer,
     }
-    print(context)
+
     return render(request, template, context)
 
 

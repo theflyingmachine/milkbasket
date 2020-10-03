@@ -101,7 +101,13 @@
                 <th scope="row">{{ entry.customer__name }}</th>
                 <td>{{ entry.payment_due }}</td>
                 <td>
-                  <button type="button" class="btn btn-primary">Make Payment</button>
+                  <button type="button" class="btn btn-primary"
+                  data-toggle="modal"
+                          data-target="#exampleModal2"
+                          data-cid="{{ entry.customer_id }}"
+                          data-cname="{{ entry.customer__name }}"
+                          data-dueamount="{{ entry.payment_due }}"
+                  >Make Payment</button>
                 </td>
               </tr>
             {% endfor %}
@@ -205,6 +211,51 @@
   </div>
 
 
+  {#  Accept Payment Modal #}
+  <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Accept Payment - {{ month_year }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addexp" action="acceptpayment" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="month_year"
+                 value="{{ month_year }}">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="c_name" name="c_name"
+                       disabled placeholder="Name">
+              </div>
+            </div>
+              <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Due Amount</label>
+                <input type="text" class="form-control" id="c_dueamount" name="c_dueamount"
+                       disabled placeholder="Due Amount">
+              </div>
+            </div>
+              <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Payment Amount</label>
+                <input type="number" class="form-control" id="c_payment" name="c_payment"
+                       placeholder="Amount">
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success justify-content-center col-12">Accept Payment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
 
   <script>
     $('#exampleModal').on('show.bs.modal', function (event) {
@@ -219,6 +270,17 @@
       modal.find('#modal_desc').val(full_text)
     })
 
+  {#  accept payment #}
+      $('#exampleModal2').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var c_id = button.data('cid') // Extract info from data-* attribute
+      var c_name = button.data('cname') // Extract info from data-* attribute
+      var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
+      var modal = $(this)
+      modal.find('#c_id').val(c_id)
+      modal.find('#c_name').val(c_name)
+      modal.find('#c_dueamount').val(c_dueamount)
+    })
   </script>
 {% endblock %}
 <!-- Footer -->
