@@ -20,132 +20,136 @@
   </style>
 
   <div class="d-flex bd-highlight">
-    <div class="col-6 mr-auto p-2 bd-highlight">
-      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
-              data-target="#exampleModal1"
-              data-whatever="@fat">+ Add new Entry
-      </button>
-    </div>
-    <div class="justify-content-end inline p-2 bd-highlight">
-      <form name="view_selectrecord" action="{% url 'view_selectrecord' %}"
-            method="post">{% csrf_token %}
-        <label for="myDate" class="col-form-label">Select Report:</label>
-        <input type="hidden" name="nav-type" value="account" id="nav">
-        <input class="inline" type="month" name="register_month" id="mydate"
-               value="{% now 'Y-m' %}">
-        <button type="submit" class="btn btn-info">GO</button>
-      </form>
-    </div>
+  <div class="col-6 mr-auto p-2 bd-highlight">
+    <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+            data-target="#exampleModal1"
+            data-whatever="@fat">+ Add new Entry
+    </button>
   </div>
+  <div class="justify-content-end inline p-2 bd-highlight">
+    <form name="view_selectrecord" action="{% url 'view_selectrecord' %}"
+          method="post">{% csrf_token %}
+      <label for="myDate" class="col-form-label">Select Report:</label>
+      <input type="hidden" name="nav-type" value="account" id="nav">
+      <input class="inline" type="month" name="register_month" id="mydate"
+             value="{% now 'Y-m' %}">
+      <button type="submit" class="btn btn-info">GO</button>
+    </form>
+  </div>
+</div>
   <hr>
+<div class="container mb-5">
   <div class="row justify-content-center">
-    <div class="col">
+    <div class="col-12">
       <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
-      {% if expenses or due_customer or paid_customer %}
-        {% if expenses %}
-          <h5 class="pt-2 mt-2 text-center">Expenses</h5>
-          <table class="table table-sm">
-            <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Description</th>
-              <th scope="col">Cost</th>
-              <th scope="col">Log Date</th>
-              <th scope="col">Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for entry in expenses %}
-              <tr>
-                <th scope="row">{{ forloop.counter }}</th>
-                <td>{{ entry.description }}</td>
-                <td>{{ entry.cost }}</td>
-                <td>{{ entry.log_date }}</td>
-                <td>
-                  <button type="button" class="btn btn-danger"
-                          data-toggle="modal"
-                          data-target="#exampleModal"
-                          data-id="{{ entry.id }}"
-                          data-desc="{{ entry.description }}"
-                          data-cost="{{ entry.cost }}"
-                          data-log_date="{{ entry.log_date }}"
-                  >Delete
-                  </button>
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        {% endif %}
-        </div>
-        </div>
+    </div>
 
-
-        {#    Payment Area    #}
-        {#    Payment due#}
-        {% if due_customer %}
-          <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
-          <table class="table table-sm m-5 p-5">
-            <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Name</th>
-              <th scope="col">Due Amount</th>
-              <th scope="col">Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for entry in due_customer %}
-              <tr>
-                <th scope="row">{{ forloop.counter }}</th>
-                <th scope="row">{{ entry.customer__name }}</th>
-                <td>{{ entry.payment_due }}</td>
-                <td>
-                  <button type="button" class="btn btn-primary"
-                  data-toggle="modal"
-                          data-target="#exampleModal2"
-                          data-cid="{{ entry.customer_id }}"
-                          data-cname="{{ entry.customer__name }}"
-                          data-dueamount="{{ entry.payment_due }}"
-                  >Make Payment</button>
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-          </div>
-        {% endif %}
-
-        {# Paid customer #}
-        {% if paid_customer %}
-          <h5 class="pt-2 mt-2 text-center">Paid Customers</h5>
-          <table class="table table-sm">
-            <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Name</th>
-              <th scope="col">Paid Amount</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for entry in paid_customer %}
-              <tr>
-                <th scope="row">{{ forloop.counter }}</th>
-                <th scope="row">{{ entry.customer__name }}</th>
-                <td>{{ entry.payment_done }}</td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-          </div>
-        {% endif %}
-
-        <p class="m-5 p-5">--- End of Page ---</p>
-      {% else %}
-        <h3 class="pt-5 mt-4 text-center">Nothing to display at the moment</h3>
+    {% if expenses or due_customer or paid_customer %}
+    {% if expenses %}
+<!--    First Table-->
+    <div class="mt-4 col-12">
+      <caption><h5 class="pt-2 mt-2 text-center">Expenses</h5></caption>
+      <table class="table table-sm table-striped">
+        <thead>
+        <tr class="d-flex bg-info">
+          <th class="p-2 col-1" scope="col">#</th>
+          <th class="p-2 col-3" scope="col">Description</th>
+          <th class="p-2 col-2" scope="col">Cost</th>
+          <th class="p-2 col-3" scope="col">Log Date</th>
+          <th class="p-2 col-3" scope="col">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for entry in expenses %}
+        <tr class="d-flex">
+          <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+          <td class="p-2 col-3">{{ entry.description }}</td>
+          <td class="p-2 col-2">{{ entry.cost }}</td>
+          <td class="p-2 col-3">{{ entry.log_date }}</td>
+          <td class="p-2 col-3">
+            <button type="button" class="btn-sm btn-danger"
+                    data-toggle="modal"
+                    data-target="#exampleModal"
+                    data-id="{{ entry.id }}"
+                    data-desc="{{ entry.description }}"
+                    data-cost="{{ entry.cost }}"
+                    data-log_date="{{ entry.log_date }}"
+            >Delete
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
       {% endif %}
-  </div>
-  </div>
+    </div>
+
+<!--    Second Table-->
+    <div class="col-12">
+      {#    Payment Area    #}
+      {#    Payment due#}
+      {% if due_customer %}
+      <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
+      <table class="table table-sm table-striped">
+        <thead>
+        <tr class="d-flex bg-info">
+          <th class="p-2 col-1" scope="col">#</th>
+          <th class="p-2 col-5" scope="col">Name</th>
+          <th class="p-2 col-3" scope="col">Due Amount</th>
+          <th class="p-2 col-3" scope="col">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for entry in due_customer %}
+        <tr class="d-flex">
+          <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+          <th class="p-2 col-5" scope="row">{{ entry.customer__name }}</th>
+          <td class="p-2 col-3">{{ entry.payment_due }}</td>
+          <td class="col-3">
+            <button type="button" class="btn-sm btn-primary"
+                    data-toggle="modal"
+                    data-target="#exampleModal2"
+                    data-cid="{{ entry.customer_id }}"
+                    data-cname="{{ entry.customer__name }}"
+                    data-dueamount="{{ entry.payment_due }}"
+            >Make Payment</button>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    </div>
+    <!--    Third Table-->
+    <div class="col-12">
+      {# Paid customer #}
+      {% if paid_customer %}
+      <h5 class="pt-2 mt-2 text-center">Paid Customers</h5>
+      <table class="table table-sm table-striped">
+        <thead>
+        <tr class="d-flex bg-info">
+          <th class="p-2 col-1" scope="col">#</th>
+          <th class="p-2 col-8" scope="col">Name</th>
+          <th class="p-2 col-3" scope="col">Paid Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for entry in paid_customer %}
+        <tr class="d-flex">
+          <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+          <th class="p-2 col-8" scope="row">{{ entry.customer__name }}</th>
+          <td class="p-2 col-3">{{ entry.payment_done }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    </div>
+    {% else %}
+    <h3 class="pt-5 mt-4 text-center">Nothing to display at the moment</h3>
+    {% endif %}
+</div>
+  <hr>
 
   {#  Delete Modal #}
   <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
@@ -164,14 +168,14 @@
             <div class="form-row">
               <div class="form-group col-md-12">
                 <label for="modal_desc">Are you sure to delete?</label>
-                <textarea id="modal_desc" name="w3review" rows="4" cols="50" disabled></textarea>
+                <textarea id="modal_desc" class="form-control" name="w3review" rows="4" cols="50" disabled></textarea>
               </div>
             </div>
-          </div>
           <button type="submit" class="btn btn-danger justify-content-center col-12">Delete
           </button>
         </form>
       </div>
+    </div>
     </div>
   </div>
 
@@ -197,14 +201,16 @@
                        placeholder="Amount">
               </div>
             </div>
-            <div class="form-group col-md-12">
-              <label for="modal_desc">Description</label>
-              <textarea id="modal_desc" placeholder="Narration of the expense" name="exp_desc"
-                        rows="4" cols="50"></textarea>
-            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="modal_desc">Description</label>
+                <textarea id="modal_desc" class="form-control" placeholder="Narration of the expense" name="exp_desc"
+                          rows="4" cols="50"></textarea>
+              </div>
           </div>
           <button type="submit" class="btn btn-primary justify-content-center col-12">Add Expense
           </button>
+          </div>
         </form>
       </div>
     </div>
@@ -246,9 +252,10 @@
                        placeholder="Amount">
               </div>
             </div>
-          </div>
+
           <button type="submit" class="btn btn-success justify-content-center col-12">Accept Payment
           </button>
+          </div>
         </form>
       </div>
     </div>
