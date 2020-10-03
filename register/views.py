@@ -224,9 +224,9 @@ def account(request, year=None, month=None):
 
     # Get Payment Due
     total_payment = 0
-    due_customer = Register.objects.filter(log_date__month=register_date.month, schedule__endswith='yes', paid=0).values('customer_id', 'customer__name').distinct()
+    due_customer = Register.objects.filter(schedule__endswith='yes', paid=0).values('customer_id', 'customer__name').distinct()
     for customer in due_customer:
-        payment_due = Register.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month, schedule__endswith='yes', paid=0)
+        payment_due = Register.objects.filter(customer_id=customer['customer_id'], schedule__endswith='yes', paid=0)
         payment_due_amount = 0
         for due in payment_due:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
@@ -238,9 +238,9 @@ def account(request, year=None, month=None):
 
     # Get paid customer
     total_payment_received = 0
-    paid_customer = Register.objects.filter(log_date__month=register_date.month, schedule__endswith='yes', paid=1).values('customer_id', 'customer__name').distinct()
+    paid_customer = Register.objects.filter( schedule__endswith='yes', paid=1).values('customer_id', 'customer__name').distinct()
     for customer in paid_customer:
-        payment_done = Register.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month, schedule__endswith='yes', paid=1)
+        payment_done = Register.objects.filter(customer_id=customer['customer_id'], schedule__endswith='yes', paid=1)
         payment_due_amount = 0
         for due in payment_done:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
@@ -330,9 +330,7 @@ def accept_payment(request, year=None, month=None):
         # print('Adjust :' ,adjust_amount)
         payment_amount = payment_amount + abs(adjust_amount)
         # print('Total:', payment_amount)
-        accepting_payment = Register.objects.filter(customer_id=c_id,
-                                              log_date__month=payment_date.month,
-                                              schedule__endswith='yes', paid=0).order_by('log_date')
+        accepting_payment = Register.objects.filter(customer_id=c_id, schedule__endswith='yes', paid=0).order_by('log_date')
         for entry in accepting_payment:
             if payment_amount > 0:
                 entry_cost = float(entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
