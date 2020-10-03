@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('landing', views.landing, name='landing'),
     path('', views.index, name='index'),
     path('<int:year>/<int:month>/', views.index, name='index_month'),
     path('<int:year>/<int:month>/addentry', views.addentry, name='view_addentry_month'),

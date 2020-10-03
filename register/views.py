@@ -351,6 +351,14 @@ def accept_payment(request, year=None, month=None):
     return redirect(formated_url)
 
 
+def landing(request):
+    template = 'register/landing.html'
+    context = {
+        'page_title': 'Milk Basket - View customers',
+    }
+    return render(request, template, context)
+
+
 def report(request):
     template = 'register/report.html'
     context = {
