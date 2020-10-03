@@ -22,25 +22,35 @@
           width: 100%;
       }
 
+      td.sticky {
+          position: -webkit-sticky;
+          position: sticky;
+          left: 0;
+          background-color: whitesmoke;
+      }
+
+
   </style>
 
-<div class="d-flex bd-highlight mb-3">
-  <div class="col-6 mr-auto p-2 bd-highlight">
-    <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
-            data-target="#exampleModal1"
-            data-whatever="@fat">+ Add new Entry </button>
+  <div class="d-flex bd-highlight mb-3">
+    <div class="col-6 mr-auto p-2 bd-highlight">
+      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+              data-target="#exampleModal1"
+              data-whatever="@fat">+ Add new Entry
+      </button>
+    </div>
+    <div class="justify-content-end inline p-2 bd-highlight">
+      <form name="view_selectrecord" action="{% url 'view_selectrecord' %}"
+            method="post">{% csrf_token %}
+        <label for="myDate" class="col-form-label">Select Register:</label>
+        <input type="hidden" name="nav-type" value="register" id="nav">
+        <input class="inline" type="month" name="register_month" id="mydate"
+               value="{% now 'Y-m' %}">
+        <button type="submit" class="btn btn-info">GO</button>
+      </form>
+    </div>
   </div>
-  <div class="justify-content-end inline p-2 bd-highlight">
-    <form name="view_selectrecord" action="{% url 'view_selectrecord' %}" method="post">{% csrf_token %}
-    <label for="myDate" class="col-form-label">Select Register:</label>
-      <input type="hidden" name="nav-type" value="register" id="nav">
-    <input class="inline" type="month" name="register_month" id="mydate"
-           value="{% now 'Y-m' %}">
-    <button type="submit" class="btn btn-info">GO</button>
-    </form>
-  </div>
-</div>
-<hr>
+  <hr>
   <div class="row justify-content-center mb-5">
     <div class="col">
       <h2 class="pt-2 text-center">Register - {{ month_year }}</h2>
@@ -51,7 +61,7 @@
             <tbody>
             {% for entry in m_register %}
               <tr>
-                <td>{{ entry.customer_name }}</td>
+                <td class="sticky">{{ entry.customer_name }}</td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
@@ -77,7 +87,7 @@
             <tbody>
             {% for entry in e_register %}
               <tr>
-                <td>{{ entry.customer_name }}</td>
+                <td class="sticky">{{ entry.customer_name }}</td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
@@ -137,7 +147,8 @@
                 <label class="form-check-label" for="yes">Yes</label>
               </div>
               <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="attendance" id="inlineRadio2" value="0">
+                <input class="form-check-input" type="radio" name="attendance" id="inlineRadio2"
+                       value="0">
                 <label class="form-check-label" for="no">No</label>
               </div>
             </div>
@@ -195,7 +206,8 @@
             </div>
             <div class="form-group">
               <label for="myDate" class="col-form-label">Date:</label>
-              <input class="form-control" type="date" name="log_date" id="mydate" min="{% now 'Y-m-01' %}" max="{{max_date}}"
+              <input class="form-control" type="date" name="log_date" id="mydate"
+                     min="{% now 'Y-m-01' %}" max="{{ max_date }}"
                      value="{% now 'Y-m-d' %}">
             </div>
           </div>
