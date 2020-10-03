@@ -25,11 +25,18 @@ class Register(models.Model):
     schedule = models.CharField(max_length=15, null=True, default=None)
     quantity = models.FloatField(null=False, blank=False, default=None)
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None )
+    paid = models.BooleanField(default=False)
 
 
 class Expense(models.Model):
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
+    log_date = models.DateTimeField(auto_now_add=True, null=True)
+
+
+class Payment(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
     log_date = models.DateTimeField(auto_now_add=True, null=True)
 
 

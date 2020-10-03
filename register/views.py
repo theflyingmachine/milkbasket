@@ -2,6 +2,7 @@ from calendar import monthrange
 from datetime import datetime, date, timedelta
 
 import qrcode
+from django.db.models import Sum
 
 from django.shortcuts import render, redirect
 
@@ -136,8 +137,8 @@ def addentry(request, year=None, month=None):
             customer = request.POST.get("id", None)
             log_date = request.POST.get("log_date", None)
             full_log_date = datetime.strptime(log_date, '%d %B, %Y')
-            yes = request.POST.get("yes", None)
-            yes_or_no = 'yes' if yes else 'no'
+            attendance = request.POST.get("attendance", 0)
+            yes_or_no = 'yes' if int(attendance) else 'no'
             schedule = request.POST.get("schedule", 'morning').lower()
             full_schedule = f'{schedule.lower()}-{yes_or_no}'
             quantity = form['quantity'].value() or False
@@ -211,8 +212,21 @@ def account(request, year=None, month=None):
         date_time_str = f'01/{month}/{year} 01:01:01'
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     register_date = custom_month if custom_month else date.today()
+
+    # Get expenses
     expenses = Expense.objects.filter(log_date__month=register_date.month)
     month_year = register_date.strftime("%B, %Y")
+
+    # Get Payment Due
+    payment_due = Register.objects.filter(log_date__month=register_date.month, schedule__endswith='yes', paid=0).values('customer_id').distinct()
+    for customer in payment_due:
+        due_amount = Register.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month, schedule__endswith='yes', paid=0).annotate(total_price=Sum('current_price'))
+
+        print(customer['customer_id'])
+        print(due_amount)
+
+
+
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
@@ -226,6 +240,7 @@ def account(request, year=None, month=None):
 def daterange(date1, date2):
     for n in range(int((date2 - date1).days) + 1):
         yield date1 + timedelta(n)
+
 
 def selectrecord(request):
     formated_url = ''
