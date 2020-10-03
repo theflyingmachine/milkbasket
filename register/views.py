@@ -5,11 +5,12 @@ from datetime import datetime, date, timedelta, time
 import qrcode
 
 from django.db import transaction
+from django.db.models import Sum
 from django.shortcuts import render, redirect
 
 # Create your views here.
 from register.forms import CustomerForm, RegisterForm
-from register.models import Customer, Register, Milk, Expense, Payment
+from register.models import Customer, Register, Milk, Expense, Payment, Balance
 
 
 def index(request, year=None, month=None):
@@ -229,7 +230,10 @@ def account(request, year=None, month=None):
         payment_due_amount = 0
         for due in payment_due:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
-        customer['payment_due'] = round(payment_due_amount, 2)
+        balance_amount = Balance.objects.filter(customer_id=customer['customer_id']).first()
+        customer['adjusted_amount'] = getattr(balance_amount,
+                                              'balance_amount') if balance_amount else 0
+        customer['payment_due'] = round(payment_due_amount, 2) - abs(customer['adjusted_amount'])
         total_payment += payment_due_amount
 
     # Get paid customer
@@ -240,7 +244,12 @@ def account(request, year=None, month=None):
         payment_due_amount = 0
         for due in payment_done:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+        balance_amount = Balance.objects.filter(customer_id=customer['customer_id']).first()
+        customer['adjusted_amount'] = getattr(balance_amount,
+                                              'balance_amount') if balance_amount else 0
         customer['payment_done'] = payment_due_amount
+        paid_amount = Payment.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month).aggregate(Sum('amount'))
+        customer['total_paid'] = paid_amount['amount__sum']
         total_payment_received += payment_due_amount
 
     context = {
@@ -312,21 +321,33 @@ def accept_payment(request, year=None, month=None):
         new_payment.save()
 
         # Update Register
+        balance_amount = Balance.objects.filter(customer_id=c_id).first()
+        adjust_amount = float(getattr(balance_amount, 'balance_amount')) if balance_amount else 0
+        Balance.objects.update_or_create(
+            customer_id=c_id, defaults={"balance_amount": 0}
+        )
+        # print('Received :' ,payment_amount)
+        # print('Adjust :' ,adjust_amount)
+        payment_amount = payment_amount + abs(adjust_amount)
+        # print('Total:', payment_amount)
         accepting_payment = Register.objects.filter(customer_id=c_id,
                                               log_date__month=payment_date.month,
                                               schedule__endswith='yes', paid=0).order_by('log_date')
         for entry in accepting_payment:
-            print('------------')
-            print(entry.id)
             if payment_amount > 0:
-                entry_cost = (entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
-                print(entry_cost)
-                print(payment_amount)
+                entry_cost = float(entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
                 if payment_amount - entry_cost >= 0:
-                    print('updating record', entry.id)
                     Register.objects.filter(id=entry.id).update(paid=True)
                     payment_amount = payment_amount - entry_cost
                 elif payment_amount != 0:
-                    Payment.objects.filter(id=new_payment.id).update(adjusted_amount=payment_amount)
+                    Balance.objects.update_or_create(
+                        customer_id=c_id, defaults={"balance_amount": payment_amount}
+                    )
+                    payment_amount = 0
+
+        if payment_amount != 0:
+            Balance.objects.update_or_create(
+                customer_id=c_id, defaults={"balance_amount": -payment_amount}
+            )
 
     return redirect(formated_url)

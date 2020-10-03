@@ -53,20 +53,20 @@
         <thead>
         <tr class="d-flex bg-info">
           <th class="p-2 col-1" scope="col">#</th>
-          <th class="p-2 col-3" scope="col">Description</th>
-          <th class="p-2 col-2" scope="col">Cost</th>
+          <th class="p-2 col-5" scope="col">Description</th>
+          <th class="p-2 col-1" scope="col">Cost</th>
           <th class="p-2 col-3" scope="col">Log Date</th>
-          <th class="p-2 col-3" scope="col">Action</th>
+          <th class="p-2 col-2" scope="col">Action</th>
         </tr>
         </thead>
         <tbody>
         {% for entry in expenses %}
         <tr class="d-flex">
           <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-          <td class="p-2 col-3">{{ entry.description }}</td>
-          <td class="p-2 col-2">{{ entry.cost }}</td>
+          <td class="p-2 col-5">{{ entry.description }}</td>
+          <td class="p-2 col-1">{{ entry.cost }}</td>
           <td class="p-2 col-3">{{ entry.log_date }}</td>
-          <td class="p-2 col-3">
+          <td class="p-2 col-2">
             <button type="button" class="btn-sm btn-danger"
                     data-toggle="modal"
                     data-target="#exampleModal"
@@ -129,7 +129,9 @@
         <thead>
         <tr class="d-flex bg-info">
           <th class="p-2 col-1" scope="col">#</th>
-          <th class="p-2 col-8" scope="col">Name</th>
+          <th class="p-2 col-4" scope="col">Name</th>
+          <th class="p-2 col-2" scope="col">Adjusted Amount</th>
+          <th class="p-2 col-2" scope="col">Accepted Amount</th>
           <th class="p-2 col-3" scope="col">Paid Amount</th>
         </tr>
         </thead>
@@ -137,8 +139,10 @@
         {% for entry in paid_customer %}
         <tr class="d-flex">
           <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-          <th class="p-2 col-8" scope="row">{{ entry.customer__name }}</th>
-          <td class="p-2 col-3">{{ entry.payment_done }}</td>
+          <th class="p-2 col-4" scope="row">{{ entry.customer__name }}</th>
+          <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
+          <td class="p-2 col-2">{{ entry.payment_done }}</td>
+          <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
         </tr>
         {% endfor %}
         </tbody>

@@ -39,7 +39,13 @@ class Expense(models.Model):
 class Payment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    adjusted_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     log_date = models.DateTimeField(auto_now_add=True, null=True)
 
 
+class Balance(models.Model):
+    customer = models.OneToOneField(
+        Customer,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
