@@ -247,9 +247,9 @@ def account(request, year=None, month=None):
         balance_amount = Balance.objects.filter(customer_id=customer['customer_id']).first()
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
-        customer['payment_done'] = payment_due_amount
+        customer['payment_done'] = round(payment_due_amount, 2)
         paid_amount = Payment.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month).aggregate(Sum('amount'))
-        customer['total_paid'] = paid_amount['amount__sum']
+        customer['total_paid'] = round(paid_amount['amount__sum'], 2)
         total_payment_received += payment_due_amount
 
     context = {
