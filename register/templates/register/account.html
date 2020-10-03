@@ -20,71 +20,268 @@
   </style>
 
   <div class="d-flex bd-highlight">
-  <div class="col-6 mr-auto p-2 bd-highlight">
-    <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
-            data-target="#exampleModal1"
-            data-whatever="@fat">+ Add new Entry </button>
+    <div class="col-6 mr-auto p-2 bd-highlight">
+      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+              data-target="#exampleModal1"
+              data-whatever="@fat">+ Add new Entry
+      </button>
+    </div>
+    <div class="justify-content-end inline p-2 bd-highlight">
+      <form name="view_selectrecord" action="{% url 'view_selectrecord' %}"
+            method="post">{% csrf_token %}
+        <label for="myDate" class="col-form-label">Select Report:</label>
+        <input type="hidden" name="nav-type" value="account" id="nav">
+        <input class="inline" type="month" name="register_month" id="mydate"
+               value="{% now 'Y-m' %}">
+        <button type="submit" class="btn btn-info">GO</button>
+      </form>
+    </div>
   </div>
-  <div class="justify-content-end inline p-2 bd-highlight">
-    <form name="view_selectrecord" action="{% url 'view_selectrecord' %}" method="post">{% csrf_token %}
-    <label for="myDate" class="col-form-label">Select Register:</label>
-    <input type="hidden" name="nav-type" value="account" id="nav">
-    <input class="inline" type="month" name="register_month" id="mydate"
-           value="{% now 'Y-m' %}">
-    <button type="submit" class="btn btn-info">GO</button>
-    </form>
-  </div>
-</div>
   <hr>
   <div class="row justify-content-center">
     <div class="col">
       <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
-      {% if register %}
-        <h5 class="pt-2 mt-2 text-center">Morning</h5>
-        <div style="overflow-x:auto;">
-          <table class="table table-hover">
+      {% if expenses or due_customer or paid_customer %}
+        {% if expenses %}
+          <h5 class="pt-2 mt-2 text-center">Expenses</h5>
+          <table class="table table-sm">
+            <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Description</th>
+              <th scope="col">Cost</th>
+              <th scope="col">Log Date</th>
+              <th scope="col">Action</th>
+            </tr>
+            </thead>
             <tbody>
-            {% for entry in register %}
+            {% for entry in expenses %}
               <tr>
-                {% if entry.customer.morning %}
-                  <td>{{ entry.customer.name }}</td>
-                  {% for day in days %}
-                    <td class="
-
-                     {% if entry.log_date.day == day %}{% if entry.schedule == 'morning-yes' %} cal-yes {% elif entry.schedule == 'morning-no' %} cal-no{% endif %}{% endif %}">{{ day }}</td>
-                  {% endfor %}
-                {% endif %}
-
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ entry.description }}</td>
+                <td>{{ entry.cost }}</td>
+                <td>{{ entry.log_date }}</td>
+                <td>
+                  <button type="button" class="btn btn-danger"
+                          data-toggle="modal"
+                          data-target="#exampleModal"
+                          data-id="{{ entry.id }}"
+                          data-desc="{{ entry.description }}"
+                          data-cost="{{ entry.cost }}"
+                          data-log_date="{{ entry.log_date }}"
+                  >Delete
+                  </button>
+                </td>
               </tr>
             {% endfor %}
             </tbody>
           </table>
+        {% endif %}
         </div>
-        <h5 class="pt-2 mt-2 text-center">Evening</h5>
-        <div style="overflow-x:auto;">
-          <table class="table table-hover">
-            <tbody>
-            {% for entry in register %}
-              <tr>
-                {% if entry.customer.evening %}
-                  <td>{{ entry.customer.name }}</td>
-                  {% for day in days %}
-                    <td
-                     class="
-                      {% if entry.log_date.day == day %}{% if entry.schedule == 'evening-yes' %} cal-yes {% elif entry.schedule == 'evening-no' %} cal-no{% endif %}{% endif %}">{{ day }}</td>
-                  {% endfor %}
-                {% endif %}
+        </div>
 
+
+        {#    Payment Area    #}
+        {#    Payment due#}
+        {% if due_customer %}
+          <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
+          <table class="table table-sm">
+            <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Due Amount</th>
+              <th scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in due_customer %}
+              <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <th scope="row">{{ entry.customer__name }}</th>
+                <td>{{ entry.payment_due }}</td>
+                <td>
+                  <button type="button" class="btn btn-primary"
+                  data-toggle="modal"
+                          data-target="#exampleModal2"
+                          data-cid="{{ entry.customer_id }}"
+                          data-cname="{{ entry.customer__name }}"
+                          data-dueamount="{{ entry.payment_due }}"
+                  >Make Payment</button>
+                </td>
               </tr>
             {% endfor %}
             </tbody>
           </table>
-        </div>
+          </div>
+        {% endif %}
+
+        {# Paid customer #}
+        {% if paid_customer %}
+          <h5 class="pt-2 mt-2 text-center">Paid Customers</h5>
+          <table class="table table-sm">
+            <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Paid Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in paid_customer %}
+              <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <th scope="row">{{ entry.customer__name }}</th>
+                <td>{{ entry.payment_done }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+        {% endif %}
+
+
       {% else %}
         <h3 class="pt-5 mt-4 text-center">Nothing to display at the moment</h3>
       {% endif %}
+  </div>
+  </div>
+
+  {#  Delete Modal #}
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Delete Expense</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="deleteExp" action="manageexpenses" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="id">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="modal_desc">Are you sure to delete?</label>
+                <textarea id="modal_desc" name="w3review" rows="4" cols="50" disabled></textarea>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-danger justify-content-center col-12">Delete
+          </button>
+        </form>
+      </div>
     </div>
   </div>
+
+  {#  Add expense Modal #}
+  <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add New Expense - {{ month_year }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addexp" action="manageexpenses" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="month_year"
+                 value="{{ month_year }}">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Cost</label>
+                <input type="number" class="form-control" id="exp_cost" name="cost_amount"
+                       placeholder="Amount">
+              </div>
+            </div>
+            <div class="form-group col-md-12">
+              <label for="modal_desc">Description</label>
+              <textarea id="modal_desc" placeholder="Narration of the expense" name="exp_desc"
+                        rows="4" cols="50"></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary justify-content-center col-12">Add Expense
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  {#  Accept Payment Modal #}
+  <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Accept Payment - {{ month_year }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addexp" action="acceptpayment" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="month_year"
+                 value="{{ month_year }}">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="c_name" name="c_name"
+                       disabled placeholder="Name">
+              </div>
+            </div>
+              <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Due Amount</label>
+                <input type="text" class="form-control" id="c_dueamount" name="c_dueamount"
+                       disabled placeholder="Due Amount">
+              </div>
+            </div>
+              <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Payment Amount</label>
+                <input type="number" class="form-control" id="c_payment" name="c_payment"
+                       placeholder="Amount">
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success justify-content-center col-12">Accept Payment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script>
+    $('#exampleModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var expense_id = button.data('id') // Extract info from data-* attribute
+      var expense_desc = button.data('desc') // Extract info from data-* attribute
+      var expense_cost = button.data('cost') // Extract info from data-* attribute
+      var expense_log_date = button.data('log_date') // Extract info from data-* attribute
+      var full_text = 'Expense of ' + expense_cost + ' dated ' + expense_log_date + ' towards: ' + expense_desc
+      var modal = $(this)
+      modal.find('#modal_id').val(expense_id)
+      modal.find('#modal_desc').val(full_text)
+    })
+
+  {#  accept payment #}
+      $('#exampleModal2').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var c_id = button.data('cid') // Extract info from data-* attribute
+      var c_name = button.data('cname') // Extract info from data-* attribute
+      var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
+      var modal = $(this)
+      modal.find('#c_id').val(c_id)
+      modal.find('#c_name').val(c_name)
+      modal.find('#c_dueamount').val(c_dueamount)
+    })
+  </script>
 {% endblock %}
 <!-- Footer -->
 {% include "register/footer.html" %}

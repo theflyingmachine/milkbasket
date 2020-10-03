@@ -12,6 +12,8 @@ urlpatterns = [
     path('account/<int:year>/<int:month>/', views.account, name='account_month'),
     path('addentry', views.addentry, name='view_addentry'),
     path('selectrecord', views.selectrecord, name='view_selectrecord'),
+    path('manageexpenses', views.manage_expense, name='manage_expense'),
+    path('account/<int:year>/<int:month>/manageexpenses', views.manage_expense, name='manage_expense'),
     # ex: /polls/5/
     # path('<int:question_id>/', views.detail, name='detail'),
     # # ex: /polls/5/results/
