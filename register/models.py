@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 
 # Create your models here.
@@ -31,7 +33,7 @@ class Register(models.Model):
 class Expense(models.Model):
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
-    log_date = models.DateTimeField(auto_now_add=True, null=True)
+    log_date = models.DateTimeField(null=False, default=datetime.now)
 
 
 class Payment(models.Model):

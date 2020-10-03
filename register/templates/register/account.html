@@ -41,34 +41,98 @@
   <div class="row justify-content-center">
     <div class="col">
       <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
-      {% if expenses %}
-        <h5 class="pt-2 mt-2 text-center">Expenses</h5>
-        <table class="table table-sm">
-          <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Description</th>
-            <th scope="col">Cost</th>
-            <th scope="col">Log Date</th>
-          </tr>
-          </thead>
-          <tbody>
-          {% for entry in expenses %}
+      {% if expenses or due_customer or paid_customer %}
+        {% if expenses %}
+          <h5 class="pt-2 mt-2 text-center">Expenses</h5>
+          <table class="table table-sm">
+            <thead>
             <tr>
-              <th scope="row">{{ entry.id }}</th>
-              <td>{{ entry.description }}</td>
-              <td>{{ entry.cost }}</td>
-              <td>{{ entry.log_date }}</td>
+              <th scope="col">#</th>
+              <th scope="col">Description</th>
+              <th scope="col">Cost</th>
+              <th scope="col">Log Date</th>
+              <th scope="col">Action</th>
             </tr>
-          {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+            {% for entry in expenses %}
+              <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ entry.description }}</td>
+                <td>{{ entry.cost }}</td>
+                <td>{{ entry.log_date }}</td>
+                <td>
+                  <button type="button" class="btn btn-danger"
+                          data-toggle="modal"
+                          data-target="#exampleModal"
+                          data-id="{{ entry.id }}"
+                          data-desc="{{ entry.description }}"
+                          data-cost="{{ entry.cost }}"
+                          data-log_date="{{ entry.log_date }}"
+                  >Delete
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+        </div>
         </div>
 
 
-{#    Payment Area    #}
+        {#    Payment Area    #}
+        {#    Payment due#}
+        {% if due_customer %}
+          <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
+          <table class="table table-sm">
+            <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Due Amount</th>
+              <th scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in due_customer %}
+              <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <th scope="row">{{ entry.customer__name }}</th>
+                <td>{{ entry.payment_due }}</td>
+                <td>
+                  <button type="button" class="btn btn-primary">Make Payment</button>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+        {% endif %}
 
-
+        {# Paid customer #}
+        {% if paid_customer %}
+          <h5 class="pt-2 mt-2 text-center">Paid Customers</h5>
+          <table class="table table-sm">
+            <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Paid Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in paid_customer %}
+              <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <th scope="row">{{ entry.customer__name }}</th>
+                <td>{{ entry.payment_done }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          </div>
+        {% endif %}
 
 
       {% else %}
@@ -76,6 +140,86 @@
       {% endif %}
   </div>
   </div>
+
+  {#  Delete Modal #}
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Delete Expense</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="deleteExp" action="manageexpenses" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="id">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="modal_desc">Are you sure to delete?</label>
+                <textarea id="modal_desc" name="w3review" rows="4" cols="50" disabled></textarea>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-danger justify-content-center col-12">Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {#  Add expense Modal #}
+  <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add New Expense - {{ month_year }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addexp" action="manageexpenses" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="month_year"
+                 value="{{ month_year }}">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Cost</label>
+                <input type="number" class="form-control" id="exp_cost" name="cost_amount"
+                       placeholder="Amount">
+              </div>
+            </div>
+            <div class="form-group col-md-12">
+              <label for="modal_desc">Description</label>
+              <textarea id="modal_desc" placeholder="Narration of the expense" name="exp_desc"
+                        rows="4" cols="50"></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary justify-content-center col-12">Add Expense
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script>
+    $('#exampleModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var expense_id = button.data('id') // Extract info from data-* attribute
+      var expense_desc = button.data('desc') // Extract info from data-* attribute
+      var expense_cost = button.data('cost') // Extract info from data-* attribute
+      var expense_log_date = button.data('log_date') // Extract info from data-* attribute
+      var full_text = 'Expense of ' + expense_cost + ' dated ' + expense_log_date + ' towards: ' + expense_desc
+      var modal = $(this)
+      modal.find('#modal_id').val(expense_id)
+      modal.find('#modal_desc').val(full_text)
+    })
+
+  </script>
 {% endblock %}
 <!-- Footer -->
 {% include "register/footer.html" %}

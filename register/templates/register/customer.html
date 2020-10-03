@@ -3,14 +3,15 @@
 <!-- Navbar content -->
 {% block content %}
   <div class="d-flex bd-highlight mb-3">
-  <div class="col-6 mr-auto p-2 bd-highlight">
-    <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
-            data-target="#exampleModal"
-            data-whatever="@fat">+ Add New Customer </button>
+    <div class="col-6 mr-auto p-2 bd-highlight">
+      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+              data-target="#exampleModal"
+              data-whatever="@fat">+ Add New Customer
+      </button>
+    </div>
   </div>
-</div>
 
-{#  <button type="button" class="btn btn-info m-3" href="addcustomer">+ Add new customer</button>#}
+  {#  <button type="button" class="btn btn-info m-3" href="addcustomer">+ Add new customer</button>#}
   <div class="row mt-2 justify-content-center">
     <div class="col-lg-10 col-md-12">
       <h2 class="text-center">View Customers</h2>
@@ -61,10 +62,10 @@
     {% endif %}
 
 
-{#  INACTIVE CUSTOMERS #}
-   {% if inactive_customers %}
-     <hr>
-     <h3 class="pt-5 mt-4 text-center">Inactive Customers</h3>
+    {#  INACTIVE CUSTOMERS #}
+    {% if inactive_customers %}
+      <hr>
+      <h3 class="pt-5 mt-4 text-center">Inactive Customers</h3>
       {% for customer in inactive_customers %}
         {% if forloop.first %}
           <div class="row">{% endif %}
@@ -177,8 +178,6 @@
       var recipient_id = button.data('id') // Extract info from data-* attributesc
       var recipient_morning = button.data('morning') // Extract info from data-* attributesc
       var recipient_evening = button.data('evening') // Extract info from data-* attributesc
-      console.log(recipient_id)
-      console.log(recipient_morning)
       // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
       // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
       var modal = $(this)
@@ -190,17 +189,17 @@
       modal.find('#recipient-quantity').val(recipient_quantity)
       modal.find('#recipient_email').val(recipient_id)
       if (recipient_morning !== 'None')
-      modal.find('#recipient_email').val(recipient_email)
+        modal.find('#recipient_email').val(recipient_email)
       modal.find('#recipient_contact').val(recipient_contact)
       if (recipient_morning === 'True')
-      $('#recipient_morning').prop('checked',true);
+        $('#recipient_morning').prop('checked', true);
       else
-      $('#recipient_morning').prop('checked',false);
+        $('#recipient_morning').prop('checked', false);
 
       if (recipient_evening === 'True')
-      $('#recipient_evening').prop('checked',true);
+        $('#recipient_evening').prop('checked', true);
       else
-      $('#recipient_evening').prop('checked',false);
+        $('#recipient_evening').prop('checked', false);
     })
 
   </script>

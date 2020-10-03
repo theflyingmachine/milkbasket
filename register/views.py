@@ -1,5 +1,6 @@
+import decimal
 from calendar import monthrange
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 
 import qrcode
 from django.db.models import Sum
@@ -214,24 +215,43 @@ def account(request, year=None, month=None):
     register_date = custom_month if custom_month else date.today()
 
     # Get expenses
+    total_expense = 0
     expenses = Expense.objects.filter(log_date__month=register_date.month)
+    for exp in expenses:
+        total_expense += exp.cost
     month_year = register_date.strftime("%B, %Y")
 
     # Get Payment Due
-    payment_due = Register.objects.filter(log_date__month=register_date.month, schedule__endswith='yes', paid=0).values('customer_id').distinct()
-    for customer in payment_due:
-        due_amount = Register.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month, schedule__endswith='yes', paid=0).annotate(total_price=Sum('current_price'))
+    total_payment = 0
+    due_customer = Register.objects.filter(log_date__month=register_date.month, schedule__endswith='yes', paid=0).values('customer_id', 'customer__name').distinct()
+    for customer in due_customer:
+        payment_due = Register.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month, schedule__endswith='yes', paid=0)
+        payment_due_amount = 0
+        for due in payment_due:
+            payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+        customer['payment_due'] = payment_due_amount
+        total_payment += payment_due_amount
 
-        print(customer['customer_id'])
-        print(due_amount)
-
-
+    # Get paid customer
+    total_payment_received = 0
+    paid_customer = Register.objects.filter(log_date__month=register_date.month, schedule__endswith='yes', paid=1).values('customer_id', 'customer__name').distinct()
+    for customer in paid_customer:
+        payment_done = Register.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month, schedule__endswith='yes', paid=1)
+        payment_due_amount = 0
+        for due in payment_done:
+            payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+        customer['payment_done'] = payment_due_amount
+        total_payment_received += payment_due_amount
 
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
         'menu_account': True,
         'expenses': expenses,
+        'total_payment': total_payment,
+        'total_expense': total_expense,
+        'due_customer': due_customer,
+        'paid_customer': paid_customer,
     }
     print(context)
     return render(request, template, context)
@@ -254,3 +274,22 @@ def selectrecord(request):
         formated_url = f'/register/account/{register_year}/{register_month}/'
     return redirect(formated_url)
 
+
+def manage_expense(request, year=None, month=None):
+    expense_date = datetime.now()
+    formated_url = '/register/account'
+    if year and month:
+        date_time_str = f'25/{month}/{year} 01:01:01'
+        expense_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
+        formated_url = f'/register/account/{year}/{month}/'
+    delete_id = request.POST.get("id", None)
+    if delete_id:
+        Expense.objects.filter(id=delete_id).delete()
+    add_expense = request.POST.get("month_year", None)
+    if add_expense:
+        cost = request.POST.get("cost_amount", None)
+        desc = request.POST.get("exp_desc", None)
+        new_expense = Expense(cost=cost, description=desc, log_date=expense_date)
+        new_expense.save()
+
+    return redirect(formated_url)
