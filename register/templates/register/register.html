@@ -81,6 +81,8 @@
             </tbody>
           </table>
         </div>
+      {% endif %}
+      {% if e_register %}
         <h5 class="pt-2 mt-2 text-center">Evening</h5>
         <div style="overflow-x:auto;">
           <table class="table table-hover">
@@ -206,9 +208,10 @@
             </div>
             <div class="form-group">
               <label for="myDate" class="col-form-label">Date:</label>
-              <input class="form-control" type="date" name="log_date" id="mydate" value="2020-09-01">
-{#                     min="{% now 'Y-m-01' %}" max="{{ max_date }}"#}
-{#                     value="{% now 'Y-m-d' %}">#}
+              <input class="form-control" type="date" name="log_date" id="mydate"
+                     value="2020-09-01">
+              {#                     min="{% now 'Y-m-01' %}" max="{{ max_date }}"#}
+              {#                     value="{% now 'Y-m-d' %}">#}
             </div>
           </div>
           <div class="modal-footer">
