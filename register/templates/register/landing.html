@@ -18,7 +18,7 @@ body, html {
 
 .bg-image {
   /* The image used */
-  background-image: url("https://dkpo4ygqb6rh6.cloudfront.net/COWSIGNALS_COM/imageresized/4023/8248646f7e35630b2bb4bf597c22b73a/2560_1440_75_fixedjpg/cowsignals_2560px.jpg");
+  background-image: url("https://ak.picdn.net/shutterstock/videos/4757405/thumb/1.jpg");
 
   /* Add the blur effect */
   filter: blur(4px);
@@ -289,6 +289,9 @@ input[type=text]:placeholder {
      <!-- Login Form -->
     <form name="login" method="post" action="login">{% csrf_token %}
     <h2 class="text-primary pagetitle">Milk Basket</h2>
+      {% if message %}
+    <h5 class="text-danger">{{ message }}</h5>
+      {% endif %}
       <input type="text" id="username" class="fadeIn third" name="username" placeholder="username">
       <input type="password" id="password" class="fadeIn third" name="password" placeholder="password">
       <input type="submit" class="fadeIn fourth" value="Log In">

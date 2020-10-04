@@ -375,6 +375,10 @@ def landing(request):
             login(request, user)
             print('Logged IN')
             return redirect('index')
+        else:
+            context.update({
+                'message': 'Invalid username or password',
+            })
     return render(request, template, context)
 
 
