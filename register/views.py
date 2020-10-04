@@ -1,5 +1,6 @@
 import decimal
 import json
+import os
 from calendar import monthrange
 from datetime import datetime, date, timedelta, time
 from dateutil.relativedelta import relativedelta
@@ -185,16 +186,18 @@ def customers(request):
     }
     customers = Customer.objects.filter(status=1)
     for customer in customers:
+
+        # TODO: Fix os path issue
         # Creating an instance of qrcode
-        qr = qrcode.QRCode(
-            version=1,
-            box_size=10,
-            border=1)
-        qr.add_data(customer.id)
-        qr.make(fit=True)
-        img = qr.make_image(fill='black', back_color='white')
-        img.save(f'register/static/qrcode{customer.id}.png')
-        customer.img = f'/static/qrcode{customer.id}.png'
+        # qr = qrcode.QRCode(
+        #     version=1,
+        #     box_size=10,
+        #     border=1)
+        # qr.add_data(customer.id)
+        # qr.make(fit=True)
+        # img = qr.make_image(fill='black', back_color='white')
+        # img.save(f'register/static/qrcode{customer.id}.png')
+        # customer.img = f'/static/qrcode{customer.id}.png'
 
         if customer.morning and not customer.evening:
             customer.schedule = 'Morning'
