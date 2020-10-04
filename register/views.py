@@ -374,7 +374,8 @@ def landing(request):
         'page_title': 'Milk Basket - View customers',
     }
     if request.method == "POST":
-        username = request.POST.get("username").lower
+        username = request.POST.get("username")
+        username = username.lower()
         password = request.POST.get("password")
         user = authenticate(username=username, password=password)
         if user is not None:
