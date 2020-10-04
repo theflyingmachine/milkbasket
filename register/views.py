@@ -374,8 +374,8 @@ def landing(request):
         'page_title': 'Milk Basket - View customers',
     }
     if request.method == "POST":
-        username = request.POST.get("username")
-        password =  request.POST.get("password")
+        username = request.POST.get("username").lower
+        password = request.POST.get("password")
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
@@ -431,7 +431,7 @@ def report(request, months=None):
             profit = False
 
         current_month = {
-            "monthName": graph_month.strftime('%B-%y'),
+            "monthName": graph_month.strftime('%B-%Y'),
             "month": graph_month.strftime('%b-%y'),
             "income": round(float(month_income), 2),
             "paid": round(float(month_paid), 2),
