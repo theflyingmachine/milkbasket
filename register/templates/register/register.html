@@ -199,16 +199,16 @@
               <label for="schedulepicker" class="col-form-label">Schedule:</label>
               <select class="form-control" name='schedule' id="exampleFormControlSelect1">
                 <option value="morning-yes">Morning - YES</option>
-                <option value="eveming-yes">Evening - YES</option>
+                <option value="evening-yes">Evening - YES</option>
                 <option value="morning-no">Morning - NO</option>
-                <option value="eveming-no">Evening - NO</option>
+                <option value="evening-no">Evening - NO</option>
               </select>
             </div>
             <div class="form-group">
               <label for="myDate" class="col-form-label">Date:</label>
-              <input class="form-control" type="date" name="log_date" id="mydate"
+              <input class="form-control" type="date" name="log_date" id="mydate" value="2020-09-01">
 {#                     min="{% now 'Y-m-01' %}" max="{{ max_date }}"#}
-                     value="{% now 'Y-m-d' %}">
+{#                     value="{% now 'Y-m-d' %}">#}
             </div>
           </div>
           <div class="modal-footer">
