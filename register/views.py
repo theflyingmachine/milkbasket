@@ -1,6 +1,8 @@
 import decimal
+import json
 from calendar import monthrange
 from datetime import datetime, date, timedelta, time
+from dateutil.relativedelta import relativedelta
 
 import qrcode
 from django.contrib.auth import authenticate, login
@@ -11,6 +13,8 @@ from django.db.models import Sum
 from django.shortcuts import render, redirect
 
 # Create your views here.
+from django.utils.safestring import mark_safe
+
 from register.forms import CustomerForm, RegisterForm
 from register.models import Customer, Register, Milk, Expense, Payment, Balance
 
@@ -385,11 +389,64 @@ def landing(request):
 
 
 @login_required
-def report(request):
+def report(request, months=None):
     template = 'register/report.html'
+    chart_data = []
+    now = datetime.now()
+    for i in range(-12, 1):
+        d1 = date.today()
+        graph_month = d1 + relativedelta(months=i)
+
+        # Fetch Expenses
+        month_expense = Expense.objects.filter(log_date__month=graph_month.month,
+                                               log_date__year=graph_month.year).aggregate(Sum('cost'))['cost__sum'] or 0
+
+        # Fetch Income
+        month_income = 0
+        month_income_entry = Register.objects.filter(log_date__month=graph_month.month,
+                                               log_date__year=graph_month.year,)
+        for entry in month_income_entry:
+            month_income += float(entry.current_price / 1000) * entry.quantity
+
+        # Fetch due per month
+        month_due = 0
+        month_due_entry = Register.objects.filter(log_date__month=graph_month.month,
+                                                     log_date__year=graph_month.year, paid=0)
+        for entry in month_due_entry:
+            month_due += float(entry.current_price / 1000) * entry.quantity
+
+        # Fetch paid per month
+        month_paid = 0
+        month_paid_entry = Register.objects.filter(log_date__month=graph_month.month,
+                                                  log_date__year=graph_month.year, paid=1)
+        for entry in month_paid_entry:
+            month_paid += float(entry.current_price / 1000) * entry.quantity
+
+        # Calculate Profit and Loss value
+        if month_paid > month_expense:
+            profit = float(month_paid) - float(month_expense)
+            loss = False
+        else:
+            loss = float(month_expense) - float(month_paid)
+            profit = False
+
+        current_month = {
+            "monthName": graph_month.strftime('%B-%y'),
+            "month": graph_month.strftime('%b-%y'),
+            "income": round(float(month_income), 2),
+            "paid": round(float(month_paid), 2),
+            "due": round(float(month_due), 2),
+            "expense": round(float(month_expense), 2),
+            "profit": profit,
+            "loss": loss,
+        }
+        chart_data.append(current_month)
+
     context = {
         'page_title': 'Milk Basket - Register',
         'menu_report': True,
+        'graph_data': mark_safe(json.dumps(chart_data)),
+        'table_data': chart_data,
     }
     return render(request, template, context)
 
