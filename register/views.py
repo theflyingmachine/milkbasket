@@ -397,13 +397,16 @@ def report(request):
 @login_required
 def setting(request):
     template = 'register/setting.html'
-    milk = Milk.objects.latest('id')
     if request.method == "POST":
         milk_price = request.POST.get("milkprice")
         now = datetime.now()
         if milk_price:
             new_milk_price = Milk(price=milk_price, date_effective=now)
             new_milk_price.save()
+    try:
+        milk = Milk.objects.latest('id')
+    except:
+        milk = None
     context = {
         'page_title': 'Milk Basket - Setting',
         'menu_setting': True,
