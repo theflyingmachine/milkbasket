@@ -158,7 +158,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Add Entry</button>
+            <button type="submit" class="btn btn-primary" autofocus>Add Entry</button>
           </div>
         </form>
       </div>
@@ -216,7 +216,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Add Entry</button>
+            <button type="submit" class="btn btn-primary" autofocus>Add Entry</button>
           </div>
         </form>
       </div>
@@ -243,6 +243,10 @@
       modal.find('#recipient_schedule').val(recipient_schedule)
     })
 
+
+    $('.modal').on('shown.bs.modal', function () {
+    $(this).find('[autofocus]').focus();
+});
   </script>
 {% endblock %}
 <!-- Footer -->
