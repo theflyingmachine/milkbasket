@@ -24,6 +24,8 @@ def index(request, year=None, month=None):
     }
     custom_month = None
     milk = Milk.objects.last()
+    if not milk:
+        return redirect('setting')
     active_customers = Customer.objects.filter(status=1)
     if year and month:
         date_time_str = f'01/{month}/{year} 01:01:01'
