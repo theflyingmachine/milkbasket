@@ -128,7 +128,7 @@ input[type=button]:active, input[type=submit]:active, input[type=reset]:active  
   transform: scale(0.95);
 }
 
-input[type=password] {
+input[type=password], input[type=text] {
   background-color: #f6f6f6;
   border: none;
   color: #0d0d0d;
@@ -287,9 +287,10 @@ input[type=text]:placeholder {
 <div class="bg-text">
 
      <!-- Login Form -->
-    <form name="login" method="post" action="login">
+    <form name="login" method="post" action="login">{% csrf_token %}
     <h2 class="text-primary pagetitle">Milk Basket</h2>
-      <input type="password" id="password" class="fadeIn third" name="login" placeholder="password">
+      <input type="text" id="username" class="fadeIn third" name="username" placeholder="username">
+      <input type="password" id="password" class="fadeIn third" name="password" placeholder="password">
       <input type="submit" class="fadeIn fourth" value="Log In">
     </form>
 </div>

@@ -3,6 +3,8 @@ from calendar import monthrange
 from datetime import datetime, date, timedelta, time
 
 import qrcode
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 
 from django.db import transaction
 from django.db.models import Sum
@@ -13,6 +15,7 @@ from register.forms import CustomerForm, RegisterForm
 from register.models import Customer, Register, Milk, Expense, Payment, Balance
 
 
+@login_required
 def index(request, year=None, month=None):
     template = 'register/register.html'
     context = {
@@ -84,6 +87,7 @@ def index(request, year=None, month=None):
     return render(request, template, context)
 
 
+@login_required
 def addcustomer(request):
     template = 'register/customer.html'
     context = {
@@ -117,6 +121,7 @@ def addcustomer(request):
         return render(request, template, context)
 
 
+@login_required
 def addentry(request, year=None, month=None):
     if request.method == "POST":
         milk = Milk.objects.last()
@@ -165,6 +170,7 @@ def addentry(request, year=None, month=None):
         return redirect('index')
 
 
+@login_required
 def customers(request):
     template = 'register/customer.html'
     context = {
@@ -207,6 +213,7 @@ def customers(request):
     return render(request, template, context)
 
 
+@login_required
 def account(request, year=None, month=None):
     template = 'register/account.html'
     custom_month = None
@@ -266,11 +273,13 @@ def account(request, year=None, month=None):
     return render(request, template, context)
 
 
+@login_required
 def daterange(date1, date2):
     for n in range(int((date2 - date1).days) + 1):
         yield date1 + timedelta(n)
 
 
+@login_required
 def selectrecord(request):
     formated_url = ''
     full_register_date = request.POST.get("register_month", None)
@@ -284,6 +293,7 @@ def selectrecord(request):
     return redirect(formated_url)
 
 
+@login_required
 def manage_expense(request, year=None, month=None):
     expense_date = datetime.now()
     formated_url = '/register/account'
@@ -304,6 +314,7 @@ def manage_expense(request, year=None, month=None):
     return redirect(formated_url)
 
 
+@login_required
 @transaction.atomic
 def accept_payment(request, year=None, month=None):
     # Update Payment Table
@@ -356,9 +367,18 @@ def landing(request):
     context = {
         'page_title': 'Milk Basket - View customers',
     }
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password =  request.POST.get("password")
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            print('Logged IN')
+            return redirect('index')
     return render(request, template, context)
 
 
+@login_required
 def report(request):
     template = 'register/report.html'
     context = {
