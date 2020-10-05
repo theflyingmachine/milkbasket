@@ -226,6 +226,7 @@ def customers(request):
 def account(request, year=None, month=None):
     template = 'register/account.html'
     custom_month = None
+    current_date = date.today()
     if year and month:
         date_time_str = f'01/{month}/{year} 01:01:01'
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
@@ -250,6 +251,13 @@ def account(request, year=None, month=None):
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
         customer['payment_due'] = round(payment_due_amount, 2) - abs(customer['adjusted_amount'])
+        due_prev_month = Register.objects.filter(customer_id=customer['customer_id'],
+                                              schedule__endswith='yes', paid=0).exclude(log_date__month=current_date.month)
+        due_prev_month_amount = 0
+        for due in due_prev_month:
+            due_prev_month_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+        customer['payment_due_prev'] = round(due_prev_month_amount, 2) - abs(customer['adjusted_amount'])
+
         total_payment += payment_due_amount
 
     # Get paid customer
@@ -277,6 +285,7 @@ def account(request, year=None, month=None):
         'total_expense': total_expense,
         'due_customer': due_customer,
         'paid_customer': paid_customer,
+        'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B")
     }
 
     return render(request, template, context)

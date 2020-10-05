@@ -23,7 +23,7 @@
   <div class="col-6 mr-auto p-2 bd-highlight">
     <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
             data-target="#exampleModal1"
-            data-whatever="@fat">+ Add new Entry
+            data-whatever="@fat">+ Add New Expense
     </button>
   </div>
   <div class="justify-content-end inline p-2 bd-highlight">
@@ -94,18 +94,20 @@
         <thead>
         <tr class="d-flex bg-info text-white">
           <th class="p-2 col-1" scope="col">#</th>
-          <th class="p-2 col-5" scope="col">Name</th>
-          <th class="p-2 col-3" scope="col">Due Amount</th>
-          <th class="p-2 col-3" scope="col">Action</th>
+          <th class="p-2 col-4" scope="col">Name</th>
+          <th class="p-2 col-2" scope="col">Total Due</th>
+          <th class="p-2 col-3" scope="col">Due (till {{ previous_month_name }})</th>
+          <th class="p-2 col-2" scope="col">Action</th>
         </tr>
         </thead>
         <tbody>
         {% for entry in due_customer %}
         <tr class="d-flex">
           <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-          <th class="p-2 col-5" scope="row">{{ entry.customer__name }}</th>
-          <td class="p-2 col-3">{{ entry.payment_due }}</td>
-          <td class="col-3">
+          <th class="p-2 col-4" scope="row">{{ entry.customer__name }}</th>
+          <td class="p-2 col-2">{{ entry.payment_due }}</td>
+          <td class="p-2 col-3">{% if entry.payment_due_prev %}<span class="font-weight-bold">{{ entry.payment_due_prev }}</span>  <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
+          <td class="col-2">
             <button type="button" class="btn-sm btn-primary"
                     data-toggle="modal"
                     data-target="#exampleModal2"
