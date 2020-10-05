@@ -265,7 +265,7 @@ def account(request, year=None, month=None):
                                               'balance_amount') if balance_amount else 0
         customer['payment_done'] = round(payment_due_amount, 2)
         paid_amount = Payment.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month).aggregate(Sum('amount'))
-        customer['total_paid'] = round(paid_amount['amount__sum'], 2)
+        customer['total_paid'] = paid_amount['amount__sum']
         total_payment_received += payment_due_amount
 
     context = {
@@ -475,3 +475,28 @@ def setting(request):
     }
     return render(request, template, context)
 
+
+@login_required
+def customer_profile(request, id=None):
+    template = 'register/profile.html'
+    if id:
+        customer = Customer.objects.filter(id=id).first()
+        transaction = Payment.objects.filter(customer_id=id)
+
+        register = Register.objects.filter(customer_id=id, schedule__in=['morning-yes', 'evening-yes', 'e-morning', 'e-evening']).order_by('-log_date').values()
+
+        for entry in register:
+            entry['billed_amount'] = float(entry['current_price'] / 1000) * entry['quantity']
+            entry['display_paid'] = 'Paid' if entry['paid'] else 'Due'
+            entry['display_schedule'] = 'Morning' if entry['schedule'] == 'morning-yes' else 'Evening'
+            entry['display_log_date'] = entry['log_date'].strftime('%d-%B-%Y')
+
+        context = {
+            'page_title': 'Milk Basket - Profile',
+            'menu_customer': True,
+            'customer': customer,
+            'transaction': transaction,
+            'register': register,
+        }
+    print(context)
+    return render(request, template, context)
