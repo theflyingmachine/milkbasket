@@ -64,10 +64,12 @@
                 <td class="sticky">{{ entry.customer_name }}</td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
+                    id="{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
-                      class="cal-yes" title="{{ single_entry.quantity }} ML"
+                    class="cal-yes" title="{{ single_entry.quantity }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'morning-no' %}
-                      class="cal-no"  {% endif %}{% endfor %} >
+                    id="{{ entry.customer_id }}_{{ day }}" class="cal-no"
+                    {% endif %}{% endfor %} >
                     <button type="button" class="btn" data-toggle="modal"
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Morning" data-whatever="{{ entry.customer_name }}"
@@ -154,7 +156,11 @@
                 <label class="form-check-label" for="no">No</label>
               </div>
             </div>
-
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped progress-bar-animated"
+                   role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                   style="width: 100%"></div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -209,9 +215,14 @@
             <div class="form-group">
               <label for="myDate" class="col-form-label">Date:</label>
               <input class="form-control" type="date" name="log_date" id="mydate"
-                                   min="{% now 'Y-m-01' %}" max="{{ max_date }}"
-                                   value="{% now 'Y-m-d' %}">
+                     min="{% now 'Y-m-01' %}" max="{{ max_date }}"
+                     value="{% now 'Y-m-d' %}">
             </div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                 aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                 style="width: 100%"></div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -244,8 +255,40 @@
 
 
     $('.modal').on('shown.bs.modal', function () {
-    $(this).find('[autofocus]').focus();
-});
+      $(this).find('[autofocus]').focus();
+
+      {#    Ajax for register entry #}
+      $(document).ready(function () {
+        $('.modal form').on('submit', function (event) {
+          $(".progress").show();
+          $(".modal-footer").hide();
+          event.preventDefault()
+          $.post($(this).attr('action'), $(this).serialize(), function (data) {
+            console.log(data)
+            if (data.return === true) {
+              // Success code here
+               if (data.reload === true) {
+                 location.reload()
+               }
+              document.getElementById(data.cell).classList.add(data.classname);
+              $(".modal-backdrop").remove();
+              $(".progress").hide();
+              $(".modal-footer").show();
+              $(".modal").hide();
+            } else {
+              // Error code here
+              alert('Something went wrong...')
+            }
+          }, 'json')
+        })
+      });
+    });
+    {# Hide modal progressbar on page load#}
+    $(document).ready(function () {
+      $(".progress").hide();
+
+
+    });
   </script>
 {% endblock %}
 <!-- Footer -->

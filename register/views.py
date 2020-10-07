@@ -1,16 +1,18 @@
 import decimal
 import json
+import time as t
 import os
 from calendar import monthrange
 from datetime import datetime, date, timedelta, time
 from dateutil.relativedelta import relativedelta
 
 import qrcode
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 from django.db import transaction
 from django.db.models import Sum
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 
 # Create your views here.
@@ -132,6 +134,9 @@ def addcustomer(request):
 def addentry(request, year=None, month=None):
     if request.method == "POST":
         milk = Milk.objects.last()
+        yes_or_no = ''
+        entry_status = False
+        reload_status = False
         if request.POST.get("add-new-entry", None):
             customer = request.POST.get("customer", None)
             customer_info = Customer.objects.filter(id=customer, status=1).first()
@@ -146,6 +151,8 @@ def addentry(request, year=None, month=None):
                 entry = Register(customer_id=customer_info.id, log_date=full_log_date, schedule=schedule,
                                  quantity=customer_info.quantity, current_price=current_price)
                 entry.save()
+                entry_status = True if entry.id else False
+                reload_status = True
         else:
             form = RegisterForm(request.POST)
             customer = request.POST.get("id", None)
@@ -165,10 +172,21 @@ def addentry(request, year=None, month=None):
                 entry = Register(customer_id=customer, log_date=full_log_date, schedule=full_schedule,
                                  quantity=quantity, current_price=current_price)
                 entry.save()
+                entry_status = True if entry.id else False
             else:
                 check_record.schedule = full_schedule
                 check_record.quantity = quantity
                 check_record.save()
+                entry_status = True if check_record.id else False
+
+        data = {
+            'return': entry_status,
+            'cell': f'{customer}_{full_log_date.day}',
+            'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
+            'reload': reload_status,
+        }
+        t.sleep(2)
+        return JsonResponse(data)
 
     if year and month:
         month = month if len(str(month)) > 1 else f'0{month}'
@@ -355,10 +373,7 @@ def accept_payment(request, year=None, month=None):
         Balance.objects.update_or_create(
             customer_id=c_id, defaults={"balance_amount": 0}
         )
-        # print('Received :' ,payment_amount)
-        # print('Adjust :' ,adjust_amount)
         payment_amount = payment_amount + abs(adjust_amount)
-        # print('Total:', payment_amount)
         accepting_payment = Register.objects.filter(customer_id=c_id, schedule__endswith='yes', paid=0).order_by('log_date')
         for entry in accepting_payment:
             if payment_amount > 0:
@@ -392,7 +407,6 @@ def landing(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
-            print('Logged IN')
             return redirect('index')
         else:
             context.update({
@@ -486,6 +500,12 @@ def setting(request):
 
 
 @login_required
+def logout_request(request):
+    logout(request)
+    return redirect('index')
+
+
+@login_required
 def customer_profile(request, id=None):
     template = 'register/profile.html'
     if id:
@@ -507,5 +527,4 @@ def customer_profile(request, id=None):
             'transaction': transaction,
             'register': register,
         }
-    print(context)
     return render(request, template, context)

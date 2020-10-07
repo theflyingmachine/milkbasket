@@ -25,6 +25,7 @@
             <span class="ex3">{{ milk.price }}</span><span class="ex1"> INR / Liter</span><br>
             <span class="ex2">Milk Price per liter</span>
             <p class="ex1">Updated: {{ milk.date_effective }}</p>
+             <p>Current Time: {% now "jS F Y H:i" %}</p>
             <br>
             <br>
             <br>
@@ -41,6 +42,7 @@
 
 
               <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
+
             </div>
           </div>
         </form>

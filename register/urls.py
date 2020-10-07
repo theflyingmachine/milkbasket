@@ -3,8 +3,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('login', views.landing, name='landing'),
     path('', views.index, name='index'),
+    path('login', views.landing, name='landing'),
+    path('logout', views.logout_request, name='logout'),
     path('setting', views.setting, name='setting'),
     path('<int:year>/<int:month>/', views.index, name='index_month'),
     path('profile/<int:id>/', views.customer_profile, name='customer_profile'),
