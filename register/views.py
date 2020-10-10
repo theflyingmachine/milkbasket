@@ -243,7 +243,7 @@ def autopilot(request, year=None, month=None):
                     entry.save()
                 else:
                     print('Skipping: ', customer.name, 'Day: ', day)
-        t.sleep(2)
+        t.sleep(10)
         response = {
             'showmessage': False,
             'message': f'Success',
@@ -527,11 +527,24 @@ def report(request, months=None):
         }
         chart_data.append(current_month)
 
+    #     Get mil k production over past 365 days
+    chart_data_milk = []
+    for i in range(-365, 1):
+        d1 = date.today()
+        graph_day = d1 + relativedelta(days=i)
+        milk_production = Register.objects.filter(log_date__year=graph_day.year, log_date__month=graph_day.month, log_date__day=graph_day.day).aggregate(Sum('quantity'))['quantity__sum'] or 0
+        current_day = {
+            "dayName": graph_day.strftime('%d-%B-%Y'),
+            "milkQuantity": round(float(milk_production/1000), 2),
+        }
+        chart_data_milk.append(current_day)
+
     context = {
         'page_title': 'Milk Basket - Register',
         'menu_report': True,
         'graph_data': mark_safe(json.dumps(chart_data)),
         'table_data': chart_data,
+        'chart_data_milk': mark_safe(json.dumps(chart_data_milk)),
     }
     return render(request, template, context)
 
