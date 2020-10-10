@@ -14,9 +14,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-
-<!-- Include Required Prerequisites -->
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-date-range-picker/0.14.2/daterangepicker.min.css">
 </head>
 
 <style>
@@ -30,13 +27,45 @@
   color: black;
   text-align: center;
 }
+
+    .navbrand a {
+      font-size: 17px;
+      padding-left: 35px;
+      padding-right: 40px;
+      padding-top: 5px;
+
+    }
+    @font-face {
+      font-family: fontastique;
+      src: url("{% static "/src/fontastique.ttf"%}");
+    }
+    .intro {
+      font-family: fontastique;
+      font-size: 40px;
+    }
+
+        .poweredby {
+      font-size: 15px;
+    }
+
+    .topnav a {
+        color: #f2f2f2;
+        text-align: center;
+        text-decoration: none;
+    }
+
 </style>
 
 
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <a class="navbar-brand mr-5" href="/register/">MilkBasket</a>
+{#  <a class="navbar-brand mr-5" href="/register/">MilkBasket</a>#}
+<div class="topnav navbar-brand mr-5">
+        <a class="navbrand mr-5" href="./"> <strong class="intro">MilkBasket</strong><sub>(Beta)</sub><br>
+          <div class="poweredby">POWERED BY CYBERBOY.IN</div>
+        </a>
+      </div>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -48,9 +77,9 @@
       <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}" href="/register/setting">Setting</a>
       <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}" href="/register/report">Report</a>
     </div>
+</div>
     <div class="nav navbar-nav navbar-right">
       <a class="nav-item nav-link mr-3 " href="/logout">{{ user.get_username|capfirst }} - Logout</a>
     </div>
-
-  </div>
 </nav>
+  <div class="container-fluid">

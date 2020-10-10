@@ -131,10 +131,11 @@
       </form>
     </div>
   </div>
-  <hr>
+  <h2 class="text-center">Register - {{ month_year }}</h2>
+    <hr>
   <div class="row justify-content-center mb-5">
     <div class="col">
-      <h2 class="pt-2 text-center">Register - {{ month_year }}</h2>
+
       {% if m_register %}
         <h5 class="pt-2 mt-2 text-center">Morning</h5>
         <div style="overflow-x:auto;">
@@ -372,9 +373,9 @@
                     </label>
                   {% endfor %}
                 {% else %}
-                  <h3 class="mb-4">Add Customer to Morning Register</h3>
+                  <h3 class="mb-4 text-success">Add Customer to Morning Register</h3>
                   {% for entry in autopilot_register %}
-                    <label class="container">{{ entry.customer_name }}
+                    <label class="container text-success">{{ entry.customer_name }}
                       | {{ entry.customer_quantity }} ML
                       <input name="{{ entry.customer_id }}-morning" type="checkbox"
                              checked="checked">
@@ -395,9 +396,9 @@
                     </label>
                   {% endfor %}
                 {% else %}
-                   <h3 class="mb-4">Add Customer to Evening Register</h3>
+                   <h3 class="mb-4 text-success">Add Customer to Evening Register</h3>
                   {% for entry in autopilot_register %}
-                    <label class="container">{{ entry.customer_name }}
+                    <label class="container text-success">{{ entry.customer_name }}
                       | {{ entry.customer_quantity }} ML
                       <input name="{{ entry.customer_id }}-evening" type="checkbox"
                              checked="checked">
@@ -424,7 +425,7 @@
         </div>
         <!-- Modal footer -->
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Close</button>
         </div>
 
       </div>
@@ -497,11 +498,6 @@
       $("#autoimg").hide();
     });
 
-    {#  Update date for autopilot datepicker#}
-    $('#sandbox-container .input-daterange').datepicker({
-      todayBtn: true,
-      todayHighlight: true
-    });
   </script>
 {% endblock %}
 <!-- Footer -->

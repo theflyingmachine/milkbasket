@@ -37,13 +37,10 @@
     </form>
   </div>
 </div>
+  <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
   <hr>
 <div class="container mb-5">
   <div class="row justify-content-center">
-    <div class="col-12">
-      <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
-    </div>
-
     {% if expenses or due_customer or paid_customer %}
     {% if expenses %}
 <!--    First Table-->

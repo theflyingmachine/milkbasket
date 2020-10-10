@@ -595,6 +595,12 @@ def customer_profile(request, id=None):
         customer = Customer.objects.filter(id=id).first()
         transaction = Payment.objects.filter(customer_id=id)
 
+        if customer.morning and not customer.evening:
+            customer.schedule = 'Morning'
+        if not customer.morning and customer.evening:
+            customer.schedule = 'Evening'
+        if customer.morning and customer.evening:
+            customer.schedule = 'Morning and Evening'
         register = Register.objects.filter(customer_id=id, schedule__in=['morning-yes', 'evening-yes', 'e-morning', 'e-evening']).order_by('-log_date').values()
 
         for entry in register:
