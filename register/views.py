@@ -88,6 +88,7 @@ def index(request, year=None, month=None):
         'month_year': month_year,
         'm_register': m_register,
         'e_register': e_register,
+        'today_day': date.today().day,
         'days': cal_days,
         'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
         'active_customers': active_customers,
@@ -193,6 +194,63 @@ def addentry(request, year=None, month=None):
         return redirect(f'/register/{year}/{month}/')
     else:
         return redirect('index')
+
+
+@login_required
+@transaction.atomic()
+def autopilot(request, year=None, month=None):
+
+    if request.method == "POST":
+        milk = Milk.objects.last()
+        current_price = milk.price
+        autopilot_data = []
+        # Get autopilot form data
+        for key in request.POST:
+            value = request.POST[key]
+            if value == 'on':
+                auto = {
+                    'id': key.split('-')[0],
+                    'schedule': key.split('-')[1],
+                }
+                autopilot_data.append(auto)
+        log_month = request.POST.get("log_month", None)
+        start_date = request.POST['start']
+        start = datetime.strptime(f'{start_date}-{log_month}', '%d-%B, %Y')
+        end_date = request.POST['end']
+        end = datetime.strptime(f'{end_date}-{log_month}', '%d-%B, %Y')
+
+        if int(end_date) < int(start_date):
+            response = {
+                'showmessage': True,
+                'message': f'you have selected {start_date} start and {end_date} end date. End date can not be before start date.',
+                'status': False,
+            }
+            return JsonResponse(response)
+        delta = end - start  # as timedelta
+        for i in range(delta.days + 1):
+            day = start + timedelta(days=i)
+            print(day)
+            for cust in autopilot_data:
+                customer = Customer.objects.filter(id=cust['id']).first()
+                full_log_date = datetime.strptime(str(day), '%Y-%m-%d %H:%M:%S')
+                check_record = Register.objects.filter(customer_id=customer.id, log_date=full_log_date,
+                                                   schedule__startswith=cust['schedule']).first()
+                if not check_record:
+                    full_schedule = f'{cust["schedule"]}-yes'
+                    entry = Register(customer_id=customer.id, log_date=full_log_date,
+                                     schedule=full_schedule,
+                                     quantity=customer.quantity, current_price=current_price)
+                    entry.save()
+                else:
+                    print('Skipping: ', customer.name, 'Day: ', day)
+        t.sleep(2)
+        response = {
+            'showmessage': False,
+            'message': f'Success',
+            'return': True,
+            'reload': True,
+        }
+    return JsonResponse(response)
 
 
 @login_required

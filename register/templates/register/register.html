@@ -29,6 +29,83 @@
           background-color: whitesmoke;
       }
 
+      .modal-xl {
+          max-width: 80% !important;
+      }
+
+      /* The container */
+      .container {
+          display: block;
+          position: relative;
+          padding-left: 35px;
+          margin-bottom: 12px;
+          cursor: pointer;
+          font-size: 22px;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+      }
+
+      /* Hide the browser's default checkbox */
+      .container input {
+          position: absolute;
+          opacity: 0;
+          cursor: pointer;
+          height: 0;
+          width: 0;
+      }
+
+      /* Create a custom checkbox */
+      .checkmark {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 25px;
+          width: 25px;
+          background-color: #eee;
+      }
+
+      /* On mouse-over, add a grey background color */
+      .container:hover input ~ .checkmark {
+          background-color: #ccc;
+      }
+
+      /* When the checkbox is checked, add a blue background */
+      .container input:checked ~ .checkmark {
+          background-color: #2196F3;
+      }
+
+      /* Create the checkmark/indicator (hidden when not checked) */
+      .checkmark:after {
+          content: "";
+          position: absolute;
+          display: none;
+      }
+
+      /* Show the checkmark when checked */
+      .container input:checked ~ .checkmark:after {
+          display: block;
+      }
+
+      /* Style the checkmark/indicator */
+      .container .checkmark:after {
+          left: 9px;
+          top: 5px;
+          width: 5px;
+          height: 10px;
+          border: solid white;
+          border-width: 0 3px 3px 0;
+          -webkit-transform: rotate(45deg);
+          -ms-transform: rotate(45deg);
+          transform: rotate(45deg);
+      }
+
+      .pilotimg {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+      }
 
   </style>
 
@@ -36,7 +113,11 @@
     <div class="col-6 mr-auto p-2 bd-highlight">
       <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
               data-target="#exampleModal1"
-              data-whatever="@fat">+ Add new Entry
+              data-whatever="@fat"><i class="fa fa-plus"></i> Add new Entry
+      </button>
+      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+              data-target="#autopilot"
+              data-whatever="@fat"><i class="fa fa-plane"></i> AutoPilot Mode
       </button>
     </div>
     <div class="justify-content-end inline p-2 bd-highlight">
@@ -233,6 +314,100 @@
     </div>
   </div>
 
+  {#  Autopilot modal#}
+  <!-- The Modal -->
+  <div class="modal fade" id="autopilot">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Autopilot Mode</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+
+        <!-- Modal body -->
+
+        <form id="autopilotform" action="autopilot" method="post">{% csrf_token %}
+          <div class="modal-body">
+        <input type="hidden" class="form-control" name="log_month" id="log_month" value="{{ month_year }}">
+          <div class="row justify-content-center">
+              <div class="col-sm-3">
+                <div class="form-group">
+                  <select name='start' class="form-control custom-select-lg">
+                    {% for day in days %}
+                      <option {% if day == today_day %} selected {% endif %} value="{{ day }}">{{ day }} {{ month_year }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+          <h3> to </h3>
+              <div class="col-sm-3">
+                <div class="form-group">
+                  <select name='end' class="form-control custom-select-lg">
+                    {% for day in days %}
+                      <option {% if day == today_day %} selected {% endif %} value="{{ day }}">{{ day }} {{ month_year }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          <div class="row">
+            <div class="col-6">
+
+              {% if m_register %}
+                <h3>Morning</h3>
+                {% for entry in m_register %}
+                  <label class="container">{{ entry.customer_name }}
+                    | {{ entry.customer_quantity }} ML
+                    <input name="{{ entry.customer_id }}-morning" type="checkbox"
+                           checked="checked">
+                    <span class="checkmark"></span>
+                  </label>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div class="col-6">
+              {% if e_register %}
+                <h3>Evening</h3>
+                {% for entry in e_register %}
+                  <label class="container">{{ entry.customer_name }}
+                    | {{ entry.customer_quantity }} ML
+                    <input name="{{ entry.customer_id }}-evening" type="checkbox"
+                           checked="checked">
+                    <span class="checkmark"></span>
+                  </label>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success btn-lg btn-block" autofocus>Add Bulk
+            Entry
+          </button>
+      </div>
+      </form>
+
+      <img class="pilotimg" style="width:40%" id='autoimg'
+           src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
+           alt="HTML5 Icon">
+      <br>
+      <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+             aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+             style="width: 100%"></div>
+      </div>
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+
+
   <script>
     $('#exampleModal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget) // Button that triggered the modal
@@ -262,14 +437,18 @@
         $('.modal form').on('submit', function (event) {
           $(".progress").show();
           $(".modal-footer").hide();
+          $("#autopilotform").hide();
+          $("#autoimg").show();
+
+
           event.preventDefault()
           $.post($(this).attr('action'), $(this).serialize(), function (data) {
             console.log(data)
             if (data.return === true) {
               // Success code here
-               if (data.reload === true) {
-                 location.reload()
-               }
+              if (data.reload === true) {
+                location.reload()
+              }
               document.getElementById(data.cell).classList.add(data.classname);
               $(".modal-backdrop").remove();
               $(".progress").hide();
@@ -277,8 +456,12 @@
               $(".modal").hide();
             } else {
               // Error code here
+              if (data.showmessage === true) {
+                alert(data.message)
+              }
+              else{
               alert('Something went wrong...')
-            }
+            }}
           }, 'json')
         })
       });
@@ -286,8 +469,13 @@
     {# Hide modal progressbar on page load#}
     $(document).ready(function () {
       $(".progress").hide();
+      $("#autoimg").hide();
+    });
 
-
+    {#  Update date for autopilot datepicker#}
+    $('#sandbox-container .input-daterange').datepicker({
+      todayBtn: true,
+      todayHighlight: true
     });
   </script>
 {% endblock %}
