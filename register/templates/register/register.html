@@ -113,11 +113,11 @@
     <div class="col-6 mr-auto p-2 bd-highlight">
       <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
               data-target="#exampleModal1"
-              data-whatever="@fat"><i class="fa fa-plus"></i> Add new Entry
+              data-whatever="@fat"><i class="fa fa-plus"></i> Add New Entry
       </button>
       <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
               data-target="#autopilot"
-              data-whatever="@fat"><i class="fa fa-plane"></i> AutoPilot Mode
+              data-whatever="@fat"><i class="fa fa-plane"></i> Auto-Pilot Mode
       </button>
     </div>
     <div class="justify-content-end inline p-2 bd-highlight">
@@ -192,8 +192,10 @@
             </tbody>
           </table>
         </div>
-      {% else %}
-        <h3 class="pt-5 mt-4 text-center">No Entry to display</h3>
+      {% endif %}
+      {% if e_register or m_register %}
+        {% else %}
+        <h3 class="pt-5 mt-4 text-center">No Register Entry to display</h3>
       {% endif %}
     </div>
   </div>
@@ -330,80 +332,103 @@
 
         <form id="autopilotform" action="autopilot" method="post">{% csrf_token %}
           <div class="modal-body">
-        <input type="hidden" class="form-control" name="log_month" id="log_month" value="{{ month_year }}">
-          <div class="row justify-content-center">
+            <input type="hidden" class="form-control" name="log_month" id="log_month"
+                   value="{{ month_year }}">
+            <div class="row justify-content-center">
               <div class="col-sm-3">
                 <div class="form-group">
                   <select name='start' class="form-control custom-select-lg">
                     {% for day in days %}
-                      <option {% if day == today_day %} selected {% endif %} value="{{ day }}">{{ day }} {{ month_year }}</option>
+                      <option {% if day == today_day %} selected {% endif %}
+                                                        value="{{ day }}">{{ day }} {{ month_year }}</option>
                     {% endfor %}
                   </select>
                 </div>
               </div>
-          <h3> to </h3>
+              <h3> to </h3>
               <div class="col-sm-3">
                 <div class="form-group">
                   <select name='end' class="form-control custom-select-lg">
                     {% for day in days %}
-                      <option {% if day == today_day %} selected {% endif %} value="{{ day }}">{{ day }} {{ month_year }}</option>
+                      <option {% if day == today_day %} selected {% endif %}
+                                                        value="{{ day }}">{{ day }} {{ month_year }}</option>
                     {% endfor %}
                   </select>
                 </div>
               </div>
 
             </div>
-          <div class="row">
-            <div class="col-6">
+            <div class="row">
+              <div class="col-6">
 
-              {% if m_register %}
-                <h3>Morning</h3>
-                {% for entry in m_register %}
-                  <label class="container">{{ entry.customer_name }}
-                    | {{ entry.customer_quantity }} ML
-                    <input name="{{ entry.customer_id }}-morning" type="checkbox"
-                           checked="checked">
-                    <span class="checkmark"></span>
-                  </label>
-                {% endfor %}
-              {% endif %}
+                {% if m_register %}
+                  <h3 class="mb-4">Morning Register</h3>
+                  {% for entry in m_register %}
+                    <label class="container">{{ entry.customer_name }}
+                      | {{ entry.customer_quantity }} ML
+                      <input name="{{ entry.customer_id }}-morning" type="checkbox"
+                             checked="checked">
+                      <span class="checkmark"></span>
+                    </label>
+                  {% endfor %}
+                {% else %}
+                  <h3 class="mb-4">Add Customer to Morning Register</h3>
+                  {% for entry in autopilot_register %}
+                    <label class="container">{{ entry.customer_name }}
+                      | {{ entry.customer_quantity }} ML
+                      <input name="{{ entry.customer_id }}-morning" type="checkbox"
+                             checked="checked">
+                      <span class="checkmark"></span>
+                    </label>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="col-6">
+                {% if e_register %}
+                  <h3 class="mb-4">Evening Register</h3>
+                  {% for entry in e_register %}
+                    <label class="container">{{ entry.customer_name }}
+                      | {{ entry.customer_quantity }} ML
+                      <input name="{{ entry.customer_id }}-evening" type="checkbox"
+                             checked="checked">
+                      <span class="checkmark"></span>
+                    </label>
+                  {% endfor %}
+                {% else %}
+                   <h3 class="mb-4">Add Customer to Evening Register</h3>
+                  {% for entry in autopilot_register %}
+                    <label class="container">{{ entry.customer_name }}
+                      | {{ entry.customer_quantity }} ML
+                      <input name="{{ entry.customer_id }}-evening" type="checkbox"
+                             checked="checked">
+                      <span class="checkmark"></span>
+                    </label>
+                  {% endfor %}
+                {% endif %}
+              </div>
             </div>
-            <div class="col-6">
-              {% if e_register %}
-                <h3>Evening</h3>
-                {% for entry in e_register %}
-                  <label class="container">{{ entry.customer_name }}
-                    | {{ entry.customer_quantity }} ML
-                    <input name="{{ entry.customer_id }}-evening" type="checkbox"
-                           checked="checked">
-                    <span class="checkmark"></span>
-                  </label>
-                {% endfor %}
-              {% endif %}
-            </div>
+            <button type="submit" class="btn btn-success btn-lg btn-block" autofocus>Add Bulk
+              Entry
+            </button>
           </div>
-          <button type="submit" class="btn btn-success btn-lg btn-block" autofocus>Add Bulk
-            Entry
-          </button>
-      </div>
-      </form>
+        </form>
 
-      <img class="pilotimg" style="width:40%" id='autoimg'
-           src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
-           alt="HTML5 Icon">
-      <br>
-      <div class="progress">
-        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-             aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-             style="width: 100%"></div>
-      </div>
-      <!-- Modal footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
+        <img class="pilotimg" style="width:40%" id='autoimg'
+             src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
+             alt="HTML5 Icon">
+        <br>
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+               aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+               style="width: 100%"></div>
+        </div>
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
 
+      </div>
     </div>
-  </div>
   </div>
 
 
@@ -458,10 +483,10 @@
               // Error code here
               if (data.showmessage === true) {
                 alert(data.message)
+              } else {
+                alert('Something went wrong...')
               }
-              else{
-              alert('Something went wrong...')
-            }}
+            }
           }, 'json')
         })
       });

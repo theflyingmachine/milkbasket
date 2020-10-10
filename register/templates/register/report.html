@@ -225,6 +225,7 @@
       series1.bullets.push(new am4charts.CircleBullet());
       series1.tooltipText = "Income: {valueY}";
       series1.visible = false;
+      series1.strokeWidth = "3";
 
       var series2 = chart.series.push(new am4charts.LineSeries());
       series2.dataFields.valueY = "expense";
@@ -234,6 +235,7 @@
       series2.tooltipText = "Expense: {valueY}";
       series2.fill = am4core.color("red");
       series2.stroke = am4core.color("red");
+      series2.strokeWidth = "3";
 
       var series3 = chart.series.push(new am4charts.LineSeries());
       series3.dataFields.valueY = "due";
@@ -243,6 +245,7 @@
       series3.tooltipText = "Due: {valueY}";
       series3.fill = am4core.color("orange");
       series3.stroke = am4core.color("orange");
+      series3.strokeWidth = "3";
 
 
       var series4 = chart.series.push(new am4charts.LineSeries());
@@ -253,6 +256,7 @@
       series4.tooltipText = "Paid: {valueY}";
       series4.fill = am4core.color("green");
       series4.stroke = am4core.color("green");
+      series4.strokeWidth = "3";
 
 // Add chart cursor
       chart.cursor = new am4charts.XYCursor();
@@ -296,6 +300,8 @@
       series.dataFields.valueY = "milkQuantity";
       series.dataFields.dateX = "dayName";
       series.tooltipText = "{milkQuantity} Liter"
+      series.stroke = am4core.color("#3256a8");
+      series.strokeWidth = "5";
 
       series.tooltip.pointerOrientation = "vertical";
 

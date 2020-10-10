@@ -79,6 +79,17 @@ def index(request, year=None, month=None):
             'default_price': milk.price,
         })
 
+    # Get All customers if no entry is added - will be used in autopilot mode
+    autopilot_register = []
+    if not e_register or not m_register:
+        customers = Customer.objects.filter(status=1)
+        for customer in customers:
+            autopilot_register.append({
+                'customer_name': customer.name,
+                'customer_id': customer.id,
+                'customer_quantity': customer.quantity,
+            })
+
     # plot calendar days
     days = monthrange(register_date.year, register_date.month)
     month_year = register_date.strftime("%B, %Y")
@@ -93,6 +104,7 @@ def index(request, year=None, month=None):
         'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
         'active_customers': active_customers,
         'default_price': milk.price,
+        'autopilot_register': autopilot_register,
     })
     return render(request, template, context)
 
