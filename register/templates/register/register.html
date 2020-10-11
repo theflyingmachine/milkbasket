@@ -143,7 +143,7 @@
             <tbody>
             {% for entry in m_register %}
               <tr>
-                <td class="sticky">{{ entry.customer_name }}</td>
+                <td class="sticky text-nowrap font-weight-bold "><a href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a></td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     id="{{ entry.customer_id }}_{{ day }}"
@@ -173,7 +173,7 @@
             <tbody>
             {% for entry in e_register %}
               <tr>
-                <td class="sticky">{{ entry.customer_name }}</td>
+                <td class="sticky text-nowrap font-weight-bold"><a href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a></td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}

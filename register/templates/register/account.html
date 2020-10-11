@@ -84,7 +84,7 @@
         {% for entry in due_customer %}
         <tr class="d-flex">
           <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-          <th class="p-2 col-4" scope="row">{{ entry.customer__name }}</th>
+          <th class="p-2 col-4" scope="row"><a href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a></th>
           <td class="p-2 col-2">{{ entry.payment_due }}</td>
           <td class="p-2 col-3">{% if entry.payment_due_prev %}<span class="font-weight-bold">{{ entry.payment_due_prev }}</span>  <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
           <td class="col-2">
@@ -121,7 +121,7 @@
         {% for entry in paid_customer %}
         <tr class="d-flex">
           <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-          <th class="p-2 col-4" scope="row">{{ entry.customer__name }}</th>
+          <th class="p-2 col-4" scope="row"><a href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a></th>
           <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
           <td class="p-2 col-2">{{ entry.payment_done }}</td>
           <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>

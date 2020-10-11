@@ -14,21 +14,54 @@
 
   <div class="container mb-5">
   <div class="row justify-content-center">
-  <div class="col-12">
+  <div class="col-12 mb-3">
     <h2 class="pt-2 text-center"> {{ customer.name }}</h2>
     <div class="row">
     <table width="100%">
       <tr>
-        <td>Account Number: {{ customer.id }}</td>
-        <td>Default Quantity: {{ customer.quantity }} ML</td>
+        <td class="p-3">Account Number: {{ customer.id }}</td>
+        <td class="p-3">Default Quantity: {{ customer.quantity }} ML</td>
       </tr>
       <tr>
-        <td>Customer Since: {{ customer.member_since }}</td>
-        <td>Default Schedule: {{ customer.schedule }}</td>
+        <td class="p-3">Customer Since: {{ customer.member_since }}</td>
+        <td class="p-3">Default Schedule: {{ customer.schedule }}</td>
       </tr>
     </table>
     </div>
   </div>
+
+    <div class="col-12">
+      {#    Payment due#}
+      {% if payment_due_amount_till_date %}
+      <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
+      <table class="table table-sm table-striped">
+        <thead>
+        <tr class="d-flex bg-info text-white">
+          <th class="p-2 col-1" scope="col">#</th>
+          <th class="p-2 col-5" scope="col">Total Due</th>
+          <th class="p-2 col-4" scope="col">Due (till {{ previous_month_name }})</th>
+          <th class="p-2 col-2" scope="col">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="d-flex">
+          <th class="p-2 col-1" scope="row">1</th>
+          <td class="p-2 col-5">{{ payment_due_amount_till_date }}</td>
+          <td class="p-2 col-4">{% if payment_due_amount_prev_month %}<span class="font-weight-bold">{{ payment_due_amount_prev_month }}</span>  <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
+          <td class="col-2">
+            <button type="button" class="btn-sm btn-primary"
+                    data-toggle="modal"
+                    data-target="#exampleModal2"
+                    data-cid="{{ customer.id }}"
+                    data-cname="{{ customer.name }}"
+                    data-dueamount="{{ payment_due_amount_till_date }}"
+            >Make Payment</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    {% endif %}
+    </div>
 
   {#    {% if expenses or due_customer or paid_customer %}#}
   {% if transaction %}
@@ -87,7 +120,7 @@
           <td class="p-2 col-1">{{ entry.quantity }}</td>
           <td class="p-2 col-1">{{ entry.current_price }}</td>
           <td class="p-2 col-2">{{ entry.billed_amount }}</td>
-          <td class="p-2 col-1">{{ entry.display_paid }}</td>
+          <td class="p-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
 
           </td>
         </tr>
@@ -97,203 +130,56 @@
     <p class="text-center"> --- END OF PAGE ---</p>
   {% endif %}
 </div>
-  {##}
-  {#<!--    Second Table-->#}
-  {#    <div class="col-12">#}
-  {#    Payment Area    #}
-  {#    Payment due#}
-  {#      {% if due_customer %}#}
-  {#      <h5 class="pt-2 mt-2 text-center">Payment Due</h5>#}
-  {#      <table class="table table-sm table-striped">#}
-  {#        <thead>#}
-  {#        <tr class="d-flex bg-info text-white">#}
-  {#          <th class="p-2 col-1" scope="col">#</th>#}
-  {#          <th class="p-2 col-5" scope="col">Name</th>#}
-  {#          <th class="p-2 col-3" scope="col">Due Amount</th>#}
-  {#          <th class="p-2 col-3" scope="col">Action</th>#}
-  {#        </tr>#}
-  {#        </thead>#}
-  {#        <tbody>#}
-  {#        {% for entry in due_customer %}#}
-  {#        <tr class="d-flex">#}
-  {#          <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>#}
-  {#          <th class="p-2 col-5" scope="row">{{ entry.customer__name }}</th>#}
-  {#          <td class="p-2 col-3">{{ entry.payment_due }}</td>#}
-  {#          <td class="col-3">#}
-  {#            <button type="button" class="btn-sm btn-primary"#}
-  {#                    data-toggle="modal"#}
-  {#                    data-target="#exampleModal2"#}
-  {#                    data-cid="{{ entry.customer_id }}"#}
-  {#                    data-cname="{{ entry.customer__name }}"#}
-  {#                    data-dueamount="{{ entry.payment_due }}"#}
-  {#            >Make Payment</button>#}
-  {#          </td>#}
-  {#        </tr>#}
-  {#        {% endfor %}#}
-  {#        </tbody>#}
-  {#      </table>#}
-  {#    {% endif %}#}
-  {#    </div>#}
-  {#    <!--    Third Table-->#}
-  {#    <div class="col-12">#}
-  {# Paid customer #}
-  {#      {% if paid_customer %}#}
-  {#      <h5 class="pt-2 mt-2 text-center">Paid Customers</h5>#}
-  {#      <table class="table table-sm table-striped">#}
-  {#        <thead>#}
-  {#        <tr class="d-flex bg-info text-white">#}
-  {#          <th class="p-2 col-1" scope="col">#</th>#}
-  {#          <th class="p-2 col-4" scope="col">Name</th>#}
-  {#          <th class="p-2 col-2" scope="col">Adjusted Amount</th>#}
-  {#          <th class="p-2 col-2" scope="col">Accepted Amount</th>#}
-  {#          <th class="p-2 col-3" scope="col">Paid Amount</th>#}
-  {#        </tr>#}
-  {#        </thead>#}
-  {#        <tbody>#}
-  {#        {% for entry in paid_customer %}#}
-  {#        <tr class="d-flex">#}
-  {#          <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>#}
-  {#          <th class="p-2 col-4" scope="row">{{ entry.customer__name }}</th>#}
-  {#          <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>#}
-  {#          <td class="p-2 col-2">{{ entry.payment_done }}</td>#}
-  {#          <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>#}
-  {#        </tr>#}
-  {#        {% endfor %}#}
-  {#        </tbody>#}
-  {#      </table>#}
-  {#    {% endif %}#}
-  {#    </div>#}
-  {#    {% else %}#}
-  {#    <h3 class="pt-5 mt-4 text-center">Nothing to display at the moment</h3>#}
-  {#    {% endif %}#}
-  {#</div>#}
-  {#  <hr>#}
-  {##}
-  {#  Delete Modal #}
-  {#  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"#}
-  {#       aria-labelledby="exampleModalLabel" aria-hidden="true">#}
-  {#    <div class="modal-dialog" role="document">#}
-  {#      <div class="modal-content">#}
-  {#        <div class="modal-header">#}
-  {#          <h5 class="modal-title" id="exampleModalLabel">Delete Expense</h5>#}
-  {#          <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
-  {#            <span aria-hidden="true">&times;</span>#}
-  {#          </button>#}
-  {#        </div>#}
-  {#        <form name="deleteExp" action="manageexpenses" method="post">{% csrf_token %}#}
-  {#          <input type="hidden" class="form-control" id="modal_id" name="id">#}
-  {#          <div class="p-4">#}
-  {#            <div class="form-row">#}
-  {#              <div class="form-group col-md-12">#}
-  {#                <label for="modal_desc">Are you sure to delete?</label>#}
-  {#                <textarea id="modal_desc" class="form-control" name="w3review" rows="4" cols="50" disabled></textarea>#}
-  {#              </div>#}
-  {#            </div>#}
-  {#          <button type="submit" class="btn btn-danger justify-content-center col-12">Delete#}
-  {#          </button>#}
-  {#        </form>#}
-  {#      </div>#}
-  {#    </div>#}
-  {#    </div>#}
-  {#  </div>#}
-  {##}
-  {#  Add expense Modal #}
-  {#  <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog"#}
-  {#       aria-labelledby="exampleModalLabel" aria-hidden="true">#}
-  {#    <div class="modal-dialog" role="document">#}
-  {#      <div class="modal-content">#}
-  {#        <div class="modal-header">#}
-  {#          <h5 class="modal-title" id="exampleModalLabel">Add New Expense - {{ month_year }}</h5>#}
-  {#          <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
-  {#            <span aria-hidden="true">&times;</span>#}
-  {#          </button>#}
-  {#        </div>#}
-  {#        <form name="addexp" action="manageexpenses" method="post">{% csrf_token %}#}
-  {#          <input type="hidden" class="form-control" id="modal_id" name="month_year"#}
-  {#                 value="{{ month_year }}">#}
-  {#          <div class="p-4">#}
-  {#            <div class="form-row">#}
-  {#              <div class="form-group col-md-12">#}
-  {#                <label for="name">Cost</label>#}
-  {#                <input autofocus type="number" step="0.01"  class="form-control" id="exp_cost" name="cost_amount"#}
-  {#                       placeholder="Amount">#}
-  {#              </div>#}
-  {#            </div>#}
-  {#            <div class="form-row">#}
-  {#              <div class="form-group col-md-12">#}
-  {#                <label for="modal_desc">Description</label>#}
-  {#                <textarea id="modal_desc" class="form-control" placeholder="Narration of the expense" name="exp_desc"#}
-  {#                          rows="4" cols="50"></textarea>#}
-  {#              </div>#}
-  {#          </div>#}
-  {#          <button type="submit" class="btn btn-primary justify-content-center col-12">Add Expense#}
-  {#          </button>#}
-  {#          </div>#}
-  {#        </form>#}
-  {#      </div>#}
-  {#    </div>#}
-  {#  </div>#}
-  {##}
-  {##}
+
+
   {#  Accept Payment Modal #}
-  {#  <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog"#}
-  {#       aria-labelledby="exampleModalLabel" aria-hidden="true">#}
-  {#    <div class="modal-dialog" role="document">#}
-  {#      <div class="modal-content">#}
-  {#        <div class="modal-header">#}
-  {#          <h5 class="modal-title" id="exampleModalLabel">Accept Payment - {{ month_year }}</h5>#}
-  {#          <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
-  {#            <span aria-hidden="true">&times;</span>#}
-  {#          </button>#}
-  {#        </div>#}
-  {#        <form name="addexp" action="acceptpayment" method="post">{% csrf_token %}#}
-  {#          <input type="hidden" class="form-control" id="c_id" name="c_id">#}
-  {#          <div class="p-4">#}
-  {#            <div class="form-row">#}
-  {#              <div class="form-group col-md-12">#}
-  {#                <label for="name">Name</label>#}
-  {#                <input autofocus type="text" class="form-control" id="c_name" name="c_name"#}
-  {#                       disabled placeholder="Name">#}
-  {#              </div>#}
-  {#            </div>#}
-  {#              <div class="form-row">#}
-  {#              <div class="form-group col-md-12">#}
-  {#                <label for="name">Due Amount</label>#}
-  {#                <input type="text" class="form-control" id="c_dueamount" name="c_dueamount"#}
-  {#                       disabled placeholder="Due Amount">#}
-  {#              </div>#}
-  {#            </div>#}
-  {#              <div class="form-row">#}
-  {#              <div class="form-group col-md-12">#}
-  {#                <label for="name">Payment Amount</label>#}
-  {#                <input type="number" class="form-control" id="c_payment" name="c_payment"#}
-  {#                       placeholder="Amount">#}
-  {#              </div>#}
-  {#            </div>#}
-  {##}
-  {#          <button type="submit" class="btn btn-success justify-content-center col-12">Accept Payment#}
-  {#          </button>#}
-  {#          </div>#}
-  {#        </form>#}
-  {#      </div>#}
-  {#    </div>#}
-  {#  </div>#}
+  <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Accept Payment - {{ month_year }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addexp" action="/acceptpayment" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="return_url" name="return_url" value="profile/{{ customer.id }}">
+          <input type="hidden" class="form-control" id="c_id" name="c_id">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Name</label>
+                <input autofocus type="text" class="form-control" id="c_name" name="c_name"
+                       disabled placeholder="Name">
+              </div>
+            </div>
+              <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Due Amount</label>
+                <input type="text" class="form-control" id="c_dueamount" name="c_dueamount"
+                       disabled placeholder="Due Amount">
+              </div>
+            </div>
+              <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Payment Amount</label>
+                <input type="number" class="form-control" id="c_payment" name="c_payment"
+                       placeholder="Amount">
+              </div>
+            </div>
+
+          <button type="submit" class="btn btn-success justify-content-center col-12">Accept Payment
+          </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
 
 
   <script>
-    $('#exampleModal').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget) // Button that triggered the modal
-      var expense_id = button.data('id') // Extract info from data-* attribute
-      var expense_desc = button.data('desc') // Extract info from data-* attribute
-      var expense_cost = button.data('cost') // Extract info from data-* attribute
-      var expense_log_date = button.data('log_date') // Extract info from data-* attribute
-      var full_text = 'Expense of ' + expense_cost + ' dated ' + expense_log_date + ' towards: ' + expense_desc
-      var modal = $(this)
-      modal.find('#modal_id').val(expense_id)
-      modal.find('#modal_desc').val(full_text)
-    })
-
     {#  accept payment #}
     $('#exampleModal2').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget) // Button that triggered the modal

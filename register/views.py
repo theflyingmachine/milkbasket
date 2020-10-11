@@ -428,10 +428,11 @@ def manage_expense(request, year=None, month=None):
 
 @login_required
 @transaction.atomic
-def accept_payment(request, year=None, month=None):
+def accept_payment(request, year=None, month=None, return_url=None):
     # Update Payment Table
     payment_date = date.today()
-    formatted_url = '/register/account'
+    return_url = request.POST.get("return_url", None)
+    formatted_url = '/register/account' if not return_url else f'/register/{return_url}'
     if year and month:
         formatted_url = f'/register/account/{year}/{month}/'
         date_time_str = f'25/{month}/{year} 01:01:01'
@@ -616,6 +617,7 @@ def logout_request(request):
 @login_required
 def customer_profile(request, id=None):
     template = 'register/profile.html'
+    current_date = date.today()
     if id:
         customer = Customer.objects.filter(id=id).first()
         transaction = Payment.objects.filter(customer_id=id)
@@ -634,12 +636,31 @@ def customer_profile(request, id=None):
             entry['display_schedule'] = 'Morning' if entry['schedule'] == 'morning-yes' else 'Evening'
             entry['display_log_date'] = entry['log_date'].strftime('%d-%B-%Y')
 
+        # Get due table
+        due_cust = Register.objects.filter(customer_id=id, paid=0, schedule__in=['morning-yes', 'evening-yes', 'e-morning', 'e-evening']).order_by('-log_date')
+        payment_due_amount_prev_month = 0
+        payment_due_amount_till_date = 0
+        adjusted_amount = 0
+        if due_cust:
+            # Get the balance table
+            balance_amount = Balance.objects.filter(customer_id=id).first()
+            adjusted_amount = getattr(balance_amount, 'balance_amount') if balance_amount else 0
+            # Check till last month
+            due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(log_date__month=current_date.month)
+            for due in due_cust_prev_month:
+                payment_due_amount_prev_month += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+            # Check till today
+            for due in due_cust:
+                payment_due_amount_till_date += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
         context = {
             'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
             'customer': customer,
             'transaction': transaction,
             'register': register,
+            'payment_due_amount_prev_month': round(payment_due_amount_prev_month, 2) - abs(adjusted_amount),
+            'payment_due_amount_till_date': round(payment_due_amount_till_date, 2) - abs(adjusted_amount),
+            'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B")
         }
         return render(request, template, context)
     return redirect('view_customers')
