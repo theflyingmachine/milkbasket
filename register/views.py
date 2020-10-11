@@ -82,8 +82,8 @@ def index(request, year=None, month=None):
     # Get All customers if no entry is added - will be used in autopilot mode
     autopilot_register = []
     if not e_register or not m_register:
-        customers = Customer.objects.filter(status=1)
-        for customer in customers:
+        all_customers = Customer.objects.filter(status=1)
+        for customer in all_customers:
             autopilot_register.append({
                 'customer_name': customer.name,
                 'customer_id': customer.id,
@@ -211,7 +211,6 @@ def addentry(request, year=None, month=None):
 @login_required
 @transaction.atomic()
 def autopilot(request, year=None, month=None):
-
     if request.method == "POST":
         milk = Milk.objects.last()
         current_price = milk.price
@@ -262,6 +261,13 @@ def autopilot(request, year=None, month=None):
             'return': True,
             'reload': True,
         }
+        return JsonResponse(response)
+    # return invalid response if already not returned data
+    response = {
+        'showmessage': True,
+        'message': 'Invalid Request',
+        'return': False,
+    }
     return JsonResponse(response)
 
 
@@ -387,26 +393,26 @@ def daterange(date1, date2):
 
 @login_required
 def selectrecord(request):
-    formated_url = ''
+    formatted_url = ''
     full_register_date = request.POST.get("register_month", None)
     register_month = str(full_register_date).split("-")[1]
     register_year = str(full_register_date).split("-")[0]
     nav_url = request.POST.get("nav-type", None)
     if nav_url == 'register':
-        formated_url = f'/register/{register_year}/{register_month}/'
+        formatted_url = f'/register/{register_year}/{register_month}/'
     elif nav_url == 'account':
-        formated_url = f'/register/account/{register_year}/{register_month}/'
-    return redirect(formated_url)
+        formatted_url = f'/register/account/{register_year}/{register_month}/'
+    return redirect(formatted_url)
 
 
 @login_required
 def manage_expense(request, year=None, month=None):
     expense_date = datetime.now()
-    formated_url = '/register/account'
+    formatted_url = '/register/account'
     if year and month:
         date_time_str = f'25/{month}/{year} 01:01:01'
         expense_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
-        formated_url = f'/register/account/{year}/{month}/'
+        formatted_url = f'/register/account/{year}/{month}/'
     delete_id = request.POST.get("id", None)
     if delete_id:
         Expense.objects.filter(id=delete_id).delete()
@@ -417,7 +423,7 @@ def manage_expense(request, year=None, month=None):
         new_expense = Expense(cost=cost, description=desc, log_date=expense_date)
         new_expense.save()
 
-    return redirect(formated_url)
+    return redirect(formatted_url)
 
 
 @login_required
@@ -425,9 +431,9 @@ def manage_expense(request, year=None, month=None):
 def accept_payment(request, year=None, month=None):
     # Update Payment Table
     payment_date = date.today()
-    formated_url = '/register/account'
+    formatted_url = '/register/account'
     if year and month:
-        formated_url = f'/register/account/{year}/{month}/'
+        formatted_url = f'/register/account/{year}/{month}/'
         date_time_str = f'25/{month}/{year} 01:01:01'
         payment_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     c_id = request.POST.get("c_id", None)
@@ -462,7 +468,7 @@ def accept_payment(request, year=None, month=None):
                 customer_id=c_id, defaults={"balance_amount": -payment_amount}
             )
 
-    return redirect(formated_url)
+    return redirect(formatted_url)
 
 
 def landing(request):
@@ -544,12 +550,27 @@ def report(request, months=None):
     for i in range(-365, 1):
         d1 = date.today()
         graph_day = d1 + relativedelta(days=i)
-        milk_production = Register.objects.filter(log_date__year=graph_day.year, log_date__month=graph_day.month, log_date__day=graph_day.day).aggregate(Sum('quantity'))['quantity__sum'] or 0
+        mp = Register.objects.filter(log_date__year=graph_day.year, log_date__month=graph_day.month, log_date__day=graph_day.day)
+        milk_production = mp.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        milk_production_morning = mp.filter(schedule='morning-yes').aggregate(Sum('quantity'))['quantity__sum'] or 0
+        milk_production_evening = mp.filter(schedule='evening-yes').aggregate(Sum('quantity'))['quantity__sum'] or 0
         current_day = {
             "dayName": graph_day.strftime('%d-%B-%Y'),
+            'milkMorning': round(float(milk_production_morning/1000), 2),
+            'milkEvening': round(float(milk_production_evening/1000), 2),
             "milkQuantity": round(float(milk_production/1000), 2),
         }
         chart_data_milk.append(current_day)
+
+    # Calculate all time Expenses
+    all_time_expense = Expense.objects.all().aggregate(Sum('cost'))['cost__sum'] or 0
+
+    # Calculate all time Income
+    all_time_income = Payment.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Calculate all time profit or loss
+    is_profit = True if all_time_expense < all_time_income else False
+    all_time_profit_or_loss = abs(all_time_income - all_time_expense)
 
     context = {
         'page_title': 'Milk Basket - Register',
@@ -557,6 +578,10 @@ def report(request, months=None):
         'graph_data': mark_safe(json.dumps(chart_data)),
         'table_data': chart_data,
         'chart_data_milk': mark_safe(json.dumps(chart_data_milk)),
+        'all_time_expense': all_time_expense,
+        'all_time_income': all_time_income,
+        'is_profit': is_profit,
+        'all_time_profit_or_loss': all_time_profit_or_loss,
     }
     return render(request, template, context)
 
@@ -616,4 +641,5 @@ def customer_profile(request, id=None):
             'transaction': transaction,
             'register': register,
         }
-    return render(request, template, context)
+        return render(request, template, context)
+    return redirect('view_customers')
