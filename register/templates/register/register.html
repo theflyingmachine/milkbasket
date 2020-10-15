@@ -132,7 +132,7 @@
     </div>
   </div>
   <h2 class="text-center">Register - {{ month_year }}</h2>
-    <hr>
+  <hr>
   <div class="row justify-content-center mb-5">
     <div class="col">
 
@@ -143,7 +143,9 @@
             <tbody>
             {% for entry in m_register %}
               <tr>
-                <td class="sticky text-nowrap font-weight-bold "><a href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a></td>
+                <td class="sticky text-nowrap font-weight-bold "><a
+                 href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a>
+                </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     id="{{ entry.customer_id }}_{{ day }}"
@@ -173,7 +175,9 @@
             <tbody>
             {% for entry in e_register %}
               <tr>
-                <td class="sticky text-nowrap font-weight-bold"><a href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a></td>
+                <td class="sticky text-nowrap font-weight-bold"><a
+                 href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a>
+                </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
@@ -195,7 +199,7 @@
         </div>
       {% endif %}
       {% if e_register or m_register %}
-        {% else %}
+      {% else %}
         <h3 class="pt-5 mt-4 text-center">No Register Entry to display</h3>
       {% endif %}
     </div>
@@ -396,7 +400,7 @@
                     </label>
                   {% endfor %}
                 {% else %}
-                   <h3 class="mb-4 text-success">Add Customer to Evening Register</h3>
+                  <h3 class="mb-4 text-success">Add Customer to Evening Register</h3>
                   {% for entry in autopilot_register %}
                     <label class="container text-success">{{ entry.customer_name }}
                       | {{ entry.customer_quantity }} ML
@@ -425,7 +429,8 @@
         </div>
         <!-- Modal footer -->
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Close
+          </button>
         </div>
 
       </div>
@@ -457,41 +462,43 @@
 
     $('.modal').on('shown.bs.modal', function () {
       $(this).find('[autofocus]').focus();
-
-      {#    Ajax for register entry #}
-      $(document).ready(function () {
-        $('.modal form').on('submit', function (event) {
-          $(".progress").show();
-          $(".modal-footer").hide();
-          $("#autopilotform").hide();
-          $("#autoimg").show();
-
-
-          event.preventDefault()
-          $.post($(this).attr('action'), $(this).serialize(), function (data) {
-            console.log(data)
-            if (data.return === true) {
-              // Success code here
-              if (data.reload === true) {
-                location.reload()
-              }
-              document.getElementById(data.cell).classList.add(data.classname);
-              $(".modal-backdrop").remove();
-              $(".progress").hide();
-              $(".modal-footer").show();
-              $(".modal").hide();
-            } else {
-              // Error code here
-              if (data.showmessage === true) {
-                alert(data.message)
-              } else {
-                alert('Something went wrong...')
-              }
-            }
-          }, 'json')
-        })
-      });
     });
+
+    {#    Ajax for register entry #}
+    $(document).ready(function () {
+      $('.modal form').on('submit', function (event) {
+        $(".progress").show();
+        $(".modal-footer").hide();
+        $("#autopilotform").hide();
+        $("#autoimg").show();
+
+
+        event.preventDefault()
+        $.post($(this).attr('action'), $(this).serialize(), function (data) {
+          console.log(data)
+          if (data.return === true) {
+            // Success code here
+            if (data.reload === true) {
+              location.reload()
+            }
+            document.getElementById(data.cell).classList.add(data.classname);
+            $(".modal-backdrop").remove();
+            $(".progress").hide();
+            $(".modal-footer").show();
+            $(".modal").hide();
+
+          } else {
+            // Error code here
+            if (data.showmessage === true) {
+              alert(data.message)
+            } else {
+              alert('Something went wrong...')
+            }
+          }
+        }, 'json')
+      })
+    });
+
     {# Hide modal progressbar on page load#}
     $(document).ready(function () {
       $(".progress").hide();
