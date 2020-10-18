@@ -49,3 +49,9 @@ class Balance(models.Model):
         primary_key=True,
     )
     balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+
+class Income(models.Model):
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=1000, null=False, default='Description')
+    log_date = models.DateTimeField(null=False, default=datetime.now)

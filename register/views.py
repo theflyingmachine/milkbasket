@@ -19,7 +19,7 @@ from django.shortcuts import render, redirect
 from django.utils.safestring import mark_safe
 
 from register.forms import CustomerForm, RegisterForm
-from register.models import Customer, Register, Milk, Expense, Payment, Balance
+from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
 
 
 @login_required
@@ -370,11 +370,15 @@ def account(request, year=None, month=None):
         customer['total_paid'] = paid_amount['amount__sum']
         total_payment_received += payment_due_amount
 
+    # Get extra income
+    income = Income.objects.filter(log_date__month=register_date.month)
+
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
         'menu_account': True,
         'expenses': expenses,
+        'income': income,
         'total_payment': total_payment,
         'total_expense': total_expense,
         'due_customer': due_customer,
@@ -422,6 +426,27 @@ def manage_expense(request, year=None, month=None):
         desc = request.POST.get("exp_desc", None)
         new_expense = Expense(cost=cost, description=desc, log_date=expense_date)
         new_expense.save()
+
+    return redirect(formatted_url)
+
+
+@login_required
+def manage_income(request, year=None, month=None):
+    income_date = datetime.now()
+    formatted_url = '/register/account'
+    if year and month:
+        date_time_str = f'25/{month}/{year} 01:01:01'
+        income_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
+        formatted_url = f'/register/account/{year}/{month}/'
+    delete_id = request.POST.get("id", None)
+    if delete_id:
+        Income.objects.filter(id=delete_id).delete()
+    add_income = request.POST.get("month_year", None)
+    if add_income:
+        amount = request.POST.get("income_amount", None)
+        desc = request.POST.get("exp_desc", None)
+        new_income = Income(amount=amount, description=desc, log_date=income_date)
+        new_income.save()
 
     return redirect(formatted_url)
 
