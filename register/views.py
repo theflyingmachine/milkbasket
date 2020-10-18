@@ -532,6 +532,10 @@ def report(request, months=None):
 
         # Fetch Income
         month_income = 0
+        month_extra_income = float(Income.objects.filter(log_date__month=graph_month.month,
+                                               log_date__year=graph_month.year).aggregate(
+            Sum('amount'))['amount__sum'] or 0)
+        month_income += month_extra_income
         month_income_entry = Register.objects.filter(log_date__month=graph_month.month,
                                                log_date__year=graph_month.year,)
         for entry in month_income_entry:
@@ -546,6 +550,7 @@ def report(request, months=None):
 
         # Fetch paid per month
         month_paid = 0
+        month_paid += month_extra_income
         month_paid_entry = Register.objects.filter(log_date__month=graph_month.month,
                                                   log_date__year=graph_month.year, paid=1)
         for entry in month_paid_entry:
@@ -592,7 +597,9 @@ def report(request, months=None):
     all_time_expense = Expense.objects.all().aggregate(Sum('cost'))['cost__sum'] or 0
 
     # Calculate all time Income
-    all_time_income = Payment.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
+    all_time_milk_income = Payment.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
+    all_time_extra_income = Income.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
+    all_time_income = all_time_milk_income + all_time_extra_income
 
     # Calculate all time profit or loss
     is_profit = True if all_time_expense < all_time_income else False
