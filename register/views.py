@@ -198,7 +198,7 @@ def addentry(request, year=None, month=None):
             'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
             'reload': reload_status,
         }
-        t.sleep(2)
+        t.sleep(1)
         return JsonResponse(data)
 
     if year and month:
@@ -254,7 +254,7 @@ def autopilot(request, year=None, month=None):
                     entry.save()
                 else:
                     print('Skipping: ', customer.name, 'Day: ', day)
-        t.sleep(10)
+        t.sleep(5)
         response = {
             'showmessage': False,
             'message': f'Success',
