@@ -465,7 +465,7 @@ def accept_payment(request, year=None, month=None, return_url=None):
     c_id = request.POST.get("c_id", None)
     payment_amount = request.POST.get("c_payment", None)
     if c_id and payment_amount:
-        payment_amount = int(float(payment_amount))
+        payment_amount = float(payment_amount)
         new_payment = Payment(customer_id=c_id, amount=payment_amount)
         new_payment.save()
 
