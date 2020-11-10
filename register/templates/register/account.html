@@ -63,6 +63,9 @@
                             data-cid="{{ entry.customer_id }}"
                             data-cname="{{ entry.customer__name }}"
                             data-dueamount="{{ entry.payment_due }}"
+                     {% if entry.payment_due_prev %}
+                            data-prevdueamount="{{ entry.payment_due_prev }}"
+                     {% endif %}
                     >Make Payment
                     </button>
                   </td>
@@ -358,8 +361,9 @@
             </div>
             <div class="form-row">
               <div class="form-group col-md-12">
-                <label for="name">Payment Amount</label>
-                <input type="number" step="0.01" class="form-control" id="c_payment" name="c_payment"
+                <label for="name">Payment Amount (<span id="prevmonthdue">Till date</span>)</label>
+                <input type="number" step="0.01" class="form-control" id="c_payment"
+                       name="c_payment"
                        placeholder="Amount">
               </div>
             </div>
@@ -408,11 +412,19 @@
       var c_id = button.data('cid') // Extract info from data-* attribute
       var c_name = button.data('cname') // Extract info from data-* attribute
       var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
+      var c_prevdueamount = button.data('prevdueamount') // Extract info from data-* attribute
       var modal = $(this)
       modal.find('#c_id').val(c_id)
       modal.find('#c_name').val(c_name)
       modal.find('#c_dueamount').val(c_dueamount)
       modal.find('#c_payment').val(c_dueamount)
+      if (c_prevdueamount > 0) {
+        modal.find('#c_payment').val(c_prevdueamount);
+        modal.find('#prevmonthdue').text('Due till {{ previous_month_name }}');
+      } else {
+        modal.find('#c_payment').val(c_dueamount)
+        modal.find('#prevmonthdue').text('Due till date');
+      }
     })
   </script>
 {% endblock %}
