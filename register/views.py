@@ -126,7 +126,10 @@ def addcustomer(request):
             customer_morning = True if request.POST.get("morning", False) else False
             customer_evening = True if request.POST.get("evening", False) else False
             customer_quantity = request.POST.get("quantity", None)
-            Customer.objects.filter(id=customer_id).update(contact=customer_contact, email=customer_email, morning=customer_morning, evening=customer_evening, quantity=customer_quantity)
+            if not customer_morning and not customer_morning:
+                Customer.objects.filter(id=customer_id).update(contact=customer_contact, email=customer_email, morning=customer_morning, evening=customer_evening, quantity=customer_quantity, status=0)
+            else:
+                Customer.objects.filter(id=customer_id).update(contact=customer_contact, email=customer_email, morning=customer_morning, evening=customer_evening, quantity=customer_quantity, status=1)
         else:
             form = CustomerForm(request.POST)
             name = form['name'].value()
@@ -135,8 +138,12 @@ def addcustomer(request):
             morning = form['morning'].value() or False
             evening = form['evening'].value() or False
             quantity = form['quantity'].value()
-            customer = Customer(name=name, contact=contact, email=email, morning=morning,
-                                evening=evening, quantity=quantity)
+            if not morning and not evening:
+                customer = Customer(name=name, contact=contact, email=email, morning=morning,
+                                evening=evening, quantity=quantity, status=0)
+            else:
+                customer = Customer(name=name, contact=contact, email=email, morning=morning,
+                                    evening=evening, quantity=quantity, status=1)
             customer.save()
         return redirect('view_customers')
     else:
