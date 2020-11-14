@@ -19,6 +19,7 @@
   </div>
 
   <hr>
+  {#  ACTIVE CUSTOMERS #}
   <div class="container mb-5">
     {% if customers %}
       {% for customer in customers %}
@@ -78,7 +79,7 @@
               <br>{% endif %}
             {% if customer.email %}<span class="card-text">{{ customer.email }}</span>
               <br>{% endif %}
-            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>
+{#            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>#}
             <div class="row justify-content-center">
               <button type="button" class="btn btn-secondary col-5 m-2">History</button>
               <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
