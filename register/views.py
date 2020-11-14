@@ -80,15 +80,19 @@ def index(request, year=None, month=None):
         })
 
     # Get All customers if no entry is added - will be used in autopilot mode
-    autopilot_register = []
+    autopilot_morning_register, autopilot_evening_register = [], []
     if not e_register or not m_register:
         all_customers = Customer.objects.filter(status=1)
-        for customer in all_customers:
-            autopilot_register.append({
+        autopilot_morning_register = [{
                 'customer_name': customer.name,
                 'customer_id': customer.id,
                 'customer_quantity': customer.quantity,
-            })
+            } for customer in all_customers if customer.morning]
+        autopilot_evening_register = [{
+            'customer_name': customer.name,
+            'customer_id': customer.id,
+            'customer_quantity': customer.quantity,
+        } for customer in all_customers if customer.evening]
 
     # plot calendar days
     days = monthrange(register_date.year, register_date.month)
@@ -104,7 +108,8 @@ def index(request, year=None, month=None):
         'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
         'active_customers': active_customers,
         'default_price': milk.price,
-        'autopilot_register': autopilot_register,
+        'autopilot_morning_register': autopilot_morning_register,
+        'autopilot_evening_register': autopilot_evening_register,
     })
     return render(request, template, context)
 
