@@ -378,7 +378,7 @@
                   {% endfor %}
                 {% else %}
                   <h3 class="mb-4 text-success">Add Customer to Morning Register</h3>
-                  {% for entry in autopilot_register %}
+                  {% for entry in autopilot_morning_register %}
                     <label class="container text-success">{{ entry.customer_name }}
                       | {{ entry.customer_quantity }} ML
                       <input name="{{ entry.customer_id }}-morning" type="checkbox"
@@ -401,7 +401,7 @@
                   {% endfor %}
                 {% else %}
                   <h3 class="mb-4 text-success">Add Customer to Evening Register</h3>
-                  {% for entry in autopilot_register %}
+                  {% for entry in autopilot_evening_register %}
                     <label class="container text-success">{{ entry.customer_name }}
                       | {{ entry.customer_quantity }} ML
                       <input name="{{ entry.customer_id }}-evening" type="checkbox"
