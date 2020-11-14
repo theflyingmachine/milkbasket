@@ -12,6 +12,97 @@
       }
   </style>
 
+  <style>
+      * {
+          box-sizing: border-box;
+      }
+
+      ul {
+          list-style-type: none;
+      }
+
+      body {
+          font-family: Verdana, sans-serif;
+      }
+
+      .month {
+          padding: 70px 25px;
+          width: 100%;
+          background: #1abc9c;
+          text-align: center;
+      }
+
+      .month ul {
+          margin: 0;
+          padding: 0;
+      }
+
+      .month ul li {
+          color: white;
+          font-size: 20px;
+          text-transform: uppercase;
+          letter-spacing: 3px;
+      }
+
+      .weekdays {
+          margin: 0;
+          padding: 10px 0;
+          background-color: #ddd;
+      }
+
+      .weekdays li {
+          display: inline-block;
+          width: 13.6%;
+          color: #666;
+          text-align: center;
+      }
+
+      .days {
+          padding: 10px 0;
+          background: #eee;
+          margin: 0;
+      }
+
+      .days div {
+          list-style-type: none;
+          display: inline-block;
+          width: 13.6%;
+          height: 1.5%;
+          text-align: center;
+          margin-bottom: 5px;
+          font-size: 12px;
+          color: #777;
+      }
+
+      .days div .active {
+          padding: 5px;
+          background: #1abc9c;
+          color: white !important
+      }
+
+      /* Add media queries for smaller screens */
+      @media screen and (max-width: 720px) {
+          .weekdays li, .days li {
+              width: 13.1%;
+          }
+      }
+
+      @media screen and (max-width: 420px) {
+          .weekdays li, .days li {
+              width: 12.5%;
+          }
+
+          .days li .active {
+              padding: 2px;
+          }
+      }
+
+      @media screen and (max-width: 290px) {
+          .weekdays li, .days li {
+              width: 12.2%;
+          }
+      }
+  </style>
   <div class="container mb-5">
   <div class="row justify-content-center">
   <div class="col-12 mb-3">
@@ -98,7 +189,50 @@
     </table>
   {% endif %}
 
+  {% for month in calendar %}
+    <div class="month">
+      <ul>
+        <li>
+          {{ month.month }} {{ month.year }}
+        </li>
+      </ul>
+    </div>
 
+    <ul class="weekdays">
+      <li>Mon</li>
+      <li>Tue</li>
+      <li>Wed</li>
+      <li>Thr</li>
+      <li>Fri</li>
+      <li>Sat</li>
+      <li>Sun</li>
+    </ul>
+    <ul class="days">
+      {% for day in month.week_start_day %}
+        <div></div>
+      {% endfor %}
+      {% for day in month.days_in_month %}
+        <div><h2>{{ day.day }}</h2>
+          {% if day.data %}{% for entry in day.data %}
+            {% if entry.morning %}<span>
+            Morning: {{ entry.quantity }}</span>
+              {% if entry.absent %}<span class="bg-danger text-white"> ABSENT </span>{% else %}
+                {% if entry.paid %}<span class="bg-success text-white"> PAID </span>{% else %}
+                  <span class="bg-warning text-white">DUE</span>{% endif %}{% endif %}
+            {% endif %}
+            {% if entry.evening %}<span>
+            Evening: {{ entry.quantity }}</span>
+              {% if entry.absent %}<span class="bg-danger text-white"> ABSENT </span>{% else %}
+                {% if entry.paid %}<span class="bg-success text-white"> PAID </span>{% else %}
+                  <span class="bg-warning text-white">DUE</span>{% endif %}{% endif %}
+            {% endif %}
+
+          {% endfor %}{% endif %}
+        </div>
+      {% endfor %}
+    </ul>
+
+  {% endfor %}
   {% if register %}
     <!--   Register Entry Table-->
     <div class="mt-4 col-12">
