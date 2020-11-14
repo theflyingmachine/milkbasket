@@ -521,9 +521,9 @@ def landing(request):
 def report(request, months=None):
     template = 'register/report.html'
     chart_data = []
-    now = datetime.now()
+    d1 = date.today()
+    milk_delivered = ['morning-yes', 'evening-yes']
     for i in range(-12, 1):
-        d1 = date.today()
         graph_month = d1 + relativedelta(months=i)
 
         # Fetch Expenses
@@ -537,14 +537,14 @@ def report(request, months=None):
             Sum('amount'))['amount__sum'] or 0)
         month_income += month_extra_income
         month_income_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                               log_date__year=graph_month.year,)
+                                               log_date__year=graph_month.year, schedule__in=milk_delivered)
         for entry in month_income_entry:
             month_income += float(entry.current_price / 1000) * entry.quantity
 
         # Fetch due per month
         month_due = 0
         month_due_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                                     log_date__year=graph_month.year, paid=0)
+                                                     log_date__year=graph_month.year, paid=0, schedule__in=milk_delivered)
         for entry in month_due_entry:
             month_due += float(entry.current_price / 1000) * entry.quantity
 
