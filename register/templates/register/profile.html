@@ -67,8 +67,7 @@
           list-style-type: none;
           display: inline-block;
           width: 13.6%;
-          height: 1.5%;
-          text-align: center;
+      {#height: 1.5%;#} text-align: center;
           margin-bottom: 5px;
           font-size: 12px;
           color: #777;
@@ -199,32 +198,36 @@
     </div>
 
     <ul class="weekdays">
-      <li>Mon</li>
-      <li>Tue</li>
-      <li>Wed</li>
-      <li>Thr</li>
-      <li>Fri</li>
-      <li>Sat</li>
-      <li>Sun</li>
+      <li>Monday</li>
+      <li>Tuesday</li>
+      <li>Wednesday</li>
+      <li>Thursday</li>
+      <li>Friday</li>
+      <li>Saturday</li>
+      <li>Sunday</li>
     </ul>
     <ul class="days">
       {% for day in month.week_start_day %}
         <div></div>
       {% endfor %}
       {% for day in month.days_in_month %}
-        <div><h2>{{ day.day }}</h2>
+        <div class="p-1"><h2>{{ day.day }}</h2>
           {% if day.data %}{% for entry in day.data %}
-            {% if entry.morning %}<span>
-            Morning: {{ entry.quantity }}</span>
-              {% if entry.absent %}<span class="bg-danger text-white"> ABSENT </span>{% else %}
-                {% if entry.paid %}<span class="bg-success text-white"> PAID </span>{% else %}
-                  <span class="bg-warning text-white">DUE</span>{% endif %}{% endif %}
+            {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
+            Morning: {{ entry.quantity }} {% if entry.absent %}
+              <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+              {% if not entry.absent %}
+                {% if entry.paid %}<span class="d-block bg-success text-white p-1"> PAID</span>
+                {% else %}
+                  <span class="d-block bg-warning text-white p-1">DUE</span>{% endif %}{% endif %}
             {% endif %}
-            {% if entry.evening %}<span>
-            Evening: {{ entry.quantity }}</span>
-              {% if entry.absent %}<span class="bg-danger text-white"> ABSENT </span>{% else %}
-                {% if entry.paid %}<span class="bg-success text-white"> PAID </span>{% else %}
-                  <span class="bg-warning text-white">DUE</span>{% endif %}{% endif %}
+            {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
+            Evening: {{ entry.quantity }} {% if entry.absent %}
+              <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+              {% if not entry.absent %}
+                {% if entry.paid %}<span class="d-block bg-success text-white p-1"> PAID </span>
+                {% else %}
+                  <span class="d-block bg-warning text-white p-1">DUE</span>{% endif %}{% endif %}
             {% endif %}
 
           {% endfor %}{% endif %}
