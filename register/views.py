@@ -20,7 +20,7 @@ from django.utils.safestring import mark_safe
 
 from register.forms import CustomerForm, RegisterForm
 from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
-from register.utils import get_active_month, get_register_day_entry
+from register.utils import get_active_month, get_register_day_entry, get_bill_summary
 
 
 @login_required
@@ -751,9 +751,17 @@ def customer_profile(request, id=None):
                                         } for day in range(1, (
                          monthrange(active_month.year, active_month.month)[1]) + 1)]
                      } for active_month in active_months]
-        print(calendar)
+        bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
+                         'desc': get_bill_summary(id, month=due_month.month, year=due_month.year)}
+                        for due_month in get_active_month(id, all_active=False)]
+        bill_summary.reverse()
+        bill_sum_total = {
+            'sum_total': (sum([bill.get('desc')[-1]['total'] for bill in bill_summary]))}
+        bill_summary.append(bill_sum_total)
+
         context = {
             'calendar': calendar,
+            'bill_summary': bill_summary,
             'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
             'customer': customer,
