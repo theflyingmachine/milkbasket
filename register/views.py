@@ -1,9 +1,12 @@
 import decimal
 import json
+import string
 import time as t
 import os
 from calendar import monthrange
 from datetime import datetime, date, timedelta, time
+import random
+
 from dateutil.relativedelta import relativedelta
 
 import qrcode
@@ -17,11 +20,11 @@ from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.utils.safestring import mark_safe
-
+from django.views.generic import View
 from register.forms import CustomerForm, RegisterForm
-from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
+from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income, Bill
 from register.utils import get_active_month, get_register_day_entry, get_bill_summary, \
-    customer_register_last_updated
+    customer_register_last_updated, render_to_pdf, get_base_64_barcode
 
 
 @login_required
@@ -778,3 +781,55 @@ def customer_profile(request, id=None):
         }
         return render(request, template, context)
     return redirect('view_customers')
+
+
+class GeneratePdf(View):
+    def get(self, request, *args, **kwargs):
+        cust_id = self.kwargs['id']
+        res = ''.join(random.choices(string.ascii_uppercase +string.digits, k = 7))
+        bill_number = f'MB-{cust_id}-{datetime.now().year}-{datetime.now().month}-{res}'
+
+        customer = Customer.objects.get(id=cust_id)
+        # Extract months which has due for calendar
+        active_months = get_active_month(cust_id, all_active=True)
+
+        calendar = [{'month': active_month.strftime('%B'),
+                     'year': active_month.strftime('%Y'),
+                     'week_start_day': [x for x in range(0, active_month.weekday())],
+                     'days_in_month': [{'day': day,
+                                        'data': get_register_day_entry(cust_id, day=day,
+                                                                       month=active_month.month,
+                                                                       year=active_month.year)
+                                        } for day in range(1, (
+                         monthrange(active_month.year, active_month.month)[1]) + 1)]
+                     } for active_month in active_months]
+        bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
+                         'desc': get_bill_summary(cust_id, month=due_month.month, year=due_month.year)}
+                        for due_month in get_active_month(cust_id, all_active=False)]
+        bill_summary.reverse()
+        bill_sum_total = {
+            'last_updated': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
+            'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
+            'sum_total': (sum([bill.get('desc')[-1]['total'] for bill in bill_summary]))}
+        bill_summary.append(bill_sum_total)
+        barcode = get_base_64_barcode(bill_number)
+
+        # Save to database before rendering PDF
+        bill = Bill(customer_id=customer, bill_number=bill_number, amount=bill_sum_total['sum_total'], bill_last_data_date=customer_register_last_updated(cust_id))
+        bill.save()
+
+        # Render PDF data
+        data = {
+            'barcode': barcode,
+            'bill_number': bill_number,
+            'page_title': bill_number,
+            'customer_id':  cust_id,
+            'customer_name': customer.name,
+            'bill_date': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
+            'last_update': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
+            # 'calendar': calendar,     # uncomment if calendar needed on bill
+            'bill_summary': bill_summary,
+        }
+        pdf = render_to_pdf('register/bill_pdf_template.html', data)
+        return HttpResponse(pdf, content_type='application/pdf')
+

@@ -202,7 +202,7 @@
     {% if bill_summary %}
       <!--    Bill Summary -->
       <div class="mt-4 mb-4 col-12">
-        <h5 class="pt-2 mt-2 text-center">Bill Summary</h5>
+        <h5 class="pt-2 mt-2 text-center">Bill Summary <a target="_blank" href="/register/print_bill/{{ customer.id }}" class="btn btn-secondary"><i class="fa fa-print" aria-hidden="true"></i> Print / Download</a></h5>
         <table style="width:100%">
           <tr class=" bg-info text-white">
             <th class="p-2 text-center" colspan="2">Description</th>
@@ -211,7 +211,7 @@
           {% for bill in bill_summary %}
             {% if forloop.last %}
               <tr>
-                <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bil might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}.</span>
+                <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}.</span>
                 </td>
                 <td colspan="1"><h4 class="p-2 text-nowrap text-right font-weight-bold"> Grand
                   Total: {{ bill.sum_total }}</h4></td>

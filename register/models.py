@@ -55,3 +55,12 @@ class Income(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
     log_date = models.DateTimeField(null=False, default=datetime.now)
+
+
+class Bill(models.Model):
+    customer_id = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
+    bill_number = models.CharField(max_length=25, null=False)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    bill_last_data_date = models.DateTimeField(null=False)
+    bill_generated_date = models.DateTimeField(null=False, default=datetime.now)
+
