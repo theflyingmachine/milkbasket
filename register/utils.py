@@ -49,6 +49,7 @@ def get_register_day_entry(customer_id, day=False, month=False, year=False):
 
 
 def get_bill_summary(customer_id, month=False, year=False):
+    """ Return bill summary for the customer id """
     bill_summary = None
     if customer_id:
         # check if customer has due
@@ -79,3 +80,12 @@ def get_bill_summary(customer_id, month=False, year=False):
             bill_summary.append(total)
 
     return bill_summary
+
+
+def customer_register_last_updated(customer_id):
+    """ Returns date when the register entry for customer was last updated"""
+    last_updated = None
+    if customer_id:
+        last_updated = Register.objects.filter(customer_id=customer_id).values_list('log_date', flat=True).last()
+
+    return last_updated

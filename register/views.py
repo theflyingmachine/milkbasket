@@ -20,7 +20,8 @@ from django.utils.safestring import mark_safe
 
 from register.forms import CustomerForm, RegisterForm
 from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
-from register.utils import get_active_month, get_register_day_entry, get_bill_summary
+from register.utils import get_active_month, get_register_day_entry, get_bill_summary, \
+    customer_register_last_updated
 
 
 @login_required
@@ -756,9 +757,11 @@ def customer_profile(request, id=None):
                         for due_month in get_active_month(id, all_active=False)]
         bill_summary.reverse()
         bill_sum_total = {
+            'last_updated': customer_register_last_updated(id).strftime("%d %B, %Y"),
+            'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
             'sum_total': (sum([bill.get('desc')[-1]['total'] for bill in bill_summary]))}
         bill_summary.append(bill_sum_total)
-
+        print(bill_sum_total)
         context = {
             'calendar': calendar,
             'bill_summary': bill_summary,
