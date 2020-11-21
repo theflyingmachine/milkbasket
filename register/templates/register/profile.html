@@ -103,8 +103,8 @@
       }
 
       .dash {
-          border: 1px dashed #cccccc;
-          border-collapse: collapse
+          border: 1px dashed #425858;
+          border-collapse: collapse;
       }
   </style>
   <div class="container mb-5">
@@ -199,22 +199,22 @@
       <h5 class="pt-2 mt-2 text-center">Bill Summary</h5>
       <table style="width:100%">
         <tr>
-          <th>Description</th>
+          <th colspan="2">Description</th>
           <th class="text-right">Amount</th>
         </tr>
         {% for bill in bill_summary %}
           {% if forloop.last %}
             <tr class="font-weight-bold text-right">
-              <td colspan="2"> Grand Total: {{ bill.sum_total }} </td>
+              <td colspan="3"> Grand Total: {{ bill.sum_total }} </td>
               {% else %}
-              <td class="m-2 dash" colspan="2">{{ bill.month_year }}</td>
+              <td class="m-2 dash" rowspan="2">{{ bill.month_year }}</td>
             <tr>
-              <td class="m-2 text-right">
+              <td class="m-2 dash text-right">
                 {% for bill_month in bill.desc %}
 
                   {% if forloop.last %}
                     </td>
-                    <td class="m-2 text-right">{{ bill_month.total }}</td>
+                    <td class="m-2 dash text-right">{{ bill_month.total }}</td>
                   {% else %}
                     <span
                      class="m-2">{{ bill_month.quantity }} ML  <strong>&nbsp;X&nbsp;</strong>   {{ bill_month.desc }} = {{ bill_month.amount }}</span>
