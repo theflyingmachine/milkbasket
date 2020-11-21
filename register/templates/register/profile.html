@@ -108,11 +108,6 @@
           padding-bottom: 25px !important;
           padding-top: 25px !important;
       }
-
-      .bill-description {
-          padding-bottom: 25px !important;
-          padding-top: 25px !important;
-      }
   </style>
   <div class="container mb-5">
   <div class="row justify-content-center">
@@ -247,55 +242,58 @@
 
   {#  Calendar #}
   {% if calendar %}
-    {% for month in calendar %}
-      <div class="month">
-        <ul>
-          <li>
-            {{ month.month }} {{ month.year }}
-          </li>
+    <div class="mt-4 col-12">
+      {% for month in calendar %}
+        <div class="month">
+          <ul>
+            <li>
+              {{ month.month }} {{ month.year }}
+            </li>
+          </ul>
+        </div>
+
+        <ul class="col-12 weekdays">
+          <li>Monday</li>
+          <li>Tuesday</li>
+          <li>Wednesday</li>
+          <li>Thursday</li>
+          <li>Friday</li>
+          <li>Saturday</li>
+          <li>Sunday</li>
         </ul>
-      </div>
-
-      <ul class="col-12 weekdays">
-        <li>Monday</li>
-        <li>Tuesday</li>
-        <li>Wednesday</li>
-        <li>Thursday</li>
-        <li>Friday</li>
-        <li>Saturday</li>
-        <li>Sunday</li>
-      </ul>
-      <ul class="days">
-        {% for day in month.week_start_day %}
-          <div></div>
-        {% endfor %}
-        {% for day in month.days_in_month %}
-          <div class="p-1"><h2>{{ day.day }}</h2>
-            {% if day.data %}{% for entry in day.data %}
-              {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
+        <ul class="days">
+          {% for day in month.week_start_day %}
+            <div></div>
+          {% endfor %}
+          {% for day in month.days_in_month %}
+            <div class="p-1"><h2>{{ day.day }}</h2>
+              {% if day.data %}{% for entry in day.data %}
+                {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
             Morning: {{ entry.quantity }} {% if entry.absent %}
-                <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
-                {% if not entry.absent %}
-                  {% if entry.paid %}<span class="d-block bg-success text-white p-1"> PAID</span>
-                  {% else %}
-                    <span class="d-block bg-warning text-white p-1">DUE</span>
-                  {% endif %}{% endif %}
-              {% endif %}
-              {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
+                  <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                  {% if not entry.absent %}
+                    {% if entry.paid %}<span class="d-block bg-success text-white p-1"> PAID</span>
+                    {% else %}
+                      <span class="d-block bg-warning text-white p-1">DUE</span>
+                    {% endif %}{% endif %}
+                {% endif %}
+                {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
             Evening: {{ entry.quantity }} {% if entry.absent %}
-                <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
-                {% if not entry.absent %}
-                  {% if entry.paid %}<span class="d-block bg-success text-white p-1"> PAID </span>
-                  {% else %}
-                    <span class="d-block bg-warning text-white p-1">DUE</span>
-                  {% endif %}{% endif %}
-              {% endif %}
+                  <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                  {% if not entry.absent %}
+                    {% if entry.paid %}
+                      <span class="d-block bg-success text-white p-1"> PAID </span>
+                    {% else %}
+                      <span class="d-block bg-warning text-white p-1">DUE</span>
+                    {% endif %}{% endif %}
+                {% endif %}
 
-            {% endfor %}{% endif %}
-          </div>
-        {% endfor %}
-      </ul>
-    {% endfor %}
+              {% endfor %}{% endif %}
+            </div>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    </div>
   {% endif %}
 
   {% if register %}
