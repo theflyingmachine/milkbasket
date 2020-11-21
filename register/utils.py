@@ -1,4 +1,13 @@
+import base64
+import requests
+
 from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
+
+from django.http import HttpResponse
+from django.template.loader import get_template
+
+from io import BytesIO
+from xhtml2pdf import pisa
 
 
 # ======== UTILITY ============
@@ -89,3 +98,23 @@ def customer_register_last_updated(customer_id):
         last_updated = Register.objects.filter(customer_id=customer_id).values_list('log_date', flat=True).last()
 
     return last_updated
+
+
+def render_to_pdf(template_src, context_dict={}):
+    """ Utility for Bill PDF generation """
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type='application/pdf')
+    return None
+
+
+def get_base_64_barcode(barcode_text):
+    """ Return base 64 bar code """
+    barcode = None
+    if barcode_text:
+        url = f'https://mobiledemand-barcode.azurewebsites.net/barcode/image?content={barcode_text}&size=100&symbology=CODE_128&format=png&text=true'
+        barcode = base64.b64encode(requests.get(url).content).decode('utf-8')
+    return barcode
