@@ -20,6 +20,8 @@ from django.utils.safestring import mark_safe
 
 from register.forms import CustomerForm, RegisterForm
 from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
+from register.utils import get_active_month, get_register_day_entry, get_bill_summary, \
+    customer_register_last_updated
 
 
 @login_required
@@ -84,10 +86,10 @@ def index(request, year=None, month=None):
     if not e_register or not m_register:
         all_customers = Customer.objects.filter(status=1)
         autopilot_morning_register = [{
-                'customer_name': customer.name,
-                'customer_id': customer.id,
-                'customer_quantity': customer.quantity,
-            } for customer in all_customers if customer.morning]
+            'customer_name': customer.name,
+            'customer_id': customer.id,
+            'customer_quantity': customer.quantity,
+        } for customer in all_customers if customer.morning]
         autopilot_evening_register = [{
             'customer_name': customer.name,
             'customer_id': customer.id,
@@ -132,9 +134,19 @@ def addcustomer(request):
             customer_evening = True if request.POST.get("evening", False) else False
             customer_quantity = request.POST.get("quantity", None)
             if not customer_morning and not customer_morning:
-                Customer.objects.filter(id=customer_id).update(contact=customer_contact, email=customer_email, morning=customer_morning, evening=customer_evening, quantity=customer_quantity, status=0)
+                Customer.objects.filter(id=customer_id).update(contact=customer_contact,
+                                                               email=customer_email,
+                                                               morning=customer_morning,
+                                                               evening=customer_evening,
+                                                               quantity=customer_quantity,
+                                                               status=0)
             else:
-                Customer.objects.filter(id=customer_id).update(contact=customer_contact, email=customer_email, morning=customer_morning, evening=customer_evening, quantity=customer_quantity, status=1)
+                Customer.objects.filter(id=customer_id).update(contact=customer_contact,
+                                                               email=customer_email,
+                                                               morning=customer_morning,
+                                                               evening=customer_evening,
+                                                               quantity=customer_quantity,
+                                                               status=1)
         else:
             form = CustomerForm(request.POST)
             name = form['name'].value()
@@ -145,7 +157,7 @@ def addcustomer(request):
             quantity = form['quantity'].value()
             if not morning and not evening:
                 customer = Customer(name=name, contact=contact, email=email, morning=morning,
-                                evening=evening, quantity=quantity, status=0)
+                                    evening=evening, quantity=quantity, status=0)
             else:
                 customer = Customer(name=name, contact=contact, email=email, morning=morning,
                                     evening=evening, quantity=quantity, status=1)
@@ -173,7 +185,8 @@ def addentry(request, year=None, month=None):
             check_record = Register.objects.filter(customer_id=customer, log_date=full_log_date,
                                                    schedule__startswith=schedule).first()
             if not check_record:
-                entry = Register(customer_id=customer_info.id, log_date=full_log_date, schedule=schedule,
+                entry = Register(customer_id=customer_info.id, log_date=full_log_date,
+                                 schedule=schedule,
                                  quantity=customer_info.quantity, current_price=current_price)
                 entry.save()
                 entry_status = True if entry.id else False
@@ -194,7 +207,8 @@ def addentry(request, year=None, month=None):
             check_record = Register.objects.filter(customer_id=customer, log_date=full_log_date,
                                                    schedule__startswith=schedule).first()
             if not check_record:
-                entry = Register(customer_id=customer, log_date=full_log_date, schedule=full_schedule,
+                entry = Register(customer_id=customer, log_date=full_log_date,
+                                 schedule=full_schedule,
                                  quantity=quantity, current_price=current_price)
                 entry.save()
                 entry_status = True if entry.id else False
@@ -256,8 +270,10 @@ def autopilot(request, year=None, month=None):
             for cust in autopilot_data:
                 customer = Customer.objects.filter(id=cust['id']).first()
                 full_log_date = datetime.strptime(str(day), '%Y-%m-%d %H:%M:%S')
-                check_record = Register.objects.filter(customer_id=customer.id, log_date=full_log_date,
-                                                   schedule__startswith=cust['schedule']).first()
+                check_record = Register.objects.filter(customer_id=customer.id,
+                                                       log_date=full_log_date,
+                                                       schedule__startswith=cust[
+                                                           'schedule']).first()
                 if not check_record:
                     full_schedule = f'{cust["schedule"]}-yes'
                     entry = Register(customer_id=customer.id, log_date=full_log_date,
@@ -347,9 +363,11 @@ def account(request, year=None, month=None):
 
     # Get Payment Due
     total_payment = 0
-    due_customer = Register.objects.filter(schedule__endswith='yes', paid=0).values('customer_id', 'customer__name').distinct()
+    due_customer = Register.objects.filter(schedule__endswith='yes', paid=0).values('customer_id',
+                                                                                    'customer__name').distinct()
     for customer in due_customer:
-        payment_due = Register.objects.filter(customer_id=customer['customer_id'], schedule__endswith='yes', paid=0)
+        payment_due = Register.objects.filter(customer_id=customer['customer_id'],
+                                              schedule__endswith='yes', paid=0)
         payment_due_amount = 0
         for due in payment_due:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
@@ -358,19 +376,24 @@ def account(request, year=None, month=None):
                                               'balance_amount') if balance_amount else 0
         customer['payment_due'] = round(payment_due_amount, 2) - abs(customer['adjusted_amount'])
         due_prev_month = Register.objects.filter(customer_id=customer['customer_id'],
-                                              schedule__endswith='yes', paid=0).exclude(log_date__month=current_date.month)
+                                                 schedule__endswith='yes', paid=0).exclude(
+            log_date__month=current_date.month)
         due_prev_month_amount = 0
         for due in due_prev_month:
-            due_prev_month_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
-        customer['payment_due_prev'] = round(due_prev_month_amount, 2) - abs(customer['adjusted_amount'])
+            due_prev_month_amount += (
+                due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+        customer['payment_due_prev'] = round(due_prev_month_amount, 2) - abs(
+            customer['adjusted_amount'])
 
         total_payment += payment_due_amount
 
     # Get paid customer
     total_payment_received = 0
-    paid_customer = Register.objects.filter( schedule__endswith='yes', paid=1).values('customer_id', 'customer__name').distinct()
+    paid_customer = Register.objects.filter(schedule__endswith='yes', paid=1).values('customer_id',
+                                                                                     'customer__name').distinct()
     for customer in paid_customer:
-        payment_done = Register.objects.filter(customer_id=customer['customer_id'], schedule__endswith='yes', paid=1)
+        payment_done = Register.objects.filter(customer_id=customer['customer_id'],
+                                               schedule__endswith='yes', paid=1)
         payment_due_amount = 0
         for due in payment_done:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
@@ -378,7 +401,9 @@ def account(request, year=None, month=None):
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
         customer['payment_done'] = round(payment_due_amount, 2)
-        paid_amount = Payment.objects.filter(customer_id=customer['customer_id'], log_date__month=register_date.month).aggregate(Sum('amount'))
+        paid_amount = Payment.objects.filter(customer_id=customer['customer_id'],
+                                             log_date__month=register_date.month).aggregate(
+            Sum('amount'))
         customer['total_paid'] = paid_amount['amount__sum']
         total_payment_received += payment_due_amount
 
@@ -488,10 +513,12 @@ def accept_payment(request, year=None, month=None, return_url=None):
             customer_id=c_id, defaults={"balance_amount": 0}
         )
         payment_amount = payment_amount + abs(adjust_amount)
-        accepting_payment = Register.objects.filter(customer_id=c_id, schedule__endswith='yes', paid=0).order_by('log_date')
+        accepting_payment = Register.objects.filter(customer_id=c_id, schedule__endswith='yes',
+                                                    paid=0).order_by('log_date')
         for entry in accepting_payment:
             if payment_amount > 0:
-                entry_cost = float(entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
+                entry_cost = float(
+                    entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
                 if payment_amount - entry_cost >= 0:
                     Register.objects.filter(id=entry.id).update(paid=True)
                     payment_amount = payment_amount - entry_cost
@@ -540,23 +567,26 @@ def report(request, months=None):
 
         # Fetch Expenses
         month_expense = Expense.objects.filter(log_date__month=graph_month.month,
-                                               log_date__year=graph_month.year).aggregate(Sum('cost'))['cost__sum'] or 0
+                                               log_date__year=graph_month.year).aggregate(
+            Sum('cost'))['cost__sum'] or 0
 
         # Fetch Income
         month_income = 0
         month_extra_income = float(Income.objects.filter(log_date__month=graph_month.month,
-                                               log_date__year=graph_month.year).aggregate(
+                                                         log_date__year=graph_month.year).aggregate(
             Sum('amount'))['amount__sum'] or 0)
         month_income += month_extra_income
         month_income_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                               log_date__year=graph_month.year, schedule__in=milk_delivered)
+                                                     log_date__year=graph_month.year,
+                                                     schedule__in=milk_delivered)
         for entry in month_income_entry:
             month_income += float(entry.current_price / 1000) * entry.quantity
 
         # Fetch due per month
         month_due = 0
         month_due_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                                     log_date__year=graph_month.year, paid=0, schedule__in=milk_delivered)
+                                                  log_date__year=graph_month.year, paid=0,
+                                                  schedule__in=milk_delivered)
         for entry in month_due_entry:
             month_due += float(entry.current_price / 1000) * entry.quantity
 
@@ -564,7 +594,7 @@ def report(request, months=None):
         month_paid = 0
         month_paid += month_extra_income
         month_paid_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                                  log_date__year=graph_month.year, paid=1)
+                                                   log_date__year=graph_month.year, paid=1)
         for entry in month_paid_entry:
             month_paid += float(entry.current_price / 1000) * entry.quantity
 
@@ -593,15 +623,18 @@ def report(request, months=None):
     for i in range(-365, 1):
         d1 = date.today()
         graph_day = d1 + relativedelta(days=i)
-        mp = Register.objects.filter(log_date__year=graph_day.year, log_date__month=graph_day.month, log_date__day=graph_day.day)
+        mp = Register.objects.filter(log_date__year=graph_day.year,
+                                     log_date__month=graph_day.month, log_date__day=graph_day.day)
         milk_production = mp.aggregate(Sum('quantity'))['quantity__sum'] or 0
-        milk_production_morning = mp.filter(schedule='morning-yes').aggregate(Sum('quantity'))['quantity__sum'] or 0
-        milk_production_evening = mp.filter(schedule='evening-yes').aggregate(Sum('quantity'))['quantity__sum'] or 0
+        milk_production_morning = mp.filter(schedule='morning-yes').aggregate(Sum('quantity'))[
+                                      'quantity__sum'] or 0
+        milk_production_evening = mp.filter(schedule='evening-yes').aggregate(Sum('quantity'))[
+                                      'quantity__sum'] or 0
         current_day = {
             "dayName": graph_day.strftime('%d-%B-%Y'),
-            'milkMorning': round(float(milk_production_morning/1000), 2),
-            'milkEvening': round(float(milk_production_evening/1000), 2),
-            "milkQuantity": round(float(milk_production/1000), 2),
+            'milkMorning': round(float(milk_production_morning / 1000), 2),
+            'milkEvening': round(float(milk_production_evening / 1000), 2),
+            "milkQuantity": round(float(milk_production / 1000), 2),
         }
         chart_data_milk.append(current_day)
 
@@ -672,16 +705,22 @@ def customer_profile(request, id=None):
             customer.schedule = 'Evening'
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
-        register = Register.objects.filter(customer_id=id, schedule__in=['morning-yes', 'evening-yes', 'e-morning', 'e-evening']).order_by('-log_date').values()
+        register = Register.objects.filter(customer_id=id,
+                                           schedule__in=['morning-yes', 'evening-yes', 'e-morning',
+                                                         'e-evening']).order_by(
+            '-log_date').values()
 
         for entry in register:
             entry['billed_amount'] = float(entry['current_price'] / 1000) * entry['quantity']
             entry['display_paid'] = 'Paid' if entry['paid'] else 'Due'
-            entry['display_schedule'] = 'Morning' if entry['schedule'] == 'morning-yes' else 'Evening'
+            entry['display_schedule'] = 'Morning' if entry[
+                                                         'schedule'] == 'morning-yes' else 'Evening'
             entry['display_log_date'] = entry['log_date'].strftime('%d-%B-%Y')
 
         # Get due table
-        due_cust = Register.objects.filter(customer_id=id, paid=0, schedule__in=['morning-yes', 'evening-yes', 'e-morning', 'e-evening']).order_by('-log_date')
+        due_cust = Register.objects.filter(customer_id=id, paid=0,
+                                           schedule__in=['morning-yes', 'evening-yes', 'e-morning',
+                                                         'e-evening']).order_by('-log_date')
         payment_due_amount_prev_month = 0
         payment_due_amount_till_date = 0
         adjusted_amount = 0
@@ -690,20 +729,51 @@ def customer_profile(request, id=None):
             balance_amount = Balance.objects.filter(customer_id=id).first()
             adjusted_amount = getattr(balance_amount, 'balance_amount') if balance_amount else 0
             # Check till last month
-            due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(log_date__month=current_date.month)
+            due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(
+                log_date__month=current_date.month)
             for due in due_cust_prev_month:
-                payment_due_amount_prev_month += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+                payment_due_amount_prev_month += (
+                    due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
             # Check till today
             for due in due_cust:
-                payment_due_amount_till_date += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+                payment_due_amount_till_date += (
+                    due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+
+        # Extract months which has due for calendar
+        active_months = get_active_month(id, all_active=True)
+
+        calendar = [{'month': active_month.strftime('%B'),
+                     'year': active_month.strftime('%Y'),
+                     'week_start_day': [x for x in range(0, active_month.weekday())],
+                     'days_in_month': [{'day': day,
+                                        'data': get_register_day_entry(id, day=day,
+                                                                       month=active_month.month,
+                                                                       year=active_month.year)
+                                        } for day in range(1, (
+                         monthrange(active_month.year, active_month.month)[1]) + 1)]
+                     } for active_month in active_months]
+        bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
+                         'desc': get_bill_summary(id, month=due_month.month, year=due_month.year)}
+                        for due_month in get_active_month(id, all_active=False)]
+        bill_summary.reverse()
+        bill_sum_total = {
+            'last_updated': customer_register_last_updated(id).strftime("%d %B, %Y"),
+            'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
+            'sum_total': (sum([bill.get('desc')[-1]['total'] for bill in bill_summary]))}
+        bill_summary.append(bill_sum_total)
+
         context = {
+            'calendar': calendar,
+            'bill_summary': bill_summary,
             'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
             'customer': customer,
             'transaction': transaction,
             'register': register,
-            'payment_due_amount_prev_month': round(payment_due_amount_prev_month, 2) - abs(adjusted_amount),
-            'payment_due_amount_till_date': round(payment_due_amount_till_date, 2) - abs(adjusted_amount),
+            'payment_due_amount_prev_month': round(payment_due_amount_prev_month, 2) - abs(
+                adjusted_amount),
+            'payment_due_amount_till_date': round(payment_due_amount_till_date, 2) - abs(
+                adjusted_amount),
             'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B")
         }
         return render(request, template, context)
