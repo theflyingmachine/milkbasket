@@ -761,7 +761,7 @@ def customer_profile(request, id=None):
             'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
             'sum_total': (sum([bill.get('desc')[-1]['total'] for bill in bill_summary]))}
         bill_summary.append(bill_sum_total)
-        print(bill_sum_total)
+
         context = {
             'calendar': calendar,
             'bill_summary': bill_summary,
