@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  {% load static %}
   <title>Login - Milk Basket</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"
@@ -292,11 +293,13 @@
           outline: none;
       }
 
-      #icon {
-          width: 60%;
+      @font-face {
+          font-family: fontastique;
+          src: url("{% static "/src/fontastique.ttf"%}");
       }
 
-      .pagetitle {
+      .intro {
+          font-family: fontastique;
           font-size: 150px;
       }
 
@@ -311,7 +314,7 @@
 
   <!-- Login Form -->
   <form name="login" method="post" action="login">{% csrf_token %}
-    <h2 class="text-primary pagetitle">Milk Basket</h2>
+    <h2 class="text-primary intro">Milk Basket</h2>
     {% if message %}
       <h5 class="text-danger">{{ message }}</h5>
     {% endif %}
