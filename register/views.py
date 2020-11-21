@@ -22,7 +22,7 @@ from django.shortcuts import render, redirect
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 from register.forms import CustomerForm, RegisterForm
-from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
+from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income, Bill
 from register.utils import get_active_month, get_register_day_entry, get_bill_summary, \
     customer_register_last_updated, render_to_pdf, get_base_64_barcode
 
@@ -813,7 +813,12 @@ class GeneratePdf(View):
             'sum_total': (sum([bill.get('desc')[-1]['total'] for bill in bill_summary]))}
         bill_summary.append(bill_sum_total)
         barcode = get_base_64_barcode(bill_number)
-        print(barcode)
+
+        # Save to database before rendering PDF
+        bill = Bill(customer_id=customer, bill_number=bill_number, amount=bill_sum_total['sum_total'], bill_last_data_date=customer_register_last_updated(cust_id))
+        bill.save()
+
+        # Render PDF data
         data = {
             'barcode': barcode,
             'bill_number': bill_number,
