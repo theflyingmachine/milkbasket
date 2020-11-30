@@ -56,7 +56,7 @@ def get_register_day_entry(customer_id, day=False, month=False, year=False):
         for entry in register_entry:
             entry.morning = True if entry.schedule == 'morning-yes' or entry.schedule == 'morning-no' else False
             entry.evening = True if entry.schedule == 'evening-yes' or entry.schedule == 'evening-no' else False
-            entry.absent = True if entry.schedule == 'evening-no' or entry.schedule == 'morniing-no' else False
+            entry.absent = True if entry.schedule == 'evening-no' or entry.schedule == 'morning-no' else False
             entry.quantity = '' if entry.absent else f'{int(entry.quantity)} ML'
 
     return register_entry
