@@ -12,15 +12,20 @@ from xhtml2pdf import pisa
 
 # ======== UTILITY ============
 # Only helper function beyond this point
-def get_active_month(customer_id, only_paid=False, all_active=True):
+def get_active_month(customer_id, only_paid=False, only_due=False, all_active=False):
     """ Returns active month list of customer """
     active_months = None
     if customer_id:
         if all_active:
             active_months = Register.objects.filter(customer_id=customer_id).dates(
                 'log_date', 'month', order='DESC')
-        else:
-            active_months = Register.objects.filter(customer_id=customer_id, paid=only_paid).dates(
+        if only_paid:
+            active_months = Register.objects.filter(customer_id=customer_id,
+                                                    schedule__endswith='-yes', paid=1).dates(
+                'log_date', 'month', order='DESC')
+        if only_due:
+            active_months = Register.objects.filter(customer_id=customer_id,
+                                                    schedule__endswith='-yes', paid=0).dates(
                 'log_date', 'month', order='DESC')
 
     return active_months
@@ -95,9 +100,20 @@ def customer_register_last_updated(customer_id):
     """ Returns date when the register entry for customer was last updated"""
     last_updated = None
     if customer_id:
-        last_updated = Register.objects.filter(customer_id=customer_id).values_list('log_date', flat=True).last()
+        last_updated = Register.objects.filter(customer_id=customer_id).values_list('log_date',
+                                                                                    flat=True).last()
 
     return last_updated
+
+
+def get_customer_balance_amount(customer_id):
+    """ Returns Balance / advance paid amount of customer"""
+    balance_amount = None
+    if customer_id:
+        balance_amount = Balance.objects.filter(customer_id=customer_id).first()
+        balance_amount = float(
+            getattr(balance_amount, 'balance_amount')) if balance_amount else 0
+    return balance_amount
 
 
 def render_to_pdf(template_src, context_dict={}):
