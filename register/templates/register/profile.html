@@ -401,6 +401,14 @@
                          placeholder="Amount">
                 </div>
               </div>
+              {% if customer.contact %}
+              <div class="form-row">
+                <div class="form-group col-md-12">
+                  <label for="name">Send SMS Notification </label>
+                  <input type="checkbox" id="sms-notification" name="sms-notification" checked value="1">
+                </div>
+              </div>
+              {% endif %}
 
               <button type="submit" class="btn btn-success justify-content-center col-12">Accept
                 Payment
@@ -423,7 +431,7 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form name="sendsms" action="/sendsms" method="post">{% csrf_token %}
+          <form id="sendsmsform" name="sendsms" action="/sendsms" method="post">{% csrf_token %}
             <input type="hidden" class="form-control" id="return_url" name="return_url"
                    value="profile/{{ customer.id }}">
             <input type="hidden" class="form-control" id="c_id" name="c_id">
@@ -495,8 +503,8 @@
     })
 
     {#    Ajax for Send SMS  #}
-    $(document).ready(function () {
-      $('.modal form').on('submit', function (event) {
+    document.getElementById("sendsmsform").addEventListener("submit", sendSMSFunction);
+    function sendSMSFunction() {
         document.getElementById("sendsmsbutton").disabled = true;
         event.preventDefault()
         $.post($(this).attr('action'), $(this).serialize(), function (data) {
@@ -510,8 +518,7 @@
             alert('Something went wrong...')
           }
         }, 'json')
-      })
-    });
+      }
   </script>
 {% endblock %}
 <!-- Footer -->
