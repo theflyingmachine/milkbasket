@@ -136,7 +136,7 @@ def addcustomer(request):
             customer_morning = True if request.POST.get("morning", False) else False
             customer_evening = True if request.POST.get("evening", False) else False
             customer_quantity = request.POST.get("quantity", None)
-            if not customer_morning and not customer_morning:
+            if not customer_morning and not customer_evening:
                 Customer.objects.filter(id=customer_id).update(contact=customer_contact,
                                                                email=customer_email,
                                                                morning=customer_morning,
