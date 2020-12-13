@@ -152,7 +152,7 @@
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
                     class="cal-yes" title="{{ single_entry.quantity }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'morning-no' %}
-                    id="{{ entry.customer_id }}_{{ day }}" class="cal-no"
+                    class="cal-no"
                     {% endif %}{% endfor %} >
                     <button type="button" class="btn" data-toggle="modal"
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
@@ -180,6 +180,7 @@
                 </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
+                    id="{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
                       class="cal-yes" title="{{ single_entry.quantity }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'evening-no' %}
