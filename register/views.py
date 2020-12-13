@@ -778,7 +778,7 @@ def customer_profile(request, id=None):
 
         context = {
             'calendar': calendar,
-            'bill_summary': bill_summary,
+            'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
             'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
             'customer': customer,
