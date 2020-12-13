@@ -24,7 +24,8 @@ from django.views.generic import View
 from register.forms import CustomerForm, RegisterForm
 from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income, Bill
 from register.utils import get_active_month, get_register_day_entry, get_bill_summary, \
-    customer_register_last_updated, render_to_pdf, get_base_64_barcode, get_customer_balance_amount
+    customer_register_last_updated, render_to_pdf, get_base_64_barcode, \
+    get_customer_balance_amount, send_sms_api
 
 
 @login_required
@@ -775,13 +776,14 @@ def customer_profile(request, id=None):
             bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
 
         bill_summary.append(bill_sum_total)
-
+        sms_text = f'Dear {customer.name},\nTotal due amount for the month of {(current_date + relativedelta(months=-1)).strftime("%B %Y")} is Rs {bill_sum_total["sum_total"]}.'
         context = {
             'calendar': calendar,
             'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
             'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
             'customer': customer,
+            'sms_text': sms_text,
             'transaction': transaction,
             'register': register,
             'payment_due_amount_prev_month': round(payment_due_amount_prev_month, 2) - abs(
@@ -857,3 +859,14 @@ class GeneratePdf(View):
         }
         pdf = render_to_pdf('register/bill_pdf_template.html', data)
         return HttpResponse(pdf, content_type='application/pdf')
+
+
+@login_required
+def send_SMS(request):
+    contact = request.POST.get("c_contact")
+    smstext = request.POST.get("smstextareabox")
+    data = {'status': 'failed'}
+    if contact and smstext:
+        data = send_sms_api(contact, smstext)
+    return HttpResponse(data, content_type='application/json')
+

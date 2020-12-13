@@ -134,3 +134,17 @@ def get_base_64_barcode(barcode_text):
         url = f'https://mobiledemand-barcode.azurewebsites.net/barcode/image?content={barcode_text}&size=100&symbology=CODE_128&format=png&text=true'
         barcode = base64.b64encode(requests.get(url).content).decode('utf-8')
     return barcode
+
+
+def send_sms_api(contact, sms_text):
+    """ Send SMS api """
+    response = None
+    if contact and sms_text:
+        url = 'https://cyberboy.in/sms/smsapi.php'
+        payload = {'apikey': '9b6c17e81969d43e3a7c8106f5f7da7b',
+                   'mobile': contact,
+                   'message': sms_text,
+                   }
+        response = requests.post(url, data=payload)
+    return response
+
