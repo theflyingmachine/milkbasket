@@ -228,7 +228,7 @@ def addentry(request, year=None, month=None):
             'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
             'reload': reload_status,
         }
-        t.sleep(1)
+        # t.sleep(1)
         return JsonResponse(data)
 
     if year and month:
@@ -286,7 +286,7 @@ def autopilot(request, year=None, month=None):
                     entry.save()
                 else:
                     print('Skipping: ', customer.name, 'Day: ', day)
-        t.sleep(5)
+        # t.sleep(5)
         response = {
             'showmessage': False,
             'message': f'Success',
@@ -334,6 +334,7 @@ def customers(request):
 
     inactive_customers = Customer.objects.filter(status=0)
     for customer in inactive_customers:
+        customer.contact = customer.contact if customer.contact else ''
         if customer.morning and not customer.evening:
             customer.schedule = 'Morning'
         if not customer.morning and customer.evening:
@@ -784,7 +785,14 @@ def customer_profile(request, id=None):
             bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
 
         bill_summary.append(bill_sum_total)
-        sms_text = f'Dear {customer.name},\nTotal due amount for the month of {(current_date + relativedelta(months=-1)).strftime("%B %Y")} is Rs {bill_sum_total["sum_total"]}.\n[Milk Basket]'
+        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(adjusted_amount)
+        due_till_current_month = round(payment_due_amount_till_date, 2) - round(adjusted_amount)
+        prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
+        current_month_name = current_date.strftime("%B")
+        month_and_amount = (
+            f'{prev_month_name} is Rs {due_till_prev_month}') if due_till_prev_month > 0 else (
+            f'{current_month_name} is Rs {due_till_current_month}')
+        sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
         context = {
             'calendar': calendar,
             'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
@@ -794,11 +802,9 @@ def customer_profile(request, id=None):
             'sms_text': sms_text,
             'transaction': transaction,
             'register': register,
-            'payment_due_amount_prev_month': round(payment_due_amount_prev_month, 2) - abs(
-                adjusted_amount),
-            'payment_due_amount_till_date': round(payment_due_amount_till_date, 2) - abs(
-                adjusted_amount),
-            'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B")
+            'payment_due_amount_prev_month': due_till_prev_month,
+            'payment_due_amount_till_date': due_till_current_month,
+            'previous_month_name': prev_month_name,
         }
         return render(request, template, context)
     return redirect('view_customers')
@@ -877,4 +883,3 @@ def send_SMS(request):
     if contact and smstext:
         data = send_sms_api(contact, smstext)
     return HttpResponse(data, content_type='application/json')
-
