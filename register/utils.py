@@ -1,6 +1,7 @@
 import base64
 import requests
 
+from milkbasket.secret import SMS_API_KEY
 from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
 
 from django.http import HttpResponse
@@ -141,7 +142,7 @@ def send_sms_api(contact, sms_text):
     response = None
     if contact and sms_text:
         url = 'https://cyberboy.in/sms/smsapi.php'
-        payload = {'apikey': '9b6c17e81969d43e3a7c8106f5f7da7b',
+        payload = {'apikey': SMS_API_KEY,
                    'mobile': contact,
                    'message': sms_text,
                    }
