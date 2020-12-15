@@ -1,7 +1,7 @@
 import base64
 import requests
 
-from milkbasket.secret import SMS_API_KEY
+
 from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
 
 from django.http import HttpResponse
@@ -140,6 +140,12 @@ def get_base_64_barcode(barcode_text):
 def send_sms_api(contact, sms_text):
     """ Send SMS api """
     response = None
+
+    try:
+        from milkbasket.secret import SMS_API_KEY
+    except ModuleNotFoundError as e:
+        print('API key not found')
+        SMS_API_KEY = ''
     if contact and sms_text:
         url = 'https://cyberboy.in/sms/smsapi.php'
         payload = {'apikey': SMS_API_KEY,
