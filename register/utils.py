@@ -147,7 +147,7 @@ def send_sms_api(contact, sms_text):
         print('API key not found')
         SMS_API_KEY = ''
     if contact and sms_text:
-        url = 'https://cyberboy.in/sms/smsapi.php'
+        url = 'https://cyberboy.in/sms/milk_smsapi.php'
         payload = {'apikey': SMS_API_KEY,
                    'mobile': contact,
                    'message': sms_text,
