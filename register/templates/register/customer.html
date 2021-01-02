@@ -81,7 +81,7 @@
               <br>{% endif %}
 {#            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>#}
             <div class="row justify-content-center">
-              <button type="button" class="btn btn-secondary col-5 m-2">History</button>
+              <a href="/register/profile/{{ customer.id }}" class="btn btn-secondary col-5 m-2">History</a>
               <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
                       data-target="#exampleModal"
                       data-name="{{ customer.name }}"
