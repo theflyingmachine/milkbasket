@@ -590,13 +590,27 @@ def report_initial(request):
 
 
 @login_required
-def report_data(request):
+def report_data_status(request, poll_id=None):
+    retry = 30
+    status = None
+    while retry:
+        status = {'status': request.session.get(poll_id, None)}
+        if status:
+            return JsonResponse(status)
+        else:
+            retry -= 1
+    return JsonResponse(status)
+
+
+@login_required
+def report_data(request, poll_id=None):
     chart_data = []
     d1 = date.today()
     milk_delivered = ['morning-yes', 'evening-yes']
     for i in range(-12, 1):
         graph_month = d1 + relativedelta(months=i)
-
+        request.session[poll_id] = f'Income and Expense ({graph_month.strftime("%B-%Y")})'
+        request.session.save()
         # Fetch Expenses
         month_expense = Expense.objects.filter(log_date__month=graph_month.month,
                                                log_date__year=graph_month.year).aggregate(
@@ -655,6 +669,8 @@ def report_data(request):
     for i in range(-365, 1):
         d1 = date.today()
         graph_day = d1 + relativedelta(days=i)
+        request.session[poll_id] = f'Milk Production ({graph_day.strftime("%d-%B-%Y")})'
+        request.session.save()
         mp = Register.objects.filter(log_date__year=graph_day.year,
                                      log_date__month=graph_day.month, log_date__day=graph_day.day)
         milk_production = mp.aggregate(Sum('quantity'))['quantity__sum'] or 0
@@ -691,6 +707,8 @@ def report_data(request):
         'is_profit': is_profit,
         'all_time_profit_or_loss': all_time_profit_or_loss,
     }
+    request.session[poll_id] = 'Done'
+    request.session.save()
     return JsonResponse(context)
 
 

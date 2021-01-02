@@ -53,27 +53,51 @@
   </style>
 
   <script type="text/babel">
-    class Quiz extends React.Component {
+    class Report extends React.Component {
       constructor(props) {
         super(props);
         this.state = {
           isLoading: true,
-          reportData: null
+          reportData: null,
+          reportStatus: null,
         };
       }
 
       async componentDidMount() {
         let hostname = ''
-        if (window.location.hostname === '127.0.0.1'){
-          hostname = window.location.hostname+':8000';
-        }else{
+        if (window.location.hostname === '127.0.0.1') {
+          hostname = window.location.hostname + ':8000';
+        } else {
           hostname = window.location.hostname;
         }
+
+        var uuid = Math.random().toString(36).substr(2);
+        {#  Timmer #}
+        this.myInterval = setInterval(() => {
+          if (this.state.isLoading === true) {
+            this.fetchStatus(hostname, uuid);
+          } else {
+            clearInterval(0);
+            clearInterval(1);
+            clearInterval(2);
+          }
+        }, 500)
+
+
         const url =
-          "http://" + hostname + "/register/report_data";
+          "http://" + hostname + "/register/report_data/" + uuid;
         const responce = await fetch(url);
         const data = await responce.json();
         this.setState({reportData: data, isLoading: false});
+      }
+
+
+      async fetchStatus(hostname, token) {
+        const url =
+          "http://" + hostname + "/register/report_data_status/" + token;
+        const responce = await fetch(url);
+        const data = await responce.json();
+        this.setState({reportStatus: data});
       }
 
       currencyFormat(val) {
@@ -109,6 +133,10 @@
           </div>
           <div className="spinner-grow text-dark spinner-size-big" role="status">
             <span className="sr-only">Loading...</span>
+          </div>
+          <div>
+            {
+              <h1>Processing: {this.state.reportStatus ? this.state.reportStatus.status : 'Starting'}</h1>}
           </div>
         </div>;
 
@@ -396,7 +424,7 @@
         }
 
 
-        return <div className="quiz">
+        return <div className="report">
           {this.state.isLoading ? loading_component : ''}
           <div className="row">
             <div className="col-lg-6 col-sm-12">
@@ -420,11 +448,11 @@
     }
 
     ReactDOM.render(
-      <Quiz/>,
-      document.getElementById('quiz')
+      <Report/>,
+      document.getElementById('report')
     );
   </script>
-  <div id="quiz"></div>
+  <div id="report"></div>
 {% endblock %}
 {# PROD Bundle #}
 <script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
