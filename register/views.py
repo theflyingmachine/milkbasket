@@ -369,7 +369,7 @@ def account(request, year=None, month=None):
     # Get Payment Due
     total_payment = 0
     due_customer = Register.objects.filter(schedule__endswith='yes', paid=0).values('customer_id',
-                                                                                    'customer__name').distinct()
+                                                                                    'customer__name', 'customer__contact').distinct()
     for customer in due_customer:
         payment_due = Register.objects.filter(customer_id=customer['customer_id'],
                                               schedule__endswith='yes', paid=0)
@@ -391,6 +391,14 @@ def account(request, year=None, month=None):
             customer['adjusted_amount'])
 
         total_payment += payment_due_amount
+
+        # Due sms text
+        prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
+        current_month_name = current_date.strftime("%B")
+        month_and_amount = (
+            f"{prev_month_name} is Rs {customer['payment_due_prev']}") if customer['payment_due_prev'] > 0 else (
+            f"{current_month_name} is Rs {customer['payment_due']}")
+        customer['sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]"
 
     # Get paid customer
     total_payment_received = 0
