@@ -3,12 +3,22 @@
 <!-- Navbar content -->
 {% block content %}
   <div class="d-flex bd-highlight mb-3">
-    <div class="col-6 mr-auto p-2 bd-highlight">
-      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
-              data-target="#exampleModal"
-              data-whatever="@fat"><i class="fa fa-users"></i> | Add New Customer
-      </button>
+    <div class="row col-12">
+      <div class="col-lg-6 col-sm-12 mr-auto p-2 bd-highlight">
+        <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+                data-target="#exampleModal"
+                data-whatever="@fat"><i class="fa fa-users"></i> | Add New Customer
+        </button>
+      </div>
+      <div class="col-lg-6 col-sm-12 input-group mt-4">
+        <div class="input-group-prepend">
+          <div class="input-group-text"><i class="fa fa-search" aria-hidden="true"></i></div>
+        </div>
+        <input type="text" class="form-control" id="searchInput" onkeyup="mySearchFunction()"
+               placeholder="Search Customer" autofocus>
+      </div>
     </div>
+
   </div>
 
   {#  <button type="button" class="btn btn-info m-3" href="addcustomer">+ Add new customer</button>#}
@@ -20,7 +30,7 @@
 
   <hr>
   {#  ACTIVE CUSTOMERS #}
-  <div class="container mb-5">
+  <div id="customer-list" class="container mb-5">
     {% if customers %}
       {% for customer in customers %}
         {% if forloop.first %}
@@ -79,7 +89,7 @@
               <br>{% endif %}
             {% if customer.email %}<span class="card-text">{{ customer.email }}</span>
               <br>{% endif %}
-{#            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>#}
+            {#            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>#}
             <div class="row justify-content-center">
               <a href="/register/profile/{{ customer.id }}" class="btn btn-secondary col-5 m-2">History</a>
               <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
@@ -127,13 +137,13 @@
                        placeholder="Name">
               </div>
             </div>
-                        <div class="form-row">
-                          <div class="form-group col-md-12">
-                            <label for="inputEmail4">Contact</label>
-                            <input type="text" class="form-control" id="recipient_contact" name="contact"
-                                   placeholder="Contact">
-                          </div>
-                        </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="inputEmail4">Contact</label>
+                <input type="text" class="form-control" id="recipient_contact" name="contact"
+                       placeholder="Contact">
+              </div>
+            </div>
             {#            <div class="form-row">#}
             {#              <div class="form-group col-md-12">#}
             {#                <label for="inputEmail4">Email</label>#}
@@ -202,6 +212,24 @@
         $('#recipient_evening').prop('checked', false);
     })
 
+    {# Search Field #}
+
+    function mySearchFunction() {
+      var input, filter, customerList, li, a, i, txtValue;
+      input = document.getElementById("searchInput");
+      filter = input.value.toUpperCase();
+      customerList = document.getElementById("customer-list");
+      li = customerList.getElementsByClassName("card-body");
+      for (i = 0; i < li.length; i++) {
+        a = li[i].getElementsByTagName("b")[0];
+        txtValue = a.textContent || a.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          li[i].style.display = "";
+        } else {
+          li[i].style.display = "none";
+        }
+      }
+    }
   </script>
 
 {% endblock %}
