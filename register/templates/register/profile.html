@@ -137,19 +137,19 @@
           <thead>
           <tr class="d-flex bg-info text-white">
             <th class="p-2 col-1" scope="col">#</th>
-            <th class="p-2 col-5" scope="col">Total Due</th>
+            <th class="p-2 col-4" scope="col">Total Due</th>
             <th class="p-2 col-4" scope="col">Due (till {{ previous_month_name }})</th>
-            <th class="p-2 col-2" scope="col">Action</th>
+            <th class="p-2 col-3" scope="col">Action</th>
           </tr>
           </thead>
           <tbody>
           <tr class="d-flex">
             <th class="p-2 col-1" scope="row">1</th>
-            <td class="p-2 col-5">{{ payment_due_amount_till_date }}</td>
+            <td class="p-2 col-4">{{ payment_due_amount_till_date }}</td>
             <td class="p-2 col-4">{% if payment_due_amount_prev_month %}
               <span class="font-weight-bold">{{ payment_due_amount_prev_month }}</span>
               <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
-            <td class="col-2">
+            <td class="col-3">
               <button type="button" class="btn-sm btn-primary"
                       data-toggle="modal"
                       data-target="#exampleModal2"
@@ -171,7 +171,7 @@
     {#    {% if expenses or due_customer or paid_customer %}#}
     {% if transaction %}
       <!-- Transaction Table-->
-      <div class="mt-4 col-12">
+      <div class="mt-4 col-12" style="overflow-x:auto;">
         <caption><h5 class="pt-2 mt-2 text-center">Transaction</h5></caption>
         <table class="table table-sm table-striped">
           <thead>
@@ -201,7 +201,7 @@
     {#  Bill Summary #}
     {% if bill_summary %}
       <!--    Bill Summary -->
-      <div class="mt-4 mb-4 col-12">
+      <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
         <h5 class="pt-2 mt-2 text-center">Bill Summary <a target="_blank"
                                                           href="/register/print_bill/{{ customer.id }}"
                                                           class="btn btn-secondary"><i
@@ -277,13 +277,13 @@
           </div>
 
           <ul class="col-12 weekdays">
-            <li>Monday</li>
-            <li>Tuesday</li>
-            <li>Wednesday</li>
-            <li>Thursday</li>
-            <li>Friday</li>
-            <li>Saturday</li>
-            <li>Sunday</li>
+            <li>Mon</li>
+            <li>Tue</li>
+            <li>Wed</li>
+            <li>Thu</li>
+            <li>Fri</li>
+            <li>Sat</li>
+            <li>Sun</li>
           </ul>
           <ul class="days">
             {% for day in month.week_start_day %}
@@ -323,7 +323,7 @@
 
     {% if register %}
       <!--   Register Entry Table-->
-      <div class="mt-4 col-12">
+      <div class="mt-4 col-12" style="overflow-x:auto;">
         <caption><h5 class="pt-2 mt-2 text-center">Register Entry</h5></caption>
         <table class="table table-sm table-striped">
           <thead>
