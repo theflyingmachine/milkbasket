@@ -105,7 +105,6 @@
               </thead>
               <tbody>
               {% for entry in paid_customer %}
-                {% if entry.total_paid %}
                   <tr class="d-flex">
                     <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
                     <th class="p-2 col-4" scope="row"><a
@@ -115,7 +114,6 @@
                     <td class="p-2 col-2">{{ entry.payment_done }}</td>
                     <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
                   </tr>
-                {% endif %}
               {% endfor %}
               </tbody>
             </table>

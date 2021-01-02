@@ -434,7 +434,7 @@ def account(request, year=None, month=None):
         'total_payment': total_payment,
         'total_expense': total_expense,
         'due_customer': due_customer,
-        'paid_customer': paid_customer,
+        'paid_customer': [cust for cust in paid_customer if cust['total_paid']],
         'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B")
     }
 
@@ -583,7 +583,7 @@ def landing(request):
 def report_initial(request):
     template = 'register/report_react_new.html'
     context = {'loading': True,
-               'page_title': 'Milk Basket - Register',
+               'page_title': 'Milk Basket - Report',
                'menu_report': True,
                }
     return render(request, template, context)
