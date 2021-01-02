@@ -1,7 +1,6 @@
 import decimal
 import json
 import string
-import time as t
 import os
 from calendar import monthrange
 from datetime import datetime, date, timedelta, time
@@ -228,7 +227,7 @@ def addentry(request, year=None, month=None):
             'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
             'reload': reload_status,
         }
-        # t.sleep(1)
+
         return JsonResponse(data)
 
     if year and month:
@@ -286,7 +285,7 @@ def autopilot(request, year=None, month=None):
                     entry.save()
                 else:
                     print('Skipping: ', customer.name, 'Day: ', day)
-        # t.sleep(5)
+
         response = {
             'showmessage': False,
             'message': f'Success',
@@ -369,7 +368,8 @@ def account(request, year=None, month=None):
     # Get Payment Due
     total_payment = 0
     due_customer = Register.objects.filter(schedule__endswith='yes', paid=0).values('customer_id',
-                                                                                    'customer__name').distinct()
+                                                                                    'customer__name',
+                                                                                    'customer__contact').distinct()
     for customer in due_customer:
         payment_due = Register.objects.filter(customer_id=customer['customer_id'],
                                               schedule__endswith='yes', paid=0)
@@ -391,6 +391,16 @@ def account(request, year=None, month=None):
             customer['adjusted_amount'])
 
         total_payment += payment_due_amount
+
+        # Due sms text
+        prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
+        current_month_name = current_date.strftime("%B")
+        month_and_amount = (
+            f"{prev_month_name} is Rs {customer['payment_due_prev']}") if customer[
+                                                                              'payment_due_prev'] > 0 else (
+            f"{current_month_name} is Rs {customer['payment_due']}")
+        customer[
+            'sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]"
 
     # Get paid customer
     total_payment_received = 0
@@ -570,6 +580,121 @@ def landing(request):
 
 
 @login_required
+def report_initial(request):
+    template = 'register/report_react_new.html'
+    context = {'loading': True,
+               'page_title': 'Milk Basket - Register',
+               'menu_report': True,
+               }
+    return render(request, template, context)
+
+
+@login_required
+def report_data(request):
+    chart_data = []
+    d1 = date.today()
+    milk_delivered = ['morning-yes', 'evening-yes']
+    for i in range(-12, 1):
+        graph_month = d1 + relativedelta(months=i)
+
+        # Fetch Expenses
+        month_expense = Expense.objects.filter(log_date__month=graph_month.month,
+                                               log_date__year=graph_month.year).aggregate(
+            Sum('cost'))['cost__sum'] or 0
+
+        # Fetch Income
+        month_income = 0
+        month_extra_income = float(Income.objects.filter(log_date__month=graph_month.month,
+                                                         log_date__year=graph_month.year).aggregate(
+            Sum('amount'))['amount__sum'] or 0)
+        month_income += month_extra_income
+        month_income_entry = Register.objects.filter(log_date__month=graph_month.month,
+                                                     log_date__year=graph_month.year,
+                                                     schedule__in=milk_delivered)
+        for entry in month_income_entry:
+            month_income += float(entry.current_price / 1000) * entry.quantity
+
+        # Fetch due per month
+        month_due = 0
+        month_due_entry = Register.objects.filter(log_date__month=graph_month.month,
+                                                  log_date__year=graph_month.year, paid=0,
+                                                  schedule__in=milk_delivered)
+        for entry in month_due_entry:
+            month_due += float(entry.current_price / 1000) * entry.quantity
+
+        # Fetch paid per month
+        month_paid = 0
+        month_paid += month_extra_income
+        month_paid_entry = Register.objects.filter(log_date__month=graph_month.month,
+                                                   log_date__year=graph_month.year, paid=1)
+        for entry in month_paid_entry:
+            month_paid += float(entry.current_price / 1000) * entry.quantity
+
+        # Calculate Profit and Loss value
+        if month_paid > month_expense:
+            profit = float(month_paid) - float(month_expense)
+            loss = False
+        else:
+            loss = float(month_expense) - float(month_paid)
+            profit = False
+
+        current_month = {
+            "monthName": graph_month.strftime('%B-%Y'),
+            "month": graph_month.strftime('%b-%y'),
+            "income": round(float(month_income), 2),
+            "paid": round(float(month_paid), 2),
+            "due": round(float(month_due), 2),
+            "expense": round(float(month_expense), 2),
+            "profit": profit,
+            "loss": loss,
+        }
+        chart_data.append(current_month)
+
+    #     Get mil k production over past 365 days
+    chart_data_milk = []
+    for i in range(-365, 1):
+        d1 = date.today()
+        graph_day = d1 + relativedelta(days=i)
+        mp = Register.objects.filter(log_date__year=graph_day.year,
+                                     log_date__month=graph_day.month, log_date__day=graph_day.day)
+        milk_production = mp.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        milk_production_morning = mp.filter(schedule='morning-yes').aggregate(Sum('quantity'))[
+                                      'quantity__sum'] or 0
+        milk_production_evening = mp.filter(schedule='evening-yes').aggregate(Sum('quantity'))[
+                                      'quantity__sum'] or 0
+        current_day = {
+            "dayName": graph_day.strftime('%d-%B-%Y'),
+            'milkMorning': round(float(milk_production_morning / 1000), 2),
+            'milkEvening': round(float(milk_production_evening / 1000), 2),
+            "milkQuantity": round(float(milk_production / 1000), 2),
+        }
+        chart_data_milk.append(current_day)
+
+    # Calculate all time Expenses
+    all_time_expense = Expense.objects.all().aggregate(Sum('cost'))['cost__sum'] or 0
+
+    # Calculate all time Income
+    all_time_milk_income = Payment.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
+    all_time_extra_income = Income.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
+    all_time_income = all_time_milk_income + all_time_extra_income
+
+    # Calculate all time profit or loss
+    is_profit = True if all_time_expense < all_time_income else False
+    all_time_profit_or_loss = abs(all_time_income - all_time_expense)
+
+    context = {
+        'graph_data': mark_safe(json.dumps(chart_data)),
+        'table_data': chart_data,
+        'chart_data_milk': mark_safe(json.dumps(chart_data_milk)),
+        'all_time_expense': all_time_expense,
+        'all_time_income': all_time_income,
+        'is_profit': is_profit,
+        'all_time_profit_or_loss': all_time_profit_or_loss,
+    }
+    return JsonResponse(context)
+
+
+@login_required
 def report(request, months=None):
     template = 'register/report.html'
     chart_data = []
@@ -736,11 +861,10 @@ def customer_profile(request, id=None):
                                                          'e-evening']).order_by('-log_date')
         payment_due_amount_prev_month = 0
         payment_due_amount_till_date = 0
-        adjusted_amount = 0
+        balance_amount = 0
         if due_cust:
             # Get the balance table
-            balance_amount = Balance.objects.filter(customer_id=id).first()
-            adjusted_amount = getattr(balance_amount, 'balance_amount') if balance_amount else 0
+            balance_amount = get_customer_balance_amount(id)
             # Check till last month
             due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(
                 log_date__month=current_date.month)
@@ -785,8 +909,8 @@ def customer_profile(request, id=None):
             bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
 
         bill_summary.append(bill_sum_total)
-        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(adjusted_amount)
-        due_till_current_month = round(payment_due_amount_till_date, 2) - round(adjusted_amount)
+        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(balance_amount)
+        due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount)
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
         month_and_amount = (

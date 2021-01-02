@@ -49,25 +49,38 @@
               {% for entry in due_customer %}
                 <tr class="d-flex">
                   <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <th class="p-2 col-4" scope="row"><a
+                  <th class="p-2 col-3" scope="row"><a
                    href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
                   </th>
                   <td class="p-2 col-2">{{ entry.payment_due }}</td>
                   <td class="p-2 col-3">{% if entry.payment_due_prev %}
                     <span class="font-weight-bold">{{ entry.payment_due_prev }}</span>
                     <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
-                  <td class="col-2">
+                  <td class="col-3">
                     <button type="button" class="btn-sm btn-primary"
                             data-toggle="modal"
                             data-target="#exampleModal2"
                             data-cid="{{ entry.customer_id }}"
                             data-cname="{{ entry.customer__name }}"
+                            data-c_contact="{{ entry.customer__contact }}"
                             data-dueamount="{{ entry.payment_due }}"
                      {% if entry.payment_due_prev %}
                             data-prevdueamount="{{ entry.payment_due_prev }}"
                      {% endif %}
                     >Make Payment
                     </button>
+                    {% if entry.customer__contact %}
+                      <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
+                              class="btn-sm btn-warning"
+                              data-toggle="modal"
+                              data-target="#smsModal"
+                              data-cid="{{ entry.customer_id }}"
+                              data-cname="{{ entry.customer__name }}"
+                              data-c_contact="{{ entry.customer__contact }}"
+                              data-c_smstext="{{ entry.sms_text }}"
+                      ><i
+                       class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+                      </button>{% endif %}
                   </td>
                 </tr>
               {% endfor %}
@@ -92,15 +105,17 @@
               </thead>
               <tbody>
               {% for entry in paid_customer %}
-                <tr class="d-flex">
-                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <th class="p-2 col-4" scope="row"><a
-                   href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
-                  </th>
-                  <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
-                  <td class="p-2 col-2">{{ entry.payment_done }}</td>
-                  <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
-                </tr>
+                {% if entry.total_paid %}
+                  <tr class="d-flex">
+                    <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                    <th class="p-2 col-4" scope="row"><a
+                     href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
+                    </th>
+                    <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
+                    <td class="p-2 col-2">{{ entry.payment_done }}</td>
+                    <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
+                  </tr>
+                {% endif %}
               {% endfor %}
               </tbody>
             </table>
@@ -368,6 +383,14 @@
               </div>
             </div>
 
+            <div id='payment_notification' class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Send SMS Notification </label>
+                <input type="checkbox" id="sms-notification" name="sms-notification" checked
+                       value="1">
+              </div>
+            </div>
+
             <button type="submit" class="btn btn-success justify-content-center col-12">Accept
               Payment
             </button>
@@ -377,7 +400,51 @@
     </div>
   </div>
 
+  {#  SMS Modal #}
+  <div class="modal fade" id="smsModal" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Send SMS</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="sendsmsform" name="sendsms" action="/sendsms" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="cust_id" name="cust_id"
+                 value="{{ customer.id }}">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Name</label>
+                <input autofocus type="text" class="form-control" id="c_name" name="c_name"
+                       disabled placeholder="Name">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Contact</label>
+                <input type="text" class="form-control" id="c_contact" name="c_contact"
+                       placeholder="Mobile Number">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="textareabox">SMS Text</label>
+                <textarea id="smstextareabox" name="smstextareabox" rows="4" cols="50">
+                  </textarea>
+              </div>
+            </div>
 
+            <button id="sendsmsbutton" type="submit"
+                    class="btn btn-success justify-content-center col-12">Send SMS
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <script>
     {#  Delete expenses#}
@@ -413,6 +480,7 @@
       var c_name = button.data('cname') // Extract info from data-* attribute
       var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
       var c_prevdueamount = button.data('prevdueamount') // Extract info from data-* attribute
+      var c_contact = button.data('c_contact') // Extract info from data-* attribute
       var modal = $(this)
       modal.find('#c_id').val(c_id)
       modal.find('#c_name').val(c_name)
@@ -425,7 +493,47 @@
         modal.find('#c_payment').val(c_dueamount)
         modal.find('#prevmonthdue').text('Due till date');
       }
+      if (!c_contact.isInteger && c_contact.toString().length !== 10) {
+        let notifiacation_div = document.getElementById("payment_notification");
+        notifiacation_div.style.display = "none";
+      }
     })
+
+    {#  send sms  #}
+    $('#smsModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget) // Button that triggered the modal
+      var c_cid = button.data('cid') // Extract info from data-* attribute
+      var c_name = button.data('cname') // Extract info from data-* attribute
+      var c_contact = button.data('c_contact') // Extract info from data-* attribute
+      var c_smstext = button.data('c_smstext') // Extract info from data-* attribute
+      var modal = $(this)
+      modal.find('#cust_id').val(c_cid);
+      modal.find('#c_name').val(c_name);
+      modal.find('#c_contact').val(c_contact);
+      modal.find('#smstextareabox').val(c_smstext);
+
+    })
+
+    {#    Ajax for Send SMS  #}
+    document.getElementById("sendsmsform").addEventListener("submit", sendSMSFunction);
+
+    function sendSMSFunction() {
+      let sendButtonId = 'sendsmsbuttonmain' + $('#cust_id').val();
+      event.preventDefault();
+      $.post($(this).attr('action'), $(this).serialize(), function (data) {
+        if (data.status === 'success') {
+          document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
+          document.getElementById(sendButtonId).disabled = true;
+          document.getElementById(sendButtonId).classList.remove('btn-warning');
+          document.getElementById(sendButtonId).classList.add('btn-secondary');
+        } else {
+          // Error code here
+          document.getElementById("sendsmsbutton").disabled = false;
+          document.getElementById("sendsmsbuttonmain").disabled = false;
+          alert('Something went wrong...')
+        }
+      }, 'json')
+    }
   </script>
 {% endblock %}
 <!-- Footer -->

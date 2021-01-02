@@ -112,8 +112,8 @@ def get_customer_balance_amount(customer_id):
     balance_amount = None
     if customer_id:
         balance_amount = Balance.objects.filter(customer_id=customer_id).first()
-        balance_amount = float(
-            getattr(balance_amount, 'balance_amount')) if balance_amount else 0
+        balance_amount = abs(float(
+            getattr(balance_amount, 'balance_amount'))) if balance_amount else 0
     return balance_amount
 
 
