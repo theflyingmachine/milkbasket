@@ -105,15 +105,17 @@
               </thead>
               <tbody>
               {% for entry in paid_customer %}
-                <tr class="d-flex">
-                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <th class="p-2 col-4" scope="row"><a
-                   href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
-                  </th>
-                  <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
-                  <td class="p-2 col-2">{{ entry.payment_done }}</td>
-                  <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
-                </tr>
+                {% if entry.total_paid %}
+                  <tr class="d-flex">
+                    <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                    <th class="p-2 col-4" scope="row"><a
+                     href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
+                    </th>
+                    <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
+                    <td class="p-2 col-2">{{ entry.payment_done }}</td>
+                    <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
+                  </tr>
+                {% endif %}
               {% endfor %}
               </tbody>
             </table>
@@ -381,12 +383,13 @@
               </div>
             </div>
 
-              <div id='payment_notification' class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="name">Send SMS Notification </label>
-                  <input type="checkbox" id="sms-notification" name="sms-notification" checked value="1">
-                </div>
+            <div id='payment_notification' class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Send SMS Notification </label>
+                <input type="checkbox" id="sms-notification" name="sms-notification" checked
+                       value="1">
               </div>
+            </div>
 
             <button type="submit" class="btn btn-success justify-content-center col-12">Accept
               Payment
@@ -490,7 +493,7 @@
         modal.find('#c_payment').val(c_dueamount)
         modal.find('#prevmonthdue').text('Due till date');
       }
-      if (!c_contact.isInteger && c_contact.toString().length !== 10 ) {
+      if (!c_contact.isInteger && c_contact.toString().length !== 10) {
         let notifiacation_div = document.getElementById("payment_notification");
         notifiacation_div.style.display = "none";
       }
