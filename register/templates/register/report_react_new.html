@@ -63,8 +63,14 @@
       }
 
       async componentDidMount() {
+        let hostname = ''
+        if (window.location.hostname === '127.0.0.1'){
+          hostname = window.location.hostname+':8000';
+        }else{
+          hostname = window.location.hostname;
+        }
         const url =
-          "http://" + window.location.hostname + ":8000/register/report_data";
+          "http://" + hostname + "/register/report_data";
         const responce = await fetch(url);
         const data = await responce.json();
         this.setState({reportData: data, isLoading: false});
@@ -420,12 +426,13 @@
   </script>
   <div id="quiz"></div>
 {% endblock %}
-{#<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>#}
-{#<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>#}
-{#<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>#}
-{##}
-<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+{# PROD Bundle #}
+<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+{# Dev Bundle #}
+{#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
+{#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
 
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
