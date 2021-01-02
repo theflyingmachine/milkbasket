@@ -736,11 +736,10 @@ def customer_profile(request, id=None):
                                                          'e-evening']).order_by('-log_date')
         payment_due_amount_prev_month = 0
         payment_due_amount_till_date = 0
-        adjusted_amount = 0
+        balance_amount = 0
         if due_cust:
             # Get the balance table
-            balance_amount = Balance.objects.filter(customer_id=id).first()
-            adjusted_amount = getattr(balance_amount, 'balance_amount') if balance_amount else 0
+            balance_amount = get_customer_balance_amount(id)
             # Check till last month
             due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(
                 log_date__month=current_date.month)
@@ -785,8 +784,8 @@ def customer_profile(request, id=None):
             bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
 
         bill_summary.append(bill_sum_total)
-        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(adjusted_amount)
-        due_till_current_month = round(payment_due_amount_till_date, 2) - round(adjusted_amount)
+        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(balance_amount)
+        due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount)
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
         month_and_amount = (
