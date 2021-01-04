@@ -594,7 +594,9 @@ def report_data_status(request, poll_id=None):
     retry = 30
     status = None
     while retry:
-        status = {'status': request.session.get(poll_id, None)}
+        status = {'status': request.session.get(poll_id, None),
+                  'percent': request.session.get(f'{poll_id}_percent')
+                  }
         if status:
             return JsonResponse(status)
         else:
@@ -606,10 +608,13 @@ def report_data_status(request, poll_id=None):
 def report_data(request, poll_id=None):
     chart_data = []
     d1 = date.today()
+    percent = 0
     milk_delivered = ['morning-yes', 'evening-yes']
     for i in range(-12, 1):
+        percent+=3.75
         graph_month = d1 + relativedelta(months=i)
         request.session[poll_id] = f'Income and Expense ({graph_month.strftime("%B-%Y")})'
+        request.session[f'{poll_id}_percent'] = percent
         request.session.save()
         # Fetch Expenses
         month_expense = Expense.objects.filter(log_date__month=graph_month.month,
@@ -667,9 +672,11 @@ def report_data(request, poll_id=None):
     #     Get mil k production over past 365 days
     chart_data_milk = []
     for i in range(-365, 1):
+        percent+=0.123
         d1 = date.today()
         graph_day = d1 + relativedelta(days=i)
         request.session[poll_id] = f'Milk Production ({graph_day.strftime("%d-%B-%Y")})'
+        request.session[f'{poll_id}_percent'] = percent
         request.session.save()
         mp = Register.objects.filter(log_date__year=graph_day.year,
                                      log_date__month=graph_day.month, log_date__day=graph_day.day)
@@ -686,6 +693,9 @@ def report_data(request, poll_id=None):
         }
         chart_data_milk.append(current_day)
 
+    percent += 5
+    request.session[f'{poll_id}_percent'] = percent
+    request.session.save()
     # Calculate all time Expenses
     all_time_expense = Expense.objects.all().aggregate(Sum('cost'))['cost__sum'] or 0
 
@@ -697,6 +707,9 @@ def report_data(request, poll_id=None):
     # Calculate all time profit or loss
     is_profit = True if all_time_expense < all_time_income else False
     all_time_profit_or_loss = abs(all_time_income - all_time_expense)
+    percent += 5
+    request.session[f'{poll_id}_percent'] = percent
+    request.session.save()
 
     context = {
         'graph_data': mark_safe(json.dumps(chart_data)),
