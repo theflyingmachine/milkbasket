@@ -118,7 +118,7 @@
         let component = null;
         let milk_chart = null
         let graph_data = null
-        let loading_component = <div className="text-center m-5 p-5">
+        let loading_component = <div className="text-center m-xl-5 p-xl-5">
 
           <div className="spinner-grow text-primary spinner-size-big" role="status">
             <span className="sr-only">Loading...</span>
@@ -142,8 +142,7 @@
             <span className="sr-only">Loading...</span>
           </div>
           <div>
-            {
-              <h3>Processing: {this.state.reportStatus ? this.state.reportStatus.status : 'Starting'}</h3>}
+            {<h3>Processing: {this.state.reportStatus ? this.state.reportStatus.status : 'Starting'}</h3>}
           </div>
           <div class="progress">
             <div
