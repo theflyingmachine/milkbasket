@@ -1,14 +1,13 @@
 import base64
+from io import BytesIO
+
 import requests
-
-
-from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income
-
 from django.http import HttpResponse
 from django.template.loader import get_template
-
-from io import BytesIO
 from xhtml2pdf import pisa
+
+from register.models import Balance
+from register.models import Register
 
 
 # ======== UTILITY ============

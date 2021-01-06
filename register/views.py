@@ -1,30 +1,45 @@
 import decimal
 import json
-import string
-import os
-from calendar import monthrange
-from datetime import datetime, date, timedelta, time
 import random
+import string
+from calendar import monthrange
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 
 from dateutil.relativedelta import relativedelta
-
-import qrcode
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate
+from django.contrib.auth import login
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-
 from django.db import transaction
 from django.db.models import Sum
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
-
+from django.http import HttpResponse
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.shortcuts import render
 # Create your views here.
 from django.utils.safestring import mark_safe
 from django.views.generic import View
-from register.forms import CustomerForm, RegisterForm
-from register.models import Customer, Register, Milk, Expense, Payment, Balance, Income, Bill
-from register.utils import get_active_month, get_register_day_entry, get_bill_summary, \
-    customer_register_last_updated, render_to_pdf, get_base_64_barcode, \
-    get_customer_balance_amount, send_sms_api
+
+from register.forms import CustomerForm
+from register.forms import RegisterForm
+from register.models import Balance
+from register.models import Bill
+from register.models import Customer
+from register.models import Expense
+from register.models import Income
+from register.models import Milk
+from register.models import Payment
+from register.models import Register
+from register.utils import customer_register_last_updated
+from register.utils import get_active_month
+from register.utils import get_base_64_barcode
+from register.utils import get_bill_summary
+from register.utils import get_customer_balance_amount
+from register.utils import get_register_day_entry
+from register.utils import render_to_pdf
+from register.utils import send_sms_api
 
 
 @login_required
