@@ -4,8 +4,10 @@ from io import BytesIO
 import requests
 from django.http import HttpResponse
 from django.template.loader import get_template
+from pymongo import MongoClient
 from xhtml2pdf import pisa
 
+from milkbasket.secret import MONGO_KEY
 from register.models import Balance
 from register.models import Register
 
@@ -154,3 +156,25 @@ def send_sms_api(contact, sms_text):
         response = requests.post(url, data=payload)
     return response
 
+
+def save_bill_to_mongo(bill_metadata):
+    client = MongoClient(f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/MilkBasket?retryWrites=true&w=majority')
+    db = client.MilkBasket
+    # Upload Bill Metadata
+    metadata = db.Bill_Metadata
+    bill_metadata_id = metadata.insert(bill_metadata)
+
+    return bill_metadata_id
+
+
+def get_register_transactions(cust_id, only_paid=False, only_due=True):
+    transactions = None
+    if cust_id:
+        if only_due:
+            transactions = Register.objects.filter(customer_id=cust_id, paid=0).values_list('id', flat=True)
+        elif only_paid:
+            transactions = Register.objects.filter(customer_id=cust_id, paid=1).values_list('id', flat=True)
+        else:
+            transactions = Register.objects.filter(customer_id=cust_id).values_list('id', flat=True)
+
+    return transactions
