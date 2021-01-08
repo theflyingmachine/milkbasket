@@ -1042,7 +1042,10 @@ class GeneratePdf(View):
             'bill_summary': bill_summary,
         }
         pdf = render_to_pdf('register/bill_pdf_template.html', data)
-        return HttpResponse(pdf, content_type='application/pdf')
+        # Force download PDf with file name
+        pdf_download = HttpResponse(pdf, content_type='application/pdf')
+        pdf_download['Content-Disposition'] = f'attachment; filename="{bill_number}.pdf"'
+        return pdf_download
 
 
 @login_required
