@@ -27,7 +27,7 @@ SECRET_KEY = '06^)^*-!6m9pp_21aq)(j#a5yv^#7y5&c8o+l#4hmgy+s!eekk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1']
+ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1', '192.168.1.106']
 
 
 LOGIN_URL = reverse_lazy('landing')
