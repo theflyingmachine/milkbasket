@@ -38,7 +38,9 @@ from register.utils import get_base_64_barcode
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
 from register.utils import get_register_day_entry
+from register.utils import get_register_transactions
 from register.utils import render_to_pdf
+from register.utils import save_bill_to_mongo
 from register.utils import send_sms_api
 
 
@@ -1045,6 +1047,9 @@ class GeneratePdf(View):
         # Force download PDf with file name
         pdf_download = HttpResponse(pdf, content_type='application/pdf')
         pdf_download['Content-Disposition'] = f'attachment; filename="{bill_number}.pdf"'
+        # Upload Bill metadata to Mongo
+        data['transaction_ids'] = list(get_register_transactions(cust_id, only_due=True))
+        save_bill_to_mongo(data)
         return pdf_download
 
 
