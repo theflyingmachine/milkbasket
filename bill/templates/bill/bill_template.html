@@ -52,13 +52,13 @@
         <div class='details pl-4 pr-4'>
         <table class="w-100">
           <tr>
-            <td class="pl-4">
+            <td class="p-2">
               <span>Customer Name: {{ customer_name }}</span><br>
               <span>Customer ID: {{ customer_id }}</span><br>
               <span>Bill Date: {{ bill_date }}</span><br>
               <span>Last Updated on: {{ last_update }}</span><br>
             </td>
-            <td class=" text-center">
+            <td class="mt-2 text-center">
               <img src="data:image/png;base64, {{ barcode }}" alt="Red dot"/>
             </td>
           </tr>
@@ -83,12 +83,12 @@
                     </td>
                     <td colspan="1">
                       {% if bill.balance %}
-                        <h5 class="pr-2 text-nowrap text-right font-weight-bold"> Sub
-                          Total: {{ bill.sub_total }}</h5>
-                        <h5 class="pr-2 text-nowrap text-right font-weight-bold"> Balance :
-                          - {{ bill.balance }}</h5>{% endif %}
-                      <h4 class="p-2 text-nowrap text-right font-weight-bold"> Grand
-                        Total: {{ bill.sum_total }}</h4></td>
+                        <h6 class="pr-2 text-nowrap text-right font-weight-bold"> Sub
+                          Total: {{ bill.sub_total }}</h6>
+                        <h6 class="pr-2 text-nowrap text-right font-weight-bold"> Balance :
+                          - {{ bill.balance }}</h6>{% endif %}
+                      <h5 class="p-2 text-nowrap text-right font-weight-bold"> Grand
+                        Total: {{ bill.sum_total }}</h5></td>
                     {% else %}
                     <td class="m-2 dash text-center" rowspan="2">{{ bill.month_year }}</td>
                   <tr>
@@ -98,10 +98,10 @@
                         {% if forloop.last %}
                           </td>
                           <td
-                           class="m-2 p-2 dash text-right"><h5
-                           class="font-weight-bold">{{ bill_month.total }}</h5></td>
+                           class="m-2 p-2 dash text-right"><h6
+                           class="font-weight-bold">{{ bill_month.total }}</h6></td>
                         {% else %}
-                          <span class="pr-4" >{{ bill_month.quantity }} ML
+                          <span class="pr-2" >{{ bill_month.quantity }} ML
                           <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }}
                           = {{ bill_month.amount }}</span><br>
                         {% endif %}
@@ -136,10 +136,10 @@
       {% else %}
         <div class="text-center">
           <img
-           src="https://i1.wp.com/www.ecommerce-nation.com/wp-content/uploads/2018/10/404-error.jpg?fit=800%2C600&ssl=1"
+           src="{% static "/bill/404-error.jpg" %}"
            alt="Bill Not Available">
-          <h1 class="text-center">We searched high and low but could not find the bill you are
-            looking for. </h1>
+          <p class="text-center">We searched high and low but could not find the bill you are
+            looking for. </p>
         </div>
       {% endif %}
 
@@ -156,9 +156,9 @@
       <div class="panel left-panel">
         <div class="content">
           <h2 class="text-light intro">Milk Basket</h2>
-          <h3 class="text-light">
+          <h5 class="text-light">
             Powered by CYBERBOY.IN
-          </h3>
+          </h5>
           {#            <div class="social-media">#}
           {#              <a href="#" class="social-icon">#}
           {#                <i class="fab fa-facebook-f"></i>#}

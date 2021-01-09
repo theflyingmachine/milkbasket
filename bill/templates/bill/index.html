@@ -24,17 +24,31 @@
           font-family: fontastique;
           font-size: 100px;
       }
-  </style>
- <script>
-    function FN_HYPEN(){
-    var input = document.getElementById("bill-input");
-    var key = event.keyCode || event.charCode;
-    if((input.value.length === 2) || (input.value.length === 4) || (input.value.length === 9) || (input.value.length === 11)) {
-      if(key!=8)
-      {
-        input.value += "-";
+      @media (max-width: 600px) {
+          .intro {
+              font-size: 60px;
+          }
+          .container {
+              width: 400px;
+          }
+          .myInput {
+              width: 330px;
+              font-size: xx-large;
+              padding: 5px;
+              border-radius: 10px;
+          }
       }
-    }}
+  </style>
+  <script>
+    function FN_HYPEN() {
+      var input = document.getElementById("bill-input");
+      var key = event.keyCode || event.charCode;
+      if ((input.value.length === 2) || (input.value.length === 4) || (input.value.length === 9) || (input.value.length === 11)) {
+        if (key != 8) {
+          input.value += "-";
+        }
+      }
+    }
 
   </script>
 </head>
@@ -57,7 +71,8 @@
           <label class="my-0">
             {#            <i class="fas fa-user"></i>#}
             <input autofocus id="bill-input" type="text" name="bill-number" class="myInput"
-                   style="text-transform: uppercase" onkeyup="FN_HYPEN();" placeholder="MB-1-2021-1-F6SIF5B" maxlength="19">
+                   style="text-transform: uppercase" onkeyup="FN_HYPEN();"
+                   placeholder="MB-1-2021-1-F6SIF5B" maxlength="19">
           </label>
         </div>
 
