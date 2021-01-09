@@ -8,7 +8,7 @@
   <title>{{ page_title }}</title>
   <link rel="stylesheet" href="{% static "/bill/style_main.css" %}">
 
-  <script src="{% static "/js/bootstrap.js" %}"></script>
+  <script src="{% static '/js/bootstrap.js' %}"></script>
   <link rel="stylesheet" href="{% static "/css/bootstrap.css" %}"/>
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -23,28 +23,41 @@
           font-family: fontastique;
           font-size: 100px;
       }
+
+      @media (max-width: 600px)
+      {
+      .intro {
+          font-family: fontastique;
+          font-size: 100px;
+      }
+      }
+       table, td, th {
+          border: 1px solid black;
+      }
+
+
   </style>
 </head>
 <!-- partial:index.partial.html -->
 <body>
 <div class="container">
   <div class="forms-container">
-    <div class="signin-signup">
+    <div class="signin-signup pl-4">
 
 
       {% if bill_summary %}
         {# Dynamic Content here#}
 
-        <div class='details'>
-        <table>
+        <div class='details pl-4 pr-4'>
+        <table class="w-100">
           <tr>
-            <td>
+            <td class="pl-4">
               <span>Customer Name: {{ customer_name }}</span><br>
               <span>Customer ID: {{ customer_id }}</span><br>
               <span>Bill Date: {{ bill_date }}</span><br>
               <span>Last Updated on: {{ last_update }}</span><br>
             </td>
-            <td>
+            <td class=" text-center">
               <img src="data:image/png;base64, {{ barcode }}" alt="Red dot"/>
             </td>
           </tr>
@@ -55,7 +68,7 @@
         {% if bill_summary %}
 
           <!--    Bill Summary -->
-          <div class="mt-4 mb-4 col-12">
+          <div class="mt-4 mb-4">
             <h5 class="pt-2 mt-2 text-center">Bill Summary</h5>
             <table style="width:100%">
               <tr class=" bg-info text-white">
@@ -87,7 +100,7 @@
                            class="m-2 p-2 dash text-right"><h5
                            class="font-weight-bold">{{ bill_month.total }}</h5></td>
                         {% else %}
-                          <span>{{ bill_month.quantity }} ML
+                          <span class="pr-4" >{{ bill_month.quantity }} ML
                           <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }}
                           = {{ bill_month.amount }}</span><br>
                         {% endif %}
