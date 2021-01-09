@@ -25,18 +25,125 @@
           font-size: 60px;
       }
 
-      @media (max-width: 600px)
-      {
-      .intro {
-          font-family: fontastique;
-          font-size: 50px;
+      @media (max-width: 600px) {
+          .mobile-layout {
+              padding-top: 100px !important;
+          }
+
+          .intro {
+              font-family: fontastique;
+              font-size: 50px;
+          }
       }
-      }
-       table, td, th {
+
+      table, td, th {
           border: 1px solid black;
       }
 
+      {# For CAL#}
+      table {
+          border-collapse: collapse;
+      }
 
+      table, td, th {
+          border: 1px solid black;
+      }
+
+      * {
+          box-sizing: border-box;
+      }
+
+      ul {
+          list-style-type: none;
+      }
+
+      body {
+          font-family: Verdana, sans-serif;
+      }
+
+      .month {
+          padding: 70px 25px;
+          width: 100%;
+          background: #1abc9c;
+          text-align: center;
+      }
+
+      .month ul {
+          margin: 0;
+          padding: 0;
+      }
+
+      .month ul li {
+          color: white;
+          font-size: 20px;
+          text-transform: uppercase;
+          letter-spacing: 3px;
+      }
+
+      .weekdays {
+          margin: 0;
+          padding: 10px 0;
+          background-color: #ddd;
+      }
+
+      .weekdays li {
+          display: inline-block;
+          width: 13.6%;
+          color: #666;
+          text-align: center;
+      }
+
+      .days {
+          padding: 10px 0;
+          background: #eee;
+          margin: 0;
+      }
+
+      .days div {
+          list-style-type: none;
+          display: inline-block;
+          width: 13.6%;
+      {#height: 1.5%;#} text-align: center;
+          margin-bottom: 5px;
+          font-size: 12px;
+          color: #777;
+      }
+
+      .days div .active {
+          padding: 5px;
+          background: #1abc9c;
+          color: white !important
+      }
+
+      /* Add media queries for smaller screens */
+      @media screen and (max-width: 720px) {
+          .weekdays li, .days li {
+              width: 13.1%;
+          }
+      }
+
+      @media screen and (max-width: 420px) {
+          .weekdays li, .days li {
+              width: 12.5%;
+          }
+
+          .days li .active {
+              padding: 2px;
+          }
+      }
+
+      @media screen and (max-width: 290px) {
+          .weekdays li, .days li {
+              width: 12.2%;
+          }
+      }
+
+      .dash {
+          border: 1px dashed #425858;
+          border-collapse: collapse;
+          padding-bottom: 25px !important;
+          padding-top: 25px !important;
+      }
   </style>
 </head>
 <!-- partial:index.partial.html -->
@@ -49,7 +156,7 @@
       {% if bill_summary %}
         {# Dynamic Content here#}
 
-        <div class='details pl-4 pr-4'>
+        <div class='mobile-layout details pl-4 pr-4'>
         <table class="w-100">
           <tr>
             <td class="p-2">
@@ -101,7 +208,7 @@
                            class="m-2 p-2 dash text-right"><h6
                            class="font-weight-bold">{{ bill_month.total }}</h6></td>
                         {% else %}
-                          <span class="pr-2" >{{ bill_month.quantity }} ML
+                          <span class="pr-2">{{ bill_month.quantity }} ML
                           <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }}
                           = {{ bill_month.amount }}</span><br>
                         {% endif %}
@@ -115,18 +222,76 @@
             </table>
           </div>
           <div>
-          {% if payment_status %}
-            <img
-           src="https://cdn.pixabay.com/photo/2020/04/10/13/23/paid-5025785_1280.png"
-           alt="Bill Not Available" width="300" height="300">
+            {% if payment_status %}
+              <img
+               src="https://cdn.pixabay.com/photo/2020/04/10/13/23/paid-5025785_1280.png"
+               alt="Bill Not Available" width="300" height="300">
             {% else %}
-            <img
-           src="https://ahadcorporation.com/payment-due.png"
-           alt="Bill Not Available" width="300" height="100">
+              <img
+               src="https://ahadcorporation.com/payment-due.png"
+               alt="Bill Not Available" width="300" height="100">
             {% endif %}
           </div>
         {% endif %}
 
+
+        {#  Calendar #}
+        {% if calendar %}
+          <!--  Calendar -->
+          <div class="mt-4 col-12">
+            {% for month in calendar %}
+              <div class="month">
+                <ul>
+                  <li>
+                    {{ month.month }} {{ month.year }}
+                  </li>
+                </ul>
+              </div>
+
+              <ul class="col-12 weekdays">
+                <li>Mon</li>
+                <li>Tue</li>
+                <li>Wed</li>
+                <li>Thu</li>
+                <li>Fri</li>
+                <li>Sat</li>
+                <li>Sun</li>
+              </ul>
+              <ul class="days">
+                {% for day in month.week_start_day %}
+                  <div></div>
+                {% endfor %}
+                {% for day in month.days_in_month %}
+                  <div class="p-1"><h2>{{ day.day }}</h2>
+                    {% if day.data %}{% for entry in day.data %}
+                      {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
+            Morning: {{ entry.quantity }} {% if entry.absent %}
+                        <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                        {% if not entry.absent %}
+                          {% if entry.paid %}
+                            <span class="d-block bg-success text-white p-1"> PAID</span>
+                          {% else %}
+                            <span class="d-block bg-warning text-white p-1">DUE</span>
+                          {% endif %}{% endif %}
+                      {% endif %}
+                      {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
+            Evening: {{ entry.quantity }} {% if entry.absent %}
+                        <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                        {% if not entry.absent %}
+                          {% if entry.paid %}
+                            <span class="d-block bg-success text-white p-1"> PAID </span>
+                          {% else %}
+                            <span class="d-block bg-warning text-white p-1">DUE</span>
+                          {% endif %}{% endif %}
+                      {% endif %}
+
+                    {% endfor %}{% endif %}
+                  </div>
+                {% endfor %}
+              </ul>
+            {% endfor %}
+          </div>
+        {% endif %}
 
         {# Dynamic Content ends here#}
 
@@ -159,20 +324,20 @@
           <h5 class="text-light">
             Powered by CYBERBOY.IN
           </h5>
-          {#            <div class="social-media">#}
-          {#              <a href="#" class="social-icon">#}
-          {#                <i class="fab fa-facebook-f"></i>#}
-          {#              </a>#}
-          {#              <a href="#" class="social-icon">#}
-          {#                <i class="fab fa-twitter"></i>#}
-          {#              </a>#}
-          {#              <a href="#" class="social-icon">#}
-          {#                <i class="fab fa-google"></i>#}
-          {#              </a>#}
-          {#              <a href="#" class="social-icon">#}
-          {#                <i class="fab fa-linkedin-in"></i>#}
-          {#              </a>#}
-          {#            </div>#}
+          {#                      <div class="social-media">#}
+          {#                        <a href="#" class="social-icon">#}
+          {#                          <i class="fab fa-facebook-f"></i>#}
+          {#                        </a>#}
+          {#                        <a href="#" class="social-icon">#}
+          {#                          <i class="fab fa-twitter"></i>#}
+          {#                        </a>#}
+          {#                        <a href="#" class="social-icon">#}
+          {#                          <i class="fab fa-google"></i>#}
+          {#                        </a>#}
+          {#                        <a href="#" class="social-icon">#}
+          {#                          <i class="fab fa-linkedin-in"></i>#}
+          {#                        </a>#}
+          {#                      </div>#}
 
           <div class="panel right-panel">
             <div class="content">
