@@ -7,6 +7,8 @@ from django.template.loader import get_template
 from pymongo import MongoClient
 from xhtml2pdf import pisa
 
+from milkbasket.secret import MONGO_COLLECTION
+from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
 from register.models import Balance
 from register.models import Register
@@ -158,10 +160,10 @@ def send_sms_api(contact, sms_text):
 
 
 def save_bill_to_mongo(bill_metadata):
-    client = MongoClient(f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/MilkBasket?retryWrites=true&w=majority')
-    db = client.MilkBasket
+    client = MongoClient(f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/{MONGO_DATABASE}?retryWrites=true&w=majority')
+    db = client[MONGO_DATABASE]
     # Upload Bill Metadata
-    metadata = db.Bill_Metadata
+    metadata = db[MONGO_COLLECTION]
     bill_metadata_id = metadata.insert(bill_metadata)
 
     return bill_metadata_id
