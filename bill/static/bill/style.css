@@ -1,0 +1,139 @@
+/*body*/
+/*{*/
+/*    background: rgb(87, 87, 87);*/
+/*}*/
+
+.bg-image {
+          /* The image used */
+          background-image: url("https://ak.picdn.net/shutterstock/videos/4757405/thumb/1.jpg");
+
+          /* Add the blur effect */
+          filter: blur(4px);
+          -webkit-filter: blur(4px);
+
+          /* Full height */
+          height: 100%;
+
+          /* Center and scale the image nicely */
+          background-position: center;
+          background-repeat: no-repeat;
+          background-size: cover;
+      }
+
+.alert-text{
+    text-align: center;
+    color: red;
+}
+.container
+{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 600px;
+    border-radius: 20px;
+
+}
+
+.card
+{
+    border-radius: 20px;
+    height: 600px;
+    background-image: linear-gradient(to right, #0084ff, #00f2ff);
+    border: none;
+    overflow: hidden;
+    box-shadow: 0 5px 8px #414141;
+    z-index: 0;
+    box-sizing: border-box;
+}
+
+
+
+.circle
+{
+
+    position: absolute;
+    bottom: -230px;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background: #ffffff;
+    clip-path: circle(50%);
+    height: 700px;
+    width: 700px;
+    z-index: -1; 
+    overflow: hidden;
+
+}
+
+.myHed
+{
+    margin-top: 30px;
+    font-size: 32px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    background-image: linear-gradient(to right, #0084ff, #00f2ff);
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+
+}
+
+.far
+{
+    font-size: 40px;
+}
+
+.fas
+{
+    position: relative;
+    display: block;
+    left: -87px;
+    top: 30px;
+    color: rgb(255, 255, 255);
+}
+
+.button
+{
+    width: 250px;
+    border-radius: 25px;
+    background-image: linear-gradient(to right, #0084ff, #00f2ff);
+    color: #fff;
+    font-weight: 700;
+    
+}
+
+.myInput
+{
+    width: 530px;
+    font-size: xxx-large;
+    padding: 10px;
+    border-radius: 25px;
+    background-image: linear-gradient(to right, #0084ff, #00f2ff);
+    color: #fff;
+    border: none;
+    display: block;
+}
+
+.my-submit{
+  font-size: x-large;
+}
+.myInput::placeholder
+{
+    color: #fff;
+    opacity: 0.6;
+}
+
+.myInput:focus
+{
+    border: none;
+    outline: none;
+}
+
+.check_1
+{
+    font-weight: 500;
+    color: rgb(85, 85, 85);
+    font-size: 12px;
+    margin: 15px auto;
+    cursor: pointer;
+}
