@@ -42,7 +42,7 @@
                 <th class="p-2 col-3" scope="col">Name</th>
                 <th class="p-2 col-2" scope="col">Total Due</th>
                 <th class="p-2 col-3" scope="col">Due (till {{ previous_month_name }})</th>
-                <th class="p-2 col-2" scope="col">Action</th>
+                <th class="p-2 col-3" scope="col">Action</th>
               </tr>
               </thead>
               <tbody>
@@ -71,7 +71,7 @@
                     </button>
                     {% if entry.customer__contact %}
                       <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
-                              class="btn-sm btn-warning"
+                              class="btn-sm btn-info"
                               data-toggle="modal"
                               data-target="#smsModal"
                               data-cid="{{ entry.customer_id }}"
