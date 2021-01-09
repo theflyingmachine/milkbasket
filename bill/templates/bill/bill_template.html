@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="icon" href="{% static "/favicon.ico" %}">
   <title>{{ page_title }}</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <link rel="stylesheet" href="{% static "/bill/style_main.css" %}">
 
   <script src="{% static '/js/bootstrap.js' %}"></script>
@@ -21,14 +22,14 @@
 
       .intro {
           font-family: fontastique;
-          font-size: 100px;
+          font-size: 60px;
       }
 
       @media (max-width: 600px)
       {
       .intro {
           font-family: fontastique;
-          font-size: 100px;
+          font-size: 50px;
       }
       }
        table, td, th {
@@ -136,10 +137,9 @@
         <div class="text-center">
           <img
            src="https://i1.wp.com/www.ecommerce-nation.com/wp-content/uploads/2018/10/404-error.jpg?fit=800%2C600&ssl=1"
-           alt="Bill Not Available" width="800" height="500">
-          {#      <img src="https://mdimg.wxwenku.com/getimg/ccdf080c7af7e8a10e9b88444af9839380a6ff4131c30cda38b5bb21b12b217f37cb3a8b66f2abf0441a211161c9d91f.jpg" alt="Bill Not Available" width="800" height="400">#}
-          <p class="text-center">We searched high and low but could not find the bill you are
-            looking for. </p>
+           alt="Bill Not Available">
+          <h1 class="text-center">We searched high and low but could not find the bill you are
+            looking for. </h1>
         </div>
       {% endif %}
 
