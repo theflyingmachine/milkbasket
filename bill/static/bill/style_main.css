@@ -12,7 +12,6 @@ input {
 }
 
 .container {
-  position: relative;
   width: 100% !important;
   background-color: #fff;
   min-height: 100vh;
@@ -31,7 +30,7 @@ input {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  left: 75%;
+  left: 65%;
   width: 50%;
   transition: 1s 0.7s ease-in-out;
   display: grid;
@@ -157,7 +156,7 @@ form.sign-in-form {
   top: 0;
   left: 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 40% 60%;
 }
 
 .container:before {
@@ -166,7 +165,7 @@ form.sign-in-form {
   height: 2000px;
   width: 2000px;
   top: -10%;
-  right: 48%;
+  right: 58%;
   transform: translateY(-50%);
   background-image: linear-gradient(-45deg, #4481eb 0%, #04befe 100%);
   transition: 1.8s ease-in-out;

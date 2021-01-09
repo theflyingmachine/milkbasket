@@ -6,19 +6,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="icon" href="{% static "/favicon.ico" %}">
   <title>{{ page_title }}</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <link rel='stylesheet'
         href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css'>
   <link rel='stylesheet'
         href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css'>
   <link rel="stylesheet" href="{% static "/bill/style.css" %}">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <style>
+
+      @font-face {
+          font-family: fontastique;
+          src: url("{% static "/src/fontastique.ttf"%}");
+      }
+
+      .intro {
+          font-family: fontastique;
+          font-size: 100px;
+      }
+  </style>
  <script>
     function FN_HYPEN(){
     var input = document.getElementById("bill-input");
-
-  if((input.value.length === 2) || (input.value.length === 4)) {
-    input.value += "-";
-  }}
+    var key = event.keyCode || event.charCode;
+    if((input.value.length === 2) || (input.value.length === 4) || (input.value.length === 9) || (input.value.length === 11)) {
+      if(key!=8)
+      {
+        input.value += "-";
+      }
+    }}
 
   </script>
 </head>
@@ -30,7 +46,7 @@
     <div class="card-body">
       <div class="circle"></div>
       <header class="myHed text-center">
-        <i class="far fa-user"></i>
+        <h2 class="text-primary intro">Milk Basket</h2>
         <p>
           Search Bill</p></header>
       <form class="main-form text-center" id="bill-search-form" name="bill-search" method="post"
@@ -41,7 +57,7 @@
           <label class="my-0">
             {#            <i class="fas fa-user"></i>#}
             <input autofocus id="bill-input" type="text" name="bill-number" class="myInput"
-                   style="text-transform: uppercase" onKeypress="FN_HYPEN();" placeholder="MB-1-2021-1-F6SIF5B">
+                   style="text-transform: uppercase" onkeyup="FN_HYPEN();" placeholder="MB-1-2021-1-F6SIF5B" maxlength="19">
           </label>
         </div>
 
