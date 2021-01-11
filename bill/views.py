@@ -13,7 +13,8 @@ from register.utils import get_register_day_entry
 
 def index(request, bill_number=None):
     if bill_number:
-        template = 'bill/bill_template.html'
+        template = 'bill/bill_template_simple.html'
+        # template = 'bill/bill_template.html'
         context = {
             'page_title': 'Milk Basket - Bill',
         }

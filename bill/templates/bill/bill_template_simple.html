@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="icon" href="{% static "/favicon.ico" %}">
+  <title>{{ page_title }}</title>
+
+  <script src="{% static '/js/bootstrap.js' %}"></script>
+  <link rel="stylesheet" href="{% static "/css/bootstrap.css" %}"/>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+
+      @font-face {
+          font-family: fontastique;
+          src: url("{% static "/src/fontastique.ttf"%}");
+      }
+
+      .intro {
+          font-family: fontastique;
+          font-size: 60px;
+      }
+
+      @media (max-width: 600px) {
+          .mobile-layout {
+              padding-top: 100px !important;
+          }
+
+          .intro {
+              font-family: fontastique;
+              font-size: 50px;
+          }
+      }
+
+      table, td, th {
+          border: 1px solid black;
+      }
+
+      {# For CAL#}
+      table {
+          border-collapse: collapse;
+      }
+
+      table, td, th {
+          border: 1px solid black;
+      }
+
+      * {
+          box-sizing: border-box;
+      }
+
+      ul {
+          list-style-type: none;
+      }
+
+      body {
+          font-family: Verdana, sans-serif;
+      }
+
+      .month {
+          padding: 70px 25px;
+          width: 100%;
+          background: #1abc9c;
+          text-align: center;
+      }
+
+      .month ul {
+          margin: 0;
+          padding: 0;
+      }
+
+      .month ul li {
+          color: white;
+          font-size: 20px;
+          text-transform: uppercase;
+          letter-spacing: 3px;
+      }
+
+      .weekdays {
+          margin: 0;
+          padding: 10px 0;
+          background-color: #ddd;
+      }
+
+      .weekdays li {
+          display: inline-block;
+          width: 13.6%;
+          color: #666;
+          text-align: center;
+      }
+
+      .days {
+          padding: 10px 0;
+          background: #eee;
+          margin: 0;
+      }
+
+      .days div {
+          list-style-type: none;
+          display: inline-block;
+          width: 13.6%;
+      {#height: 1.5%;#} text-align: center;
+          margin-bottom: 5px;
+          font-size: 12px;
+          color: #777;
+      }
+
+      .days div .active {
+          background: #1abc9c;
+          color: white !important
+      }
+
+      /* Add media queries for smaller screens */
+      @media screen and (max-width: 600px) {
+          .weekdays li, .days li {
+              width: 13.1%;
+          }
+      }
+
+      @media screen and (max-width: 420px) {
+          .weekdays li, .days li {
+              width: 12.5%;
+          }
+      }
+
+      @media screen and (max-width: 290px) {
+          .weekdays li, .days li {
+              width: 12.2%;
+          }
+      }
+
+      .dash {
+          border: 1px dashed #425858;
+          border-collapse: collapse;
+          padding-bottom: 25px !important;
+          padding-top: 25px !important;
+      }
+  </style>
+</head>
+<!-- partial:index.partial.html -->
+<body>
+<div>
+
+  <h2 class="text-primary text-center pt-2 intro">Milk Basket</h2>
+  <h6 class="text-center text-secondary">
+    Powered by CYBERBOY.IN
+  </h6>
+
+</div>
+{% if bill_summary %}
+  {# Dynamic Content here#}
+
+
+{#  <table class="w-100">#}
+    <div class="row p-2">
+        <div class="m-2 col-sm-12 col-lg-6">
+          <span>Customer Name: {{ customer_name }}</span><br>
+          <span>Customer ID: {{ customer_id }}</span><br>
+          <span>Bill Date: {{ bill_date }}</span><br>
+          <span>Last Updated on: {{ last_update }}</span><br>
+        </div>
+        <div class="mt-2 text-center col-sm-12 col-lg-6">
+          <img src="data:image/png;base64, {{ barcode }}" alt="Red dot"/>
+        </div>
+    </div>
+{#  </table>#}
+
+
+  {#  Bill Summary #}
+  {% if bill_summary %}
+
+    <!--    Bill Summary -->
+    <div class="mt-4 mb-4 ml-1 mr-1">
+      <h5 class="pt-2 mt-2 text-center">Bill Summary</h5>
+      <table style="width:100%">
+        <tr class=" bg-info text-white">
+          <th class="p-2 text-center" colspan="2">Description</th>
+          <th class="p-2 text-right">Amount</th>
+        </tr>
+        {% for bill in bill_summary %}
+          {% if forloop.last %}
+            <tr>
+              <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}.</span>
+              </td>
+              <td colspan="1">
+                {% if bill.balance %}
+                  <span class="pr-2 text-nowrap text-right font-weight-bold"> Sub
+                    Total: {{ bill.sub_total }}</span>
+                  <span class="pr-2 text-nowrap text-right font-weight-bold"> Balance :
+                    - {{ bill.balance }}</span>{% endif %}
+                <span class="p-2 text-nowrap text-right font-weight-bold">
+                  Total: {{ bill.sum_total }}</span></td>
+              {% else %}
+              <td class="m-2 dash text-center" rowspan="2">{{ bill.month_year }}</td>
+            <tr>
+              <td class="m-2 dash text-right">
+                {% for bill_month in bill.desc %}
+
+                  {% if forloop.last %}
+                    </td>
+                    <td
+                     class="m-2 p-2 dash text-right"><h6
+                     class="font-weight-bold">{{ bill_month.total }}</h6></td>
+                  {% else %}
+                    <span class="pr-2">{{ bill_month.quantity }} ML
+                          <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }}
+                          = {{ bill_month.amount }}</span><br>
+                  {% endif %}
+                {% endfor %}
+              </td>
+            </tr>
+            </tr>
+          {% endif %}
+
+        {% endfor %}
+      </table>
+    </div>
+    <div class="text-center">
+      {% if payment_status %}
+        <img
+         src="https://cdn.pixabay.com/photo/2020/04/10/13/23/paid-5025785_1280.png"
+         alt="Bill Not Available" width="300" height="300">
+      {% else %}
+        <img
+         src="https://ahadcorporation.com/payment-due.png"
+         alt="Bill Not Available" width="300" height="100">
+      {% endif %}
+    </div>
+  {% endif %}
+
+
+  {#  Calendar #}
+  {% if calendar %}
+    <!--  Calendar -->
+    <div class="mt-4 col-12">
+      {% for month in calendar %}
+        <div class="month">
+          <ul>
+            <li>
+              {{ month.month }} {{ month.year }}
+            </li>
+          </ul>
+        </div>
+
+        <ul class="col-12 weekdays">
+          <li>Mon</li>
+          <li>Tue</li>
+          <li>Wed</li>
+          <li>Thu</li>
+          <li>Fri</li>
+          <li>Sat</li>
+          <li>Sun</li>
+        </ul>
+        <ul class="days">
+          {% for day in month.week_start_day %}
+            <div></div>
+          {% endfor %}
+          {% for day in month.days_in_month %}
+            <div class="p-1"><h2>{{ day.day }}</h2>
+              {% if day.data %}{% for entry in day.data %}
+                {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
+            Morning: {{ entry.quantity }} {% if entry.absent %}
+                  <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                  {% if not entry.absent %}
+                    {% if entry.paid %}
+                      <span class="d-block bg-success text-white p-1"> PAID</span>
+                    {% else %}
+                      <span class="d-block bg-warning text-white p-1">DUE</span>
+                    {% endif %}{% endif %}
+                {% endif %}
+                {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
+            Evening: {{ entry.quantity }} {% if entry.absent %}
+                  <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                  {% if not entry.absent %}
+                    {% if entry.paid %}
+                      <span class="d-block bg-success text-white p-1"> PAID </span>
+                    {% else %}
+                      <span class="d-block bg-warning text-white p-1">DUE</span>
+                    {% endif %}{% endif %}
+                {% endif %}
+
+              {% endfor %}{% endif %}
+            </div>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {# Dynamic Content ends here#}
+
+
+
+
+{% else %}
+  <div class="text-center">
+    <img
+     src="{% static "/bill/404-error.jpg" %}"
+     alt="Bill Not Available">
+    <p class="text-center">We searched high and low but could not find the bill you are
+      looking for. </p>
+  </div>
+{% endif %}
+
+
+</body>
+</html>
+
