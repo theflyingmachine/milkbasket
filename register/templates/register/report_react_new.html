@@ -94,7 +94,7 @@
 
       async fetchStatus(hostname, token) {
         const url =
-          "http://" + hostname + "/register/report_data_status/" + token;
+          "{{protocol}}://" + hostname + "/register/report_data_status/" + token;
         const responce = await fetch(url);
         const data = await responce.json();
         if (data.status !== null) {

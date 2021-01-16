@@ -22,6 +22,7 @@ from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
+from milkbasket.secret import RUN_ENVIRONMENT
 from register.forms import CustomerForm
 from register.forms import RegisterForm
 from register.models import Balance
@@ -602,6 +603,7 @@ def report_initial(request):
     context = {'loading': True,
                'page_title': 'Milk Basket - Report',
                'menu_report': True,
+               'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http'
                }
     return render(request, template, context)
 
