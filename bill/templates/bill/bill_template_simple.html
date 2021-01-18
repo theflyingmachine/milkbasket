@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="icon" href="{% static "/favicon.ico" %}">
   <title>{{ page_title }}</title>
-
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="{% static '/js/bootstrap.js' %}"></script>
   <link rel="stylesheet" href="{% static "/css/bootstrap.css" %}"/>
   <link rel="stylesheet"
@@ -103,7 +103,7 @@
           width: 13.6%;
       {#height: 1.5%;#} text-align: center;
           margin-bottom: 5px;
-          font-size: 12px;
+          font-size: 15px;
           color: #777;
       }
 
@@ -117,18 +117,33 @@
           .weekdays li, .days li {
               width: 13.1%;
           }
+          .days div {
+          font-size: 0.4rem;
+      }
+      h2{
+      font-size: 1.5rem !important;
+      }
       }
 
       @media screen and (max-width: 420px) {
           .weekdays li, .days li {
               width: 12.5%;
           }
+          h2{
+      font-size: 1.5rem !important;
+      }
       }
 
       @media screen and (max-width: 290px) {
           .weekdays li, .days li {
               width: 12.2%;
           }
+          .days div {
+          font-size: 0.4rem;
+      }
+      h2{
+      font-size: 1.5rem !important;
+      }
       }
 
       .dash {
@@ -137,16 +152,42 @@
           padding-bottom: 25px !important;
           padding-top: 25px !important;
       }
+      @media (min-width: 768px){
+  .seven-cols .col-md-1 {
+    width: 100%;
+    *width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .seven-cols .col-sm-1,
+   {
+    width: 14.285714285714285714285714285714%;
+    *width: 14.285714285714285714285714285714%;
+  }
+}
+
+/**
+ *  The following is not really needed in this case
+ *  Only to demonstrate the usage of @media for large screens
+ */
+@media (min-width: 1200px) {
+  .seven-cols .col-sm-1 {
+    width: 14.285714285714285714285714285714%;
+    *width: 14.285714285714285714285714285714%;
+  }
+}
   </style>
 </head>
 <!-- partial:index.partial.html -->
 <body>
+<div class="container-fulid p-lg-5">
 <div>
 
-  <h2 class="text-primary text-center pt-2 intro">Milk Basket</h2>
-  <h6 class="text-center text-secondary">
-    Powered by CYBERBOY.IN
-  </h6>
+  <h1 class="text-primary text-center pt-2 intro">Milk Basket</h1>
+<!--  <h6 class="text-center text-secondary">-->
+<!--    Powered by CYBERBOY.IN-->
+<!--  </h6>-->
 
 </div>
 {% if bill_summary %}
@@ -161,7 +202,7 @@
           <span>Bill Date: {{ bill_date }}</span><br>
           <span>Last Updated on: {{ last_update }}</span><br>
         </div>
-        <div class="mt-2 text-center col-sm-12 col-lg-6">
+        <div class="mt-2 text-center col-sm-12 col-lg-5">
           <img src="data:image/png;base64, {{ barcode }}" alt="Red dot"/>
         </div>
     </div>
@@ -186,12 +227,12 @@
               </td>
               <td colspan="1">
                 {% if bill.balance %}
-                  <span class="pr-2 text-nowrap text-right font-weight-bold"> Sub
-                    Total: {{ bill.sub_total }}</span>
-                  <span class="pr-2 text-nowrap text-right font-weight-bold"> Balance :
-                    - {{ bill.balance }}</span>{% endif %}
-                <span class="p-2 text-nowrap text-right font-weight-bold">
-                  Total: {{ bill.sum_total }}</span></td>
+                  <p class="pr-2 text-nowrap text-right font-weight-bold">
+                    Total: {{ bill.sub_total }}</p>
+                  <p class="pr-2 text-nowrap text-right font-weight-bold"> Bal:
+                    - {{ bill.balance }}</p>{% endif %}
+                <p class="pr-2 text-nowrap text-right font-weight-bold">
+                  Total: {{ bill.sum_total }}</p></td>
               {% else %}
               <td class="m-2 dash text-center" rowspan="2">{{ bill.month_year }}</td>
             <tr>
@@ -253,7 +294,7 @@
           <li>Sat</li>
           <li>Sun</li>
         </ul>
-        <ul class="days">
+        <ul class="row seven-cols days">
           {% for day in month.week_start_day %}
             <div></div>
           {% endfor %}
@@ -303,7 +344,7 @@
       looking for. </p>
   </div>
 {% endif %}
-
+</div>
 
 </body>
 </html>
