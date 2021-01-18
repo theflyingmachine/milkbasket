@@ -85,7 +85,7 @@
 
 
         const url =
-          "http://" + hostname + "/register/report_data/" + uuid;
+          "{{protocol}}://" + hostname + "/register/report_data/" + uuid;
         const responce = await fetch(url);
         const data = await responce.json();
         this.setState({reportData: data, isLoading: false});
