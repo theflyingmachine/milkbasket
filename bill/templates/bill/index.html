@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="icon" href="{% static "/favicon.ico" %}">
+  <title>{{ page_title }}</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel='stylesheet'
+        href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css'>
+  <link rel='stylesheet'
+        href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css'>
+  <link rel="stylesheet" href="{% static "/bill/style.css" %}">
+
+  <style>
+
+      @font-face {
+          font-family: fontastique;
+          src: url("{% static "/src/fontastique.ttf"%}");
+      }
+
+      .intro {
+          font-family: fontastique;
+          font-size: 100px;
+      }
+      @media (max-width: 600px) {
+          .intro {
+              font-size: 60px;
+          }
+          .container {
+              width: 400px;
+          }
+          .myInput {
+              width: 330px;
+              font-size: xx-large;
+              padding: 5px;
+              border-radius: 10px;
+          }
+      }
+  </style>
+  <script>
+    function FN_HYPEN() {
+      var input = document.getElementById("bill-input");
+      var key = event.keyCode || event.charCode;
+      if ((input.value.length === 2) || (input.value.length === 4) || (input.value.length === 9) || (input.value.length === 11)) {
+        if (key != 8) {
+          input.value += "-";
+        }
+      }
+    }
+
+  </script>
+</head>
+<body>
+<div class="bg-image"></div>
+<!-- partial:index.partial.html -->
+<div class="container">
+  <div class="card">
+    <div class="card-body">
+      <div class="circle"></div>
+      <header class="myHed text-center">
+        <h2 class="text-primary intro">Milk Basket</h2>
+        <p>
+          Search Bill</p></header>
+      <form class="main-form text-center" id="bill-search-form" name="bill-search" method="post"
+            action="check-bill">{% csrf_token %}
+
+
+        <div class="form-group my-2">
+          <label class="my-0">
+            {#            <i class="fas fa-user"></i>#}
+            <input autofocus id="bill-input" type="text" name="bill-number" class="myInput"
+                   style="text-transform: uppercase" onkeyup="FN_HYPEN();"
+                   placeholder="MB-1-2021-1-F6SIF5B" maxlength="19">
+          </label>
+        </div>
+
+        {#                        <label class="check_1"><input type="checkbox" checked> Remember Me</label>#}
+
+        <div class="form-group">
+          <label>
+            <input id="search-bill-button" type="submit" class="my-submit form-control button"
+                   value="Search">
+          </label>
+        </div>
+        {#                        <span class="check_1">Forgot password ?</span>#}
+      </form>
+      <div class="form-group alert-text">
+        <p class="alert-text" id="search-result">
+      </div>
+    </div>
+  </div>
+</div>
+<!-- partial -->
+<script>
+  {#    Ajax for Send SMS  #}
+  document.getElementById("bill-search-form").addEventListener("submit", checkBillFunction);
+
+  function checkBillFunction() {
+    event.preventDefault()
+    $.post($(this).attr('action'), $(this).serialize(), function (data) {
+      if (data.status === 'success') {
+        document.getElementById("search-bill-button").disabled = true;
+        document.getElementById("search-bill-button").value = 'Valid Bill';
+        window.location.href = data.bill_number;
+
+      } else {
+        // Error code here
+        document.getElementById("bill-input").value = '';
+        document.getElementById("search-result").innerText = 'Bill Not Found';
+      }
+    }, 'json')
+  }
+</script>
+</body>
+</html>

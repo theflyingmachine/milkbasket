@@ -6,6 +6,7 @@ date-range==0.0.1
 dateutils==0.6.11
 dj-database-url==0.5.0
 Django==3.1.2
+dnspython==2.0.0
 future==0.18.2
 gunicorn==20.0.4
 html5lib==1.1
@@ -13,6 +14,7 @@ idna==2.10
 image==1.5.32
 Pillow==7.2.0
 psycopg2-binary==2.8.6
+pymongo==3.11.2
 PyPDF2==1.26.0
 PyQRCode==1.2.1
 python-bidi==0.4.2

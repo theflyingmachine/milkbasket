@@ -22,5 +22,7 @@ import register
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'', include('register.urls')),
+    url(r'^bill/', include('bill.urls')),
     url(r'^register/', include('register.urls')),
+
 ]

@@ -22,6 +22,7 @@ from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
+from milkbasket.secret import RUN_ENVIRONMENT
 from register.forms import CustomerForm
 from register.forms import RegisterForm
 from register.models import Balance
@@ -38,7 +39,9 @@ from register.utils import get_base_64_barcode
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
 from register.utils import get_register_day_entry
+from register.utils import get_register_transactions
 from register.utils import render_to_pdf
+from register.utils import save_bill_to_mongo
 from register.utils import send_sms_api
 
 
@@ -600,6 +603,7 @@ def report_initial(request):
     context = {'loading': True,
                'page_title': 'Milk Basket - Report',
                'menu_report': True,
+               'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http'
                }
     return render(request, template, context)
 
@@ -626,7 +630,7 @@ def report_data(request, poll_id=None):
     percent = 0
     milk_delivered = ['morning-yes', 'evening-yes']
     for i in range(-12, 1):
-        percent+=3.75
+        percent += 3.75
         graph_month = d1 + relativedelta(months=i)
         request.session[poll_id] = f'Income and Expense ({graph_month.strftime("%B-%Y")})'
         request.session[f'{poll_id}_percent'] = percent
@@ -687,7 +691,7 @@ def report_data(request, poll_id=None):
     #     Get mil k production over past 365 days
     chart_data_milk = []
     for i in range(-365, 1):
-        percent+=0.123
+        percent += 0.123
         d1 = date.today()
         graph_day = d1 + relativedelta(days=i)
         request.session[poll_id] = f'Milk Production ({graph_day.strftime("%d-%B-%Y")})'
@@ -983,6 +987,7 @@ def customer_profile(request, id=None):
 class GeneratePdf(View):
     def get(self, request, *args, **kwargs):
         cust_id = self.kwargs['id']
+        no_download = True if 'file_download' in kwargs else False
         res = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
         bill_number = f'MB-{cust_id}-{datetime.now().year}-{datetime.now().month}-{res}'
 
@@ -1030,19 +1035,25 @@ class GeneratePdf(View):
         bill.save()
 
         # Render PDF data
-        data = {
-            'barcode': barcode,
-            'bill_number': bill_number,
-            'page_title': bill_number,
-            'customer_id': cust_id,
-            'customer_name': customer.name,
-            'bill_date': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
-            'last_update': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
-            # 'calendar': calendar,     # uncomment if calendar needed on bill
-            'bill_summary': bill_summary,
-        }
-        pdf = render_to_pdf('register/bill_pdf_template.html', data)
-        return HttpResponse(pdf, content_type='application/pdf')
+        data = {'barcode': barcode, 'bill_number': bill_number, 'page_title': bill_number,
+                'customer_id': cust_id, 'customer_name': customer.name,
+                'bill_date': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
+                'last_update': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
+                'bill_summary': bill_summary,
+                'transaction_ids': list(get_register_transactions(cust_id, only_due=True))}
+        # Upload Bill metadata to Mongo
+        mongo_id = save_bill_to_mongo(data)
+        if no_download:
+            return JsonResponse(
+                {'status': 'success', 'amount': bill_sum_total['sum_total'],
+                 'mongo': str(mongo_id), 'bill_number': data['bill_number']})
+        else:
+            pdf = render_to_pdf('register/bill_pdf_template.html', data)
+            # Force download PDf with file name
+            pdf_download = HttpResponse(pdf, content_type='application/pdf')
+            pdf_download['Content-Disposition'] = f'attachment; filename="{bill_number}.pdf"'
+            # Upload Bill metadata to Mongo
+            return pdf_download
 
 
 @login_required

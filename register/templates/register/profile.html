@@ -204,9 +204,9 @@
       <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
         <h5 class="pt-2 mt-2 text-center">Bill Summary <a target="_blank"
                                                           href="/register/print_bill/{{ customer.id }}"
-                                                          class="btn btn-secondary"><i
+                                                          class="btn btn-info"><i
          class="fa fa-print" aria-hidden="true"></i> Print / Download</a>{% if customer.contact %}
-          <button id="sendsmsbuttonmain" type="button" class="btn btn-secondary"
+          <button id="sendsmsbuttonmain" type="button" class="btn btn-info"
                   data-toggle="modal"
                   data-target="#smsModal"
                   data-cname="{{ customer.name }}"
@@ -215,6 +215,10 @@
           ><i
            class="fa fa-commenting" aria-hidden="true"></i> Send SMS
           </button>{% endif %}
+          <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
+                  class="btn btn-info">
+            <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
+          </button>
         </h5>
         <table style="width:100%">
           <tr class=" bg-info text-white">
@@ -402,12 +406,13 @@
                 </div>
               </div>
               {% if customer.contact %}
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="name">Send SMS Notification </label>
-                  <input type="checkbox" id="sms-notification" name="sms-notification" checked value="1">
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Send SMS Notification </label>
+                    <input type="checkbox" id="sms-notification" name="sms-notification" checked
+                           value="1">
+                  </div>
                 </div>
-              </div>
               {% endif %}
 
               <button type="submit" class="btn btn-success justify-content-center col-12">Accept
@@ -504,21 +509,41 @@
 
     {#    Ajax for Send SMS  #}
     document.getElementById("sendsmsform").addEventListener("submit", sendSMSFunction);
+
     function sendSMSFunction() {
-        document.getElementById("sendsmsbutton").disabled = true;
-        event.preventDefault()
-        $.post($(this).attr('action'), $(this).serialize(), function (data) {
-          if (data.status === 'success') {
-            document.getElementById("sendsmsbuttonmain").disabled = true;
-            document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
-          } else {
-            // Error code here
-            document.getElementById("sendsmsbutton").disabled = false;
-            document.getElementById("sendsmsbuttonmain").disabled = false;
-            alert('Something went wrong...')
-          }
-        }, 'json')
-      }
+      document.getElementById("sendsmsbutton").disabled = true;
+      event.preventDefault()
+      $.post($(this).attr('action'), $(this).serialize(), function (data) {
+        if (data.status === 'success') {
+          document.getElementById("sendsmsbuttonmain").disabled = true;
+          document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
+        } else {
+          // Error code here
+          document.getElementById("sendsmsbutton").disabled = false;
+          document.getElementById("sendsmsbuttonmain").disabled = false;
+          alert('Something went wrong...')
+        }
+      }, 'json')
+    }
+
+    function shareOnWhatsApp() {
+      document.getElementById("sendOnWAInit").innerText = 'Please Wait...';
+      $.get("/print_bill/{{ customer.id }}/no-download/", function (data, status) {
+        if (data.status === 'success') {
+          document.getElementById("sendOnWAInit").disabled = true;
+          document.getElementById("sendOnWAInit").innerText = 'Shared';
+          var share_text = 'Dear {{ customer.name }}, Your bill of ₹ '+ data.amount +' with reference number \'' + data.bill_number + '\' has been generated. You can view bill at https://milk.cyberboy.in/bill/' + data.bill_number;
+          var url = "https://api.whatsapp.com/send?text=" + share_text;
+          var win = window.open(url, '_blank');
+          win.focus();
+        } else {
+          // Error code here
+          alert('Something went wrong...')
+        }
+        {#alert("Data: " + data + "\nStatus: " + status);#}
+
+      });
+    }
   </script>
 {% endblock %}
 <!-- Footer -->
