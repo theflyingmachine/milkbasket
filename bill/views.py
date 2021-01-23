@@ -21,7 +21,7 @@ def index(request, bill_number=None):
         bill_metadata = fetch_bill(bill_number, full_data=True)
         if bill_metadata:
             context.update(bill_metadata)
-            due_transactions = Register.objects.filter(pk__in=bill_metadata['transaction_ids'])
+            due_transactions = Register.objects.filter(id__in=bill_metadata['transaction_ids'])
             payment_status = True if due_transactions.filter(paid=1) else False
             context.update({'payment_status': payment_status})
 
@@ -34,7 +34,8 @@ def index(request, bill_number=None):
                                             'data': get_register_day_entry(
                                                 bill_metadata['customer_id'], day=day,
                                                 month=active_month.month,
-                                                year=active_month.year)
+                                                year=active_month.year,
+                                                transaction_list=due_transactions)
                                             } for day in range(1, (
                              monthrange(active_month.year, active_month.month)[1]) + 1)]
                          } for active_month in active_months]
