@@ -532,7 +532,7 @@
         if (data.status === 'success') {
           document.getElementById("sendOnWAInit").disabled = true;
           document.getElementById("sendOnWAInit").innerText = 'Shared';
-          var share_text = 'Dear {{ customer.name }}, Your bill of ₹ '+ data.amount +' with reference number \'' + data.bill_number + '\' has been generated. You can view bill at https://milk.cyberboy.in/bill/' + data.bill_number;
+          var share_text = 'Dear {{ customer.name }}, Your bill of *₹ '+ data.amount +'* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
           var url = "https://api.whatsapp.com/send?text=" + share_text;
           var win = window.open(url, '_blank');
           win.focus();

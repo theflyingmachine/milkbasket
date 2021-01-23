@@ -183,6 +183,11 @@
               *width: 14.285714285714285714285714285714%;
           }
       }
+
+      .not-found-image {
+          width: 100%;
+          height: auto;
+      }
   </style>
 </head>
 <!-- partial:index.partial.html -->
@@ -343,9 +348,9 @@
 
   {% else %}
     <div class="text-center">
-      <img
-       src="{% static "/bill/404-error.jpg" %}"
-       alt="Bill Not Available">
+      <img class="not-found-image"
+           src="{% static "/bill/404-error.jpg" %}"
+           alt="Bill Not Available">
       <p class="text-center">We searched high and low but could not find the bill you are
         looking for. </p>
     </div>
