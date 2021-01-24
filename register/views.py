@@ -38,6 +38,7 @@ from register.utils import get_active_month
 from register.utils import get_base_64_barcode
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
+from register.utils import get_milk_current_price
 from register.utils import get_register_day_entry
 from register.utils import get_register_transactions
 from register.utils import render_to_pdf
@@ -969,6 +970,7 @@ def customer_profile(request, id=None):
         sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
         context = {
             'calendar': calendar,
+            'milk_price': get_milk_current_price(description=True),
             'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
             'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
@@ -1040,6 +1042,7 @@ class GeneratePdf(View):
                 'bill_date': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
                 'last_update': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
                 'bill_summary': bill_summary,
+                'milk_price': get_milk_current_price(description=True).replace('₹', 'Rs.'),
                 'transaction_ids': list(get_register_transactions(cust_id, only_due=True))}
         # Upload Bill metadata to Mongo
         mongo_id = save_bill_to_mongo(data)

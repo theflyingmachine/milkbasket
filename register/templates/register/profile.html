@@ -225,10 +225,11 @@
             <th class="p-2 text-center" colspan="2">Description</th>
             <th class="p-2 text-right">Amount</th>
           </tr>
+          {% load mathfilters %}
           {% for bill in bill_summary %}
             {% if forloop.last %}
               <tr>
-                <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}.</span>
+                <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}. {{ milk_price }}</span>
                 </td>
                 <td colspan="1">
                   {% if bill.balance %}
@@ -252,8 +253,8 @@
                     {% else %}
                       <p
                        class="m-2">{{ bill_month.quantity }} ML
-                        <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }}
-                        = {{ bill_month.amount }}</p>
+                        <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }} unit(s)
+                        = {{ bill_month.total_units|div:1000 }} L</p>
 
                     {% endif %}
                   {% endfor %}

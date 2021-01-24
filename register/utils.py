@@ -11,6 +11,7 @@ from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
 from register.models import Balance
+from register.models import Milk
 from register.models import Register
 
 
@@ -102,6 +103,9 @@ def get_bill_summary(customer_id, month=False, year=False):
                              'desc': sum(
                                  1 for entry in summary_sheet if
                                  entry.get('quantity') == quantity),
+                             'total_units': int(
+                                 sum(entry.get('quantity') for entry in summary_sheet if
+                                     entry.get('quantity') == quantity)),
                              'amount': sum(entry.get('cost_price') for entry in summary_sheet if
                                            entry.get('quantity') == quantity),
                              } for quantity in unique_quantity]
@@ -171,6 +175,7 @@ def send_sms_api(contact, sms_text):
 
 
 def save_bill_to_mongo(bill_metadata):
+    """ Upload bill metadata to cloud mongo db """
     client = MongoClient(
         f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/{MONGO_DATABASE}?retryWrites=true&w=majority')
     db = client[MONGO_DATABASE]
@@ -182,6 +187,7 @@ def save_bill_to_mongo(bill_metadata):
 
 
 def get_register_transactions(cust_id, only_paid=False, only_due=True):
+    """ Fetch register transactions """
     transactions = None
     if cust_id:
         if only_due:
@@ -199,3 +205,13 @@ def get_register_transactions(cust_id, only_paid=False, only_due=True):
                                                                                     flat=True)
 
     return transactions
+
+
+def get_milk_current_price(description=False):
+    """ Get Current milk price with or without description """
+    milk = Milk.objects.last()
+    if description:
+        current_price = f'Effective {milk.date_effective.strftime("%d %B %Y")}, current milk price is ₹ {milk.price} per liter.'
+    else:
+        current_price = milk.price
+    return current_price

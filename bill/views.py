@@ -8,10 +8,12 @@ from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
 from register.models import Register
+from register.utils import get_milk_current_price
 from register.utils import get_register_day_entry
 
 
 def index(request, bill_number=None):
+    """Render customer view of bill"""
     if bill_number:
         template = 'bill/bill_template_simple.html'
         # template = 'bill/bill_template.html'
@@ -39,7 +41,8 @@ def index(request, bill_number=None):
                                             } for day in range(1, (
                              monthrange(active_month.year, active_month.month)[1]) + 1)]
                          } for active_month in active_months]
-            context.update({'calendar': calendar, })
+            context.update({'calendar': calendar,
+                            'milk_price': get_milk_current_price(description=True)})
 
         return render(request, template, context)
     else:
@@ -51,6 +54,7 @@ def index(request, bill_number=None):
 
 
 def validate_bill(request, full_data=False):
+    """ Check if the bill is valid on search bill page"""
     response = {
         'status': 'failed',
     }
@@ -64,6 +68,7 @@ def validate_bill(request, full_data=False):
 
 
 def fetch_bill(bill_number, full_data=False):
+    """ Fetch bill metadata from cloud Mongo DB """
     client = MongoClient(
         f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/{MONGO_DATABASE}?retryWrites=true&w=majority')
     db = client[MONGO_DATABASE]
