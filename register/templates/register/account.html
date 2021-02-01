@@ -83,6 +83,16 @@
                       </button>{% endif %}
                   </td>
                 </tr>
+                {# Check in session if SMS was already sent and disable button #}
+                <script>
+                  if (sessionStorage.getItem("sms_{{ entry.customer_id }}")) {
+                    {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+                    document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").innerText = 'SMS Sent';
+                    document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.remove('btn-info');
+                    document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.add('btn-secondary');
+                  }
+                </script>
+
               {% endfor %}
               </tbody>
             </table>
@@ -105,15 +115,15 @@
               </thead>
               <tbody>
               {% for entry in paid_customer %}
-                  <tr class="d-flex">
-                    <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                    <th class="p-2 col-4" scope="row"><a
-                     href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
-                    </th>
-                    <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
-                    <td class="p-2 col-2">{{ entry.payment_done }}</td>
-                    <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
-                  </tr>
+                <tr class="d-flex">
+                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                  <th class="p-2 col-4" scope="row"><a
+                   href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
+                  </th>
+                  <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
+                  <td class="p-2 col-2">{{ entry.payment_done }}</td>
+                  <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
+                </tr>
               {% endfor %}
               </tbody>
             </table>
@@ -411,7 +421,7 @@
         </div>
         <form id="sendsmsform" name="sendsms" action="/sendsms" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="cust_id" name="cust_id"
-                 value="{{ customer.id }}">
+                 value="">
           <div class="p-4">
             <div class="form-row">
               <div class="form-group col-md-12">
@@ -509,7 +519,13 @@
       modal.find('#c_name').val(c_name);
       modal.find('#c_contact').val(c_contact);
       modal.find('#smstextareabox').val(c_smstext);
-
+      if (sessionStorage.getItem("sms_" + c_cid)) {
+        document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
+        document.getElementById("sendsmsbutton").disabled = true;
+      } else {
+        document.getElementById("sendsmsbutton").innerText = 'Send SMS';
+        document.getElementById("sendsmsbutton").disabled = false;
+      }
     })
 
     {#    Ajax for Send SMS  #}
@@ -522,8 +538,10 @@
         if (data.status === 'success') {
           document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
           document.getElementById(sendButtonId).disabled = true;
-          document.getElementById(sendButtonId).classList.remove('btn-warning');
+          document.getElementById(sendButtonId).classList.remove('btn-info');
           document.getElementById(sendButtonId).classList.add('btn-secondary');
+          {#  Update in session to disable send button#}
+          sessionStorage.setItem("sms_" + $('#cust_id').val(), 'sent');
         } else {
           // Error code here
           document.getElementById("sendsmsbutton").disabled = false;
