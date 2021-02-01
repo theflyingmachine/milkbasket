@@ -41,7 +41,13 @@ def index(request, bill_number=None):
                                             } for day in range(1, (
                              monthrange(active_month.year, active_month.month)[1]) + 1)]
                          } for active_month in active_months]
+            for entry in due_transactions:
+                entry.billed_amount = float(entry.current_price / 1000) * entry.quantity
+                entry.display_paid = 'Paid' if entry.paid else 'Due'
+                entry.display_schedule = 'Morning' if entry.schedule == 'morning-yes' else 'Evening'
+                entry.display_log_date = entry.log_date.strftime('%d-%b-%y')
             context.update({'calendar': calendar,
+                            'due_transactions': due_transactions,
                             'milk_price': get_milk_current_price(description=True)})
 
         return render(request, template, context)
