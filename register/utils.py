@@ -2,6 +2,7 @@ import base64
 from io import BytesIO
 
 import requests
+from django.db.models import Q
 from django.http import HttpResponse
 from django.template.loader import get_template
 from pymongo import MongoClient
@@ -11,6 +12,7 @@ from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
 from register.models import Balance
+from register.models import Customer
 from register.models import Milk
 from register.models import Register
 
@@ -215,3 +217,12 @@ def get_milk_current_price(description=False):
     else:
         current_price = milk.price
     return current_price
+
+
+def check_customer_is_active(cust_id):
+    """ Check if the given customer is active """
+    is_active = False
+    if cust_id:
+        status = Customer.objects.filter(id=cust_id).filter(Q(morning=1) | Q(evening=1))
+        is_active = True if status else False
+    return is_active
