@@ -33,6 +33,7 @@ from register.models import Income
 from register.models import Milk
 from register.models import Payment
 from register.models import Register
+from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import get_active_month
 from register.utils import get_base_64_barcode
@@ -82,6 +83,7 @@ def index(request, year=None, month=None):
             'register_entry': register_entry,
             'customer_quantity': customer['customer__quantity'],
             'default_price': milk.price,
+            'is_active': check_customer_is_active(customer['customer_id']),
         })
     # Get evening register for given month
     register = Register.objects.filter(log_date__month=register_date.month,
@@ -101,6 +103,7 @@ def index(request, year=None, month=None):
             'register_entry': register_entry,
             'customer_quantity': customer['customer__quantity'],
             'default_price': milk.price,
+            'is_active': check_customer_is_active(customer['customer_id']),
         })
 
     # Get All customers if no entry is added - will be used in autopilot mode
