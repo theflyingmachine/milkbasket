@@ -203,24 +203,30 @@
       <!--    Bill Summary -->
       <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
         <div class="text-center">
-          <a target="_blank"
-             href="/register/print_bill/{{ customer.id }}"
-             class="btn btn-info mb-1"><i
-           class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
-          {% if customer.contact %}
-            <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
-                    data-toggle="modal"
-                    data-target="#smsModal"
-                    data-cname="{{ customer.name }}"
-                    data-c_contact="{{ customer.contact }}"
-                    data-c_smstext="{{ sms_text }}"
-            ><i
-             class="fa fa-commenting" aria-hidden="true"></i> Send SMS
-            </button>{% endif %}
-          <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
-                  class="btn btn-info mb-1">
-            <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
-          </button>
+          {% if tenant.download_pdf_pref %}
+            <a target="_blank"
+               href="/register/print_bill/{{ customer.id }}"
+               class="btn btn-info mb-1"><i
+             class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
+          {% endif %}
+          {% if tenant.sms_pref %}
+            {% if customer.contact %}
+              <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
+                      data-toggle="modal"
+                      data-target="#smsModal"
+                      data-cname="{{ customer.name }}"
+                      data-c_contact="{{ customer.contact }}"
+                      data-c_smstext="{{ sms_text }}"
+              ><i
+               class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+              </button>{% endif %}
+          {% endif %}
+          {% if tenant.whatsapp_pref %}
+            <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
+                    class="btn btn-info mb-1">
+              <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
+            </button>
+          {% endif %}
         </div>
         <h5 class="pt-2 mt-2 text-center">Bill Summary </h5>
         {# Check in session if SMS was already sent and disable button #}

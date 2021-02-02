@@ -69,18 +69,20 @@
                      {% endif %}
                     >Make Payment
                     </button>
-                    {% if entry.customer__contact %}
-                      <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
-                              class="btn-sm btn-info"
-                              data-toggle="modal"
-                              data-target="#smsModal"
-                              data-cid="{{ entry.customer_id }}"
-                              data-cname="{{ entry.customer__name }}"
-                              data-c_contact="{{ entry.customer__contact }}"
-                              data-c_smstext="{{ entry.sms_text }}"
-                      ><i
-                       class="fa fa-commenting" aria-hidden="true"></i> Send SMS
-                      </button>{% endif %}
+                    {% if tenant.sms_pref %}
+                      {% if entry.customer__contact %}
+                        <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
+                                class="btn-sm btn-info"
+                                data-toggle="modal"
+                                data-target="#smsModal"
+                                data-cid="{{ entry.customer_id }}"
+                                data-cname="{{ entry.customer__name }}"
+                                data-c_contact="{{ entry.customer__contact }}"
+                                data-c_smstext="{{ entry.sms_text }}"
+                        ><i
+                         class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+                        </button>{% endif %}
+                    {% endif %}
                   </td>
                 </tr>
                 {# Check in session if SMS was already sent and disable button #}

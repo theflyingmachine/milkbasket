@@ -1,6 +1,8 @@
 from datetime import datetime
 
+from django.contrib.auth.models import User
 from django.db import models
+
 
 # Create your models here.
 
@@ -16,6 +18,18 @@ class Customer(models.Model):
     member_since = models.DateTimeField(auto_now_add=True, null=True)
 
 
+class Tenant(models.Model):
+    tenant = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    download_pdf_pref = models.BooleanField(default=True)
+    sms_pref = models.BooleanField(default=True)
+    whatsapp_pref = models.BooleanField(default=True)
+    email_pref = models.BooleanField(default=False)
+
+
 class Milk(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     date_effective = models.DateTimeField()
@@ -26,7 +40,7 @@ class Register(models.Model):
     log_date = models.DateTimeField()
     schedule = models.CharField(max_length=15, null=True, default=None)
     quantity = models.FloatField(null=False, blank=False, default=None)
-    current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None )
+    current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None)
     paid = models.BooleanField(default=False)
 
 
@@ -63,4 +77,3 @@ class Bill(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     bill_last_data_date = models.DateTimeField(null=False)
     bill_generated_date = models.DateTimeField(null=False, default=datetime.now)
-

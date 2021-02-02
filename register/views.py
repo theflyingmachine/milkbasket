@@ -33,6 +33,7 @@ from register.models import Income
 from register.models import Milk
 from register.models import Payment
 from register.models import Register
+from register.models import Tenant
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import get_active_month
@@ -362,9 +363,13 @@ def customers(request):
             customer.schedule = 'Evening'
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
+
+    # Get Tenant prefrence
+    tenant = Tenant.objects.get(tenant_id=request.user.id)
     context.update({
         'customers': customers,
         'inactive_customers': inactive_customers,
+        'tenant': tenant
     })
 
     return render(request, template, context)
@@ -447,6 +452,8 @@ def account(request, year=None, month=None):
     # Get extra income
     income = Income.objects.filter(log_date__month=register_date.month)
 
+    # Get tenant prefrence
+    tenant = Tenant.objects.get(tenant_id=request.user.id)
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
@@ -457,7 +464,8 @@ def account(request, year=None, month=None):
         'total_expense': total_expense,
         'due_customer': due_customer,
         'paid_customer': [cust for cust in paid_customer if cust['total_paid']],
-        'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B")
+        'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
+        'tenant': tenant,
     }
 
     return render(request, template, context)
@@ -861,19 +869,51 @@ def setting(request):
     template = 'register/setting.html'
     if request.method == "POST":
         milk_price = request.POST.get("milkprice")
+        sms_pref = True if request.POST.get("sms_pref") else False
+        wa_pref = True if request.POST.get("wa_pref") else False
+        email_pref = True if request.POST.get("email_pref") else False
+        download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
         if milk_price:
-            new_milk_price = Milk(price=milk_price, date_effective=now)
-            new_milk_price.save()
+            try:
+                milk = Milk.objects.latest('id')
+            except:
+                milk = None
+            if not milk:
+                new_milk_price = Milk(price=milk_price, date_effective=now)
+                new_milk_price.save()
+            elif milk.price != milk_price:
+                Milk.objects.filter(pk=milk.pk).update(price=milk_price, date_effective=now)
+            else:
+                print('not updating milk price')
+
+        Tenant.objects.update_or_create(tenant_id=request.user.id,
+                                        defaults={'sms_pref': sms_pref,
+                                                  'whatsapp_pref': wa_pref,
+                                                  'email_pref': email_pref,
+                                                  'download_pdf_pref': download_pdf_pref},
+                                        )
+        request.session['alert_class'] = 'success'
+        request.session['alert_message'] = 'Settings Saved'
     try:
         milk = Milk.objects.latest('id')
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
     except:
         milk = None
+
     context = {
         'page_title': 'Milk Basket - Setting',
         'menu_setting': True,
         'milk': milk,
+        'tenant': tenant,
+        'alert_class': request.session.get('alert_class', None),
+        'alert_message': request.session.get('alert_message', None),
     }
+    try:
+        del request.session['alert_class']
+        del request.session['alert_message']
+    except:
+        pass
     return render(request, template, context)
 
 
@@ -971,6 +1011,7 @@ def customer_profile(request, id=None):
             f'{prev_month_name} is Rs {due_till_prev_month}') if due_till_prev_month > 0 else (
             f'{current_month_name} is Rs {due_till_current_month}')
         sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
         context = {
             'calendar': calendar,
             'milk_price': get_milk_current_price(description=True),
@@ -984,6 +1025,7 @@ def customer_profile(request, id=None):
             'payment_due_amount_prev_month': due_till_prev_month,
             'payment_due_amount_till_date': due_till_current_month,
             'previous_month_name': prev_month_name,
+            'tenant': tenant,
         }
         return render(request, template, context)
     return redirect('view_customers')

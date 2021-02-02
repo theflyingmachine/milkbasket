@@ -137,21 +137,24 @@
                        placeholder="Name">
               </div>
             </div>
-            <div class="form-row">
-              <div class="form-group col-md-12">
-                <label for="inputEmail4">Contact</label>
-                <input type="text" class="form-control" id="recipient_contact" name="contact"
-                       placeholder="Contact">
+            {% if tenant.sms_pref %}
+              <div class="form-row">
+                <div class="form-group col-md-12">
+                  <label for="inputEmail4">Contact</label>
+                  <input type="text" class="form-control" id="recipient_contact" name="contact"
+                         placeholder="Contact">
+                </div>
               </div>
-            </div>
-            {#            <div class="form-row">#}
-            {#              <div class="form-group col-md-12">#}
-            {#                <label for="inputEmail4">Email</label>#}
-            {#                <input type="text" class="form-control" id="recipient_email" name="email"#}
-            {#                       placeholder="Email">#}
-            {#              </div>#}
-            {#            </div>#}
-
+            {% endif %}
+            {% if tenant.email_pref %}
+              <div class="form-row">
+                <div class="form-group col-md-12">
+                  <label for="inputEmail4">Email</label>
+                  <input type="text" class="form-control" id="recipient_email" name="email"
+                         placeholder="Email">
+                </div>
+              </div>
+            {% endif %}
             <div class="form-row">
               <div class="form-group col-md-12">
                 <label for="inputState">Schedule: </label>

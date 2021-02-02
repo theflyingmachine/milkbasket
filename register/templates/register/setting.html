@@ -18,6 +18,11 @@
 
 {% block content %}
   <div class="container justify-content-center text-center">
+    {#    {% if alert_message %}#}
+    {#      <div class="alert alert-{{ alert_class }} m-1" role="alert">#}
+    {#        {{ alert_message }}#}
+    {#      </div>#}
+    {#    {% endif %}#}
     <div class="row justify-content-center mb-5">
       <div class="col">
         <form name="setting" method="post" action="setting">{% csrf_token %}
@@ -25,7 +30,7 @@
             <span class="ex3">{{ milk.price }}</span><span class="ex1"> INR / Liter</span><br>
             <span class="ex2">Milk Price per liter</span>
             <p class="ex1">Updated: {{ milk.date_effective }}</p>
-             <p>Current Time: {% now "jS F Y H:i" %}</p>
+            <p>Current Time: {% now "jS F Y H:i" %}</p>
             <br>
             <br>
             <br>
@@ -37,13 +42,37 @@
                        aria-describedby="emailHelp" placeholder="Enter amount / L"
                        value="{{ milk.price }}">
 
-              <br>
+                <br>
 
-
-              <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
-
+                <div class="checkbox">
+                  <label><input type="checkbox" name="sms_pref"
+                                {% if tenant.sms_pref %}checked{% endif %} value="1"> Enable
+                    SMS</label>
+                </div>
+                <div class="checkbox">
+                  <label><input type="checkbox" name="wa_pref"
+                                {% if tenant.whatsapp_pref %}checked{% endif %} value="1"> Enable
+                    WhatsApp</label>
+                </div>
+                <div class="checkbox">
+                  <label><input type="checkbox" name="download_pdf_pref"
+                                {% if tenant.download_pdf_pref %}checked{% endif %} value="1">
+                    Enable
+                    PDF Download</label>
+                </div>
+                <div class="checkbox disabled">
+                  <label><input type="checkbox" name="email_pref"
+                                {% if tenant.email_pref %}checked{% endif %} value="1"> Enable
+                    Email</label>
+                </div>
+                {% if alert_message %}
+                  <button type="submit"
+                          class="btn btn-lg btn-block btn-{{ alert_class }}">{{ alert_message }}</button>
+                {% else %}
+                  <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
+                {% endif %}
+              </div>
             </div>
-          </div>
           </div>
         </form>
       </div>
