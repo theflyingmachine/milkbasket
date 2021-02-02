@@ -188,6 +188,75 @@
           width: 100%;
           height: auto;
       }
+
+      {#    Switch slider #}
+      /* The switch - the box around the slider */
+      .switch {
+          position: relative;
+          display: inline-block;
+          width: 60px;
+          height: 34px;
+      }
+
+      /* Hide default HTML checkbox */
+      .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+      }
+
+      /* The slider */
+      .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #1abc9c;
+          -webkit-transition: .4s;
+          transition: .4s;
+      }
+
+      .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          -webkit-transition: .4s;
+          transition: .4s;
+      }
+
+      input:checked + .slider {
+          background-color: #17a2b8;
+      }
+
+      input:focus + .slider {
+          box-shadow: 0 0 1px #17a2b8;
+      }
+
+      input:checked + .slider:before {
+          -webkit-transform: translateX(26px);
+          -ms-transform: translateX(26px);
+          transform: translateX(26px);
+      }
+
+      /* Rounded sliders */
+      .slider.round {
+          border-radius: 34px;
+      }
+
+      .slider.round:before {
+          border-radius: 50%;
+      }
+
+      .switcher-text {
+          font-size: large;
+          font-weight: bold;
+      }
   </style>
 </head>
 <!-- partial:index.partial.html -->
@@ -243,7 +312,9 @@
                     <p class="pr-2 text-nowrap text-right font-weight-bold"> Bal:
                       - {{ bill.balance }}</p>{% endif %}
                   <p class="pr-2 text-nowrap text-right font-weight-bold">
-                    Total: {{ bill.sum_total }}</p></td>
+                    Total</p>
+                  <p class="pr-2 text-nowrap text-right font-weight-bold">
+                    {{ bill.sum_total }}</p></td>
                 {% else %}
                 <td class="m-2 dash text-center" rowspan="2">{{ bill.month_year }}</td>
               <tr>
@@ -257,7 +328,7 @@
                        class="font-weight-bold">{{ bill_month.total }}</h6></td>
                     {% else %}
                       <span class="pr-2">{{ bill_month.quantity }} ML
-                         <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }} unit(s)
+                         <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }} unit
                         = {{ bill_month.total_units|div:1000 }} L</span><br>
                     {% endif %}
                   {% endfor %}
@@ -283,64 +354,116 @@
     {% endif %}
 
 
+    <div class="text-center mt-2">
+    <span class="switcher-text">Calendar
+    <label class="switch">
+      <input id="details-switch" onclick="showDetails()" type="checkbox">
+      <span class="slider round"></span>
+    </label>
+    Details
+      </span>
+    </div>
+
+
+
     {#  Calendar #}
     {% if calendar %}
-      <!--  Calendar -->
-      <div class="mt-4 col-12">
-        {% for month in calendar %}
-          <div class="month">
-            <ul>
-              <li>
-                {{ month.month }} {{ month.year }}
-              </li>
+      <div id="calendar-view">
+        <!--  Calendar -->
+        <div class="mt-4 col-12">
+          {% for month in calendar %}
+            <div class="month">
+              <ul>
+                <li>
+                  {{ month.month }} {{ month.year }}
+                </li>
+              </ul>
+            </div>
+
+            <ul class="col-12 weekdays">
+              <li>Mon</li>
+              <li>Tue</li>
+              <li>Wed</li>
+              <li>Thu</li>
+              <li>Fri</li>
+              <li>Sat</li>
+              <li>Sun</li>
             </ul>
-          </div>
-
-          <ul class="col-12 weekdays">
-            <li>Mon</li>
-            <li>Tue</li>
-            <li>Wed</li>
-            <li>Thu</li>
-            <li>Fri</li>
-            <li>Sat</li>
-            <li>Sun</li>
-          </ul>
-          <ul class="row seven-cols days">
-            {% for day in month.week_start_day %}
-              <div></div>
-            {% endfor %}
-            {% for day in month.days_in_month %}
-              <div class="p-1"><h2>{{ day.day }}</h2>
-                {% if day.data %}{% for entry in day.data %}
-                  {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
+            <ul class="row seven-cols days">
+              {% for day in month.week_start_day %}
+                <div></div>
+              {% endfor %}
+              {% for day in month.days_in_month %}
+                <div class="p-1"><h2>{{ day.day }}</h2>
+                  {% if day.data %}{% for entry in day.data %}
+                    {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
             Morning: {{ entry.quantity }} {% if entry.absent %}
-                    <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
-                    {% if not entry.absent %}
-                      {% if entry.paid %}
-                        <span class="d-block bg-success text-white p-1"> PAID</span>
-                      {% else %}
-                        <span class="d-block bg-warning text-white p-1">DUE</span>
-                      {% endif %}{% endif %}
-                  {% endif %}
-                  {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
+                      <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                      {% if not entry.absent %}
+                        {% if entry.paid %}
+                          <span class="d-block bg-success text-white p-1"> PAID</span>
+                        {% else %}
+                          <span class="d-block bg-warning text-white p-1">DUE</span>
+                        {% endif %}{% endif %}
+                    {% endif %}
+                    {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
             Evening: {{ entry.quantity }} {% if entry.absent %}
-                    <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
-                    {% if not entry.absent %}
-                      {% if entry.paid %}
-                        <span class="d-block bg-success text-white p-1"> PAID </span>
-                      {% else %}
-                        <span class="d-block bg-warning text-white p-1">DUE</span>
-                      {% endif %}{% endif %}
-                  {% endif %}
+                      <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                      {% if not entry.absent %}
+                        {% if entry.paid %}
+                          <span class="d-block bg-success text-white p-1"> PAID </span>
+                        {% else %}
+                          <span class="d-block bg-warning text-white p-1">DUE</span>
+                        {% endif %}{% endif %}
+                    {% endif %}
 
-                {% endfor %}{% endif %}
-              </div>
-            {% endfor %}
-          </ul>
-        {% endfor %}
+                  {% endfor %}{% endif %}
+                </div>
+              {% endfor %}
+            </ul>
+          {% endfor %}
+        </div>
       </div>
     {% endif %}
 
+    {# Details Table #}
+    {% if due_transactions %}
+      <div id="details-view">
+        <caption><h5 class="pt-2 mt-2 text-center">Register Entry</h5></caption>
+        <div class="mt-4 col-12" style="overflow-x:auto;">
+          <table class="table table-sm table-striped">
+            <thead>
+            <tr class="d-flex bg-info text-white">
+              <th class="p-2 col-1" scope="col">#</th>
+              <th class="p-2 col-2" scope="col">Date</th>
+              <th class="p-2 col-2" scope="col">Schedule</th>
+              <th class="p-2 col-2" scope="col">Quantity</th>
+              <th class="p-2 col-2" scope="col">Price</th>
+              <th class="p-2 col-2" scope="col">Billed Amount</th>
+              <th class="p-2 col-1" scope="col">Payment Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in due_transactions %}
+              <tr class="d-flex">
+                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                <td class="p-2 col-2">{{ entry.display_log_date }}</td>
+                <td class="p-2 col-2">{{ entry.display_schedule }}</td>
+                <td class="p-2 col-2">{{ entry.quantity }}</td>
+                <td class="p-2 col-2">{{ entry.current_price }}/L</td>
+                <td class="p-2 col-2">{{ entry.billed_amount }}</td>
+                <td
+                 class="p-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
+
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+    <p class="text-center"> --- END OF PAGE ---</p>
     {# Dynamic Content ends here#}
 
 
@@ -356,6 +479,20 @@
     </div>
   {% endif %}
 </div>
+
+<script>
+  showDetails()
+
+  function showDetails() {
+    if (document.getElementById("details-switch").checked) {
+      document.getElementById('details-view').style.display = "block";
+      document.getElementById('calendar-view').style.display = "none";
+    } else {
+      document.getElementById('details-view').style.display = "none";
+      document.getElementById('calendar-view').style.display = "block";
+    }
+  }
+</script>
 
 </body>
 </html>
