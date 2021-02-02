@@ -202,24 +202,36 @@
     {% if bill_summary %}
       <!--    Bill Summary -->
       <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
-        <h5 class="pt-2 mt-2 text-center">Bill Summary <a target="_blank"
-                                                          href="/register/print_bill/{{ customer.id }}"
-                                                          class="btn btn-info mb-1"><i
-         class="fa fa-print" aria-hidden="true"></i> Print / Download</a>{% if customer.contact %}
-          <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
-                  data-toggle="modal"
-                  data-target="#smsModal"
-                  data-cname="{{ customer.name }}"
-                  data-c_contact="{{ customer.contact }}"
-                  data-c_smstext="{{ sms_text }}"
-          ><i
-           class="fa fa-commenting" aria-hidden="true"></i> Send SMS
-          </button>{% endif %}
+        <div class="text-center">
+          <a target="_blank"
+             href="/register/print_bill/{{ customer.id }}"
+             class="btn btn-info mb-1"><i
+           class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
+          {% if customer.contact %}
+            <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
+                    data-toggle="modal"
+                    data-target="#smsModal"
+                    data-cname="{{ customer.name }}"
+                    data-c_contact="{{ customer.contact }}"
+                    data-c_smstext="{{ sms_text }}"
+            ><i
+             class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+            </button>{% endif %}
           <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
                   class="btn btn-info mb-1">
             <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
           </button>
-        </h5>
+        </div>
+        <h5 class="pt-2 mt-2 text-center">Bill Summary </h5>
+        {# Check in session if SMS was already sent and disable button #}
+        <script>
+          if (sessionStorage.getItem("sms_{{ customer.id }}")) {
+            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+            document.getElementById("sendsmsbuttonmain").innerText = 'SMS Sent';
+            document.getElementById("sendsmsbuttonmain").classList.remove('btn-info');
+            document.getElementById("sendsmsbuttonmain").classList.add('btn-secondary');
+          }
+        </script>
         <table style="width:100%">
           <tr class=" bg-info text-white">
             <th class="p-2 text-center" colspan="2">Description</th>
@@ -506,6 +518,13 @@
       modal.find('#c_name').val(c_name);
       modal.find('#c_contact').val(c_contact);
       modal.find('#smstextareabox').val(c_smstext);
+      if (sessionStorage.getItem("sms_{{ customer.id }}")) {
+        document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
+        document.getElementById("sendsmsbutton").disabled = true;
+      } else {
+        document.getElementById("sendsmsbutton").innerText = 'Send SMS';
+        document.getElementById("sendsmsbutton").disabled = false;
+      }
     })
 
     {#    Ajax for Send SMS  #}
@@ -518,6 +537,8 @@
         if (data.status === 'success') {
           document.getElementById("sendsmsbuttonmain").disabled = true;
           document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
+          {#  Update in session to disable send button#}
+          sessionStorage.setItem("sms_{{ customer.id }}", 'sent');
         } else {
           // Error code here
           document.getElementById("sendsmsbutton").disabled = false;
@@ -533,7 +554,7 @@
         if (data.status === 'success') {
           document.getElementById("sendOnWAInit").disabled = true;
           document.getElementById("sendOnWAInit").innerText = 'Shared';
-          var share_text = 'Dear {{ customer.name }}, Your bill of *₹ '+ data.amount +'* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
+          var share_text = 'Dear {{ customer.name }}, Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
           var url = "https://api.whatsapp.com/send?text=" + share_text;
           var win = window.open(url, '_blank');
           win.focus();
