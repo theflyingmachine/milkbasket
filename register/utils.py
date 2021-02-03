@@ -235,12 +235,12 @@ def check_customer_is_active(cust_id):
     return is_active
 
 
-def send_email_api(to_email, data):
+def send_email_api(to_email, subject, data):
     """ Send email message """
     status = {'status': 'failed'}
     if to_email and data:
         email_body = get_template('register/email_bill_template.html').render(data)
-        email = EmailMessage('MilkBasket Bill', email_body, to=[to_email])
+        email = EmailMessage(subject, email_body, to=[to_email])
         email.content_subtype = "html"
         if email.send():
             status['status'] = 'success'

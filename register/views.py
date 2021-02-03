@@ -1122,7 +1122,8 @@ def send_EMAIL(request, id=None):
     if id:
         customer = Customer.objects.get(id=id)
         data = generate_bill(id, raw_data=True)
-        status = send_email_api(customer.email, data)
+        subject = f'🛍️🥛 Bill due for ₹ {data["raw_data"]["bill_summary"][-1]["sum_total"]} 🧾'
+        status = send_email_api(customer.email, subject, data)
         return JsonResponse(status)
     else:
         return None
