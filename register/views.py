@@ -36,6 +36,7 @@ from register.models import Register
 from register.models import Tenant
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
+from register.utils import generate_bill
 from register.utils import get_active_month
 from register.utils import get_base_64_barcode
 from register.utils import get_bill_summary
@@ -45,6 +46,7 @@ from register.utils import get_register_day_entry
 from register.utils import get_register_transactions
 from register.utils import render_to_pdf
 from register.utils import save_bill_to_mongo
+from register.utils import send_email_api
 from register.utils import send_sms_api
 
 
@@ -989,8 +991,9 @@ def customer_profile(request, id=None):
                          'desc': get_bill_summary(id, month=due_month.month, year=due_month.year)}
                         for due_month in due_months]
         bill_summary.reverse()
+        last_data_entry = customer_register_last_updated(id)
         bill_sum_total = {
-            'last_updated': customer_register_last_updated(id).strftime("%d %B, %Y"),
+            'last_updated': last_data_entry.strftime("%d %B, %Y") if last_data_entry else '',
             'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
             'sum_total': (
                 sum([bill.get('desc')[-1]['total'] for bill in bill_summary if bill.get('desc')]))}
@@ -1112,3 +1115,14 @@ def send_SMS(request):
     if contact and smstext:
         data = send_sms_api(contact, smstext)
     return HttpResponse(data, content_type='application/json')
+
+
+@login_required
+def send_EMAIL(request, id=None):
+    if id:
+        customer = Customer.objects.get(id=id)
+        data = generate_bill(id, raw_data=True)
+        status = send_email_api(customer.email, data)
+        return JsonResponse(status)
+    else:
+        return None

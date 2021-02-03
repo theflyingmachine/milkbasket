@@ -227,6 +227,14 @@
               <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
             </button>
           {% endif %}
+          {% if tenant.email_pref %}
+            {% if customer.email %}
+              <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
+                      class="btn btn-info mb-1">
+                <i class="fa fa-mail" aria-hidden="true"></i> Send Email
+              </button>
+            {% endif %}
+          {% endif %}
         </div>
         <h5 class="pt-2 mt-2 text-center">Bill Summary </h5>
         {# Check in session if SMS was already sent and disable button #}
@@ -236,6 +244,18 @@
             document.getElementById("sendsmsbuttonmain").innerText = 'SMS Sent';
             document.getElementById("sendsmsbuttonmain").classList.remove('btn-info');
             document.getElementById("sendsmsbuttonmain").classList.add('btn-secondary');
+          }
+          if (sessionStorage.getItem("wa_{{ customer.id }}")) {
+            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+            document.getElementById("sendOnWAInit").innerText = 'Shared on WhatsApp';
+            document.getElementById("sendOnWAInit").classList.remove('btn-info');
+            document.getElementById("sendOnWAInit").classList.add('btn-secondary');
+          }
+          if (sessionStorage.getItem("email_{{ customer.id }}")) {
+            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+            document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
+            document.getElementById("sendOnEmailInit").classList.remove('btn-info');
+            document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
           }
         </script>
         <table style="width:100%">
@@ -564,9 +584,33 @@
           var url = "https://api.whatsapp.com/send?text=" + share_text;
           var win = window.open(url, '_blank');
           win.focus();
+          document.getElementById("sendOnWAInit").classList.remove('btn-info');
+          document.getElementById("sendOnWAInit").classList.add('btn-secondary');
+          {#  Update in session to disable send button#}
+          sessionStorage.setItem("wa_{{ customer.id }}", 'sent');
         } else {
           // Error code here
           alert('Something went wrong...')
+        }
+        {#alert("Data: " + data + "\nStatus: " + status);#}
+
+      });
+    }
+
+    function sendEmail() {
+      document.getElementById("sendOnEmailInit").innerText = 'Please Wait...';
+      $.get("/sendemail/{{ customer.id }}", function (data, status) {
+        if (data.status === 'success') {
+          document.getElementById("sendOnEmailInit").disabled = true;
+          document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
+          document.getElementById("sendOnEmailInit").classList.remove('btn-info');
+          document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
+          {#  Update in session to disable send button#}
+          sessionStorage.setItem("email_{{ customer.id }}", 'sent');
+        } else {
+          // Error code here
+          alert('Something went wrong...')
+          document.getElementById("sendOnEmailInit").innerText = 'Send Email';
         }
         {#alert("Data: " + data + "\nStatus: " + status);#}
 

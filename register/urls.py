@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -36,4 +37,5 @@ urlpatterns = [
     path('account/<int:year>/<int:month>/acceptpayment', views.accept_payment,
          name='accept_payment'),
     path('sendsms', views.send_SMS, name='send_sms'),
+    path('sendemail/<int:id>', views.send_EMAIL, name='send_email'),
 ]
