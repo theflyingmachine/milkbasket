@@ -1,7 +1,5 @@
 import decimal
 import json
-import random
-import string
 from calendar import monthrange
 from datetime import date
 from datetime import datetime
@@ -26,7 +24,6 @@ from milkbasket.secret import RUN_ENVIRONMENT
 from register.forms import CustomerForm
 from register.forms import RegisterForm
 from register.models import Balance
-from register.models import Bill
 from register.models import Customer
 from register.models import Expense
 from register.models import Income
@@ -38,14 +35,11 @@ from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
-from register.utils import get_base_64_barcode
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
 from register.utils import get_milk_current_price
 from register.utils import get_register_day_entry
-from register.utils import get_register_transactions
 from register.utils import render_to_pdf
-from register.utils import save_bill_to_mongo
 from register.utils import send_email_api
 from register.utils import send_sms_api
 
@@ -1038,71 +1032,15 @@ class GeneratePdf(View):
     def get(self, request, *args, **kwargs):
         cust_id = self.kwargs['id']
         no_download = True if 'file_download' in kwargs else False
-        res = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
-        bill_number = f'MB-{cust_id}-{datetime.now().year}-{datetime.now().month}-{res}'
-
-        customer = Customer.objects.get(id=cust_id)
-        # Extract months which has due for calendar
-        active_months = get_active_month(cust_id, all_active=True)
-        calendar = [{'month': active_month.strftime('%B'),
-                     'year': active_month.strftime('%Y'),
-                     'week_start_day': [x for x in range(0, active_month.weekday())],
-                     'days_in_month': [{'day': day,
-                                        'data': get_register_day_entry(cust_id, day=day,
-                                                                       month=active_month.month,
-                                                                       year=active_month.year)
-                                        } for day in range(1, (
-                         monthrange(active_month.year, active_month.month)[1]) + 1)]
-                     } for active_month in active_months]
-
-        # Extract only due months for bill
-        due_months = get_active_month(cust_id, only_paid=False, only_due=True)
-        bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
-                         'desc': get_bill_summary(cust_id, month=due_month.month,
-                                                  year=due_month.year)}
-                        for due_month in due_months]
-        bill_summary.reverse()
-        bill_sum_total = {
-            'last_updated': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
-            'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
-            'sum_total': (
-                sum([bill.get('desc')[-1]['total'] for bill in bill_summary if bill.get('desc')]))}
-
-        # Check for balance / Due amount
-        balance_amount = get_customer_balance_amount(cust_id)
-        if balance_amount:
-            bill_sum_total['balance'] = balance_amount
-            bill_sum_total['sub_total'] = bill_sum_total['sum_total']
-            bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
-
-        bill_summary.append(bill_sum_total)
-        barcode = get_base_64_barcode(bill_number)
-
-        # Save to database before rendering PDF
-        bill = Bill(customer_id=customer, bill_number=bill_number,
-                    amount=bill_sum_total['sum_total'],
-                    bill_last_data_date=customer_register_last_updated(cust_id))
-        bill.save()
-
-        # Render PDF data
-        data = {'barcode': barcode, 'bill_number': bill_number, 'page_title': bill_number,
-                'customer_id': cust_id, 'customer_name': customer.name,
-                'bill_date': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
-                'last_update': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
-                'bill_summary': bill_summary,
-                'milk_price': get_milk_current_price(description=True).replace('₹', 'Rs.'),
-                'transaction_ids': list(get_register_transactions(cust_id, only_due=True))}
-        # Upload Bill metadata to Mongo
-        mongo_id = save_bill_to_mongo(data)
         if no_download:
-            return JsonResponse(
-                {'status': 'success', 'amount': bill_sum_total['sum_total'],
-                 'mongo': str(mongo_id), 'bill_number': data['bill_number']})
+            return generate_bill(cust_id, no_download=True)
         else:
+            data = generate_bill(cust_id)
             pdf = render_to_pdf('register/bill_pdf_template.html', data)
             # Force download PDf with file name
             pdf_download = HttpResponse(pdf, content_type='application/pdf')
-            pdf_download['Content-Disposition'] = f'attachment; filename="{bill_number}.pdf"'
+            pdf_download[
+                'Content-Disposition'] = f'attachment; filename="{data["bill_number"]}.pdf"'
             # Upload Bill metadata to Mongo
             return pdf_download
 

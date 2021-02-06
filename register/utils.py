@@ -308,7 +308,7 @@ def generate_bill(cust_id, no_download=False, raw_data=False):
         return JsonResponse(
             {'status': 'success', 'amount': bill_sum_total['sum_total'],
              'mongo': str(mongo_id), 'bill_number': data['bill_number'],
-             'raw_data': data})
+             })
     elif raw_data:
         return (
             {'status': 'success', 'amount': bill_sum_total['sum_total'],
