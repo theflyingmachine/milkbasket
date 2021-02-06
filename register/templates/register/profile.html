@@ -110,513 +110,517 @@
   <!-- Main Div -->
   <div class="container mb-5" class="row justify-content-center">
 
+    {% if nocustomer %}
+      <h2 class="text-center text-secondary m-5 p-5">Customer Not Found</h2>
+    {% else %}
 
-    <div class="col-12 mb-3">
-      <!-- Customer Info Table-->
-      <h2 class="pt-2 text-center"> {{ customer.name }}</h2>
-      <div class="row">
-        <table width="100%">
-          <tr>
-            <td class="p-3">Account Number: {{ customer.id }}</td>
-            <td class="p-3">Default Quantity: {{ customer.quantity }} ML</td>
-          </tr>
-          <tr>
-            <td class="p-3">Customer Since: {{ customer.member_since }}</td>
-            <td class="p-3">Default Schedule: {{ customer.schedule }}</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-
-
-    <div class="col-12">
-      <!-- Payment Due Table-->
-      {% if payment_due_amount_till_date %}
-        <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
-        <table class="table table-sm table-striped">
-          <thead>
-          <tr class="d-flex bg-info text-white">
-            <th class="p-2 col-1" scope="col">#</th>
-            <th class="p-2 col-4" scope="col">Total Due</th>
-            <th class="p-2 col-4" scope="col">Due (till {{ previous_month_name }})</th>
-            <th class="p-2 col-3" scope="col">Action</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr class="d-flex">
-            <th class="p-2 col-1" scope="row">1</th>
-            <td class="p-2 col-4">{{ payment_due_amount_till_date }}</td>
-            <td class="p-2 col-4">{% if payment_due_amount_prev_month %}
-              <span class="font-weight-bold">{{ payment_due_amount_prev_month }}</span>
-              <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
-            <td class="col-3">
-              <button type="button" class="btn-sm btn-primary"
-                      data-toggle="modal"
-                      data-target="#exampleModal2"
-                      data-cid="{{ customer.id }}"
-                      data-cname="{{ customer.name }}"
-                      data-dueamount="{{ payment_due_amount_till_date }}"
-               {% if payment_due_amount_prev_month %}
-                      data-prevdueamount="{{ payment_due_amount_prev_month }}"
-               {% endif %}
-              >Make Payment
-              </button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      {% endif %}
-    </div>
-
-    {#    {% if expenses or due_customer or paid_customer %}#}
-    {% if transaction %}
-      <!-- Transaction Table-->
-      <div class="mt-4 col-12" style="overflow-x:auto;">
-        <caption><h5 class="pt-2 mt-2 text-center">Transaction</h5></caption>
-        <table class="table table-sm table-striped">
-          <thead>
-          <tr class="d-flex bg-info text-white">
-            <th class="p-2 col-1" scope="col">#</th>
-            <th class="p-2 col-2" scope="col">Transaction ID</th>
-            <th class="p-2 col-6" scope="col">Transaction Date</th>
-            <th class="p-2 col-3" scope="col">Amount</th>
-          </tr>
-          </thead>
-          <tbody>
-          {% for entry in transaction %}
-            <tr class="d-flex">
-              <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-              <td class="p-2 col-2">{{ entry.id }}</td>
-              <td class="p-2 col-6">{{ entry.log_date }}</td>
-              <td class="p-2 col-3">{{ entry.amount }}</td>
-
-              </td>
+      <div class="col-12 mb-3">
+        <!-- Customer Info Table-->
+        <h2 class="pt-2 text-center"> {{ customer.name }}</h2>
+        <div class="row">
+          <table width="100%">
+            <tr>
+              <td class="p-3">Account Number: {{ customer.id }}</td>
+              <td class="p-3">Default Quantity: {{ customer.quantity }} ML</td>
             </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
-
-    {#  Bill Summary #}
-    {% if bill_summary %}
-      <!--    Bill Summary -->
-      <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
-        <div class="text-center">
-          {% if tenant.download_pdf_pref %}
-            <a target="_blank"
-               href="/register/print_bill/{{ customer.id }}"
-               class="btn btn-info mb-1"><i
-             class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
-          {% endif %}
-          {% if tenant.sms_pref %}
-            {% if customer.contact %}
-              <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
-                      data-toggle="modal"
-                      data-target="#smsModal"
-                      data-cname="{{ customer.name }}"
-                      data-c_contact="{{ customer.contact }}"
-                      data-c_smstext="{{ sms_text }}"
-              ><i
-               class="fa fa-commenting" aria-hidden="true"></i> Send SMS
-              </button>{% endif %}
-          {% endif %}
-          {% if tenant.whatsapp_pref %}
-            <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
-                    class="btn btn-info mb-1">
-              <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
-            </button>
-          {% endif %}
-          {% if tenant.email_pref %}
-            {% if customer.email %}
-              <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
-                      class="btn btn-info mb-1">
-                <i class="fa fa-mail" aria-hidden="true"></i> Send Email
-              </button>
-            {% endif %}
-          {% endif %}
+            <tr>
+              <td class="p-3">Customer Since: {{ customer.member_since }}</td>
+              <td class="p-3">Default Schedule: {{ customer.schedule }}</td>
+            </tr>
+          </table>
         </div>
-        <h5 class="pt-2 mt-2 text-center">Bill Summary </h5>
-        {# Check in session if SMS was already sent and disable button #}
-        <script>
-          if (sessionStorage.getItem("sms_{{ customer.id }}")) {
-            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-            document.getElementById("sendsmsbuttonmain").innerText = 'SMS Sent';
-            document.getElementById("sendsmsbuttonmain").classList.remove('btn-info');
-            document.getElementById("sendsmsbuttonmain").classList.add('btn-secondary');
-          }
-          if (sessionStorage.getItem("wa_{{ customer.id }}")) {
-            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-            document.getElementById("sendOnWAInit").innerText = 'Shared on WhatsApp';
-            document.getElementById("sendOnWAInit").classList.remove('btn-info');
-            document.getElementById("sendOnWAInit").classList.add('btn-secondary');
-          }
-          if (sessionStorage.getItem("email_{{ customer.id }}")) {
-            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-            document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
-            document.getElementById("sendOnEmailInit").classList.remove('btn-info');
-            document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
-          }
-        </script>
-        <table style="width:100%">
-          <tr class=" bg-info text-white">
-            <th class="p-2 text-center" colspan="2">Description</th>
-            <th class="p-2 text-right">Amount</th>
-          </tr>
-          {% load mathfilters %}
-          {% for bill in bill_summary %}
-            {% if forloop.last %}
-              <tr>
-                <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}. {{ milk_price }}</span>
-                </td>
-                <td colspan="1">
-                  {% if bill.balance %}
-                    <h5 class="pr-2 text-nowrap text-right font-weight-bold"> Sub
-                      Total: {{ bill.sub_total }}</h5>
-                    <h5 class="pr-2 text-nowrap text-right font-weight-bold"> Balance :
-                      -{{ bill.balance }}</h5>{% endif %}
-                  <h4 class="p-2 text-nowrap text-right font-weight-bold"> Grand
-                    Total: {{ bill.sum_total }}</h4></td>
-                {% else %}
-                <td class="m-2 dash text-center" rowspan="2">{{ bill.month_year }}</td>
-              <tr>
-                <td class="m-2 dash text-right">
-                  {% for bill_month in bill.desc %}
-
-                    {% if forloop.last %}
-                      </td>
-                      <td
-                       class="m-2 p-2 dash text-right"><h5
-                       class="font-weight-bold">{{ bill_month.total }}</h5></td>
-                    {% else %}
-                      <p
-                       class="m-2">{{ bill_month.quantity }} ML
-                        <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }} unit(s)
-                        = {{ bill_month.total_units|div:1000 }} L</p>
-
-                    {% endif %}
-                  {% endfor %}
-                </td>
-              </tr>
-              </tr>
-            {% endif %}
-
-          {% endfor %}
-        </table>
       </div>
-    {% endif %}
 
-    {#  Calendar #}
-    {% if calendar %}
-      <!--  Calendar -->
-      <div class="mt-4 col-12">
-        {% for month in calendar %}
-          <div class="month">
-            <ul>
-              <li>
-                {{ month.month }} {{ month.year }}
-              </li>
-            </ul>
-          </div>
 
-          <ul class="col-12 weekdays">
-            <li>Mon</li>
-            <li>Tue</li>
-            <li>Wed</li>
-            <li>Thu</li>
-            <li>Fri</li>
-            <li>Sat</li>
-            <li>Sun</li>
-          </ul>
-          <ul class="days">
-            {% for day in month.week_start_day %}
-              <div></div>
-            {% endfor %}
-            {% for day in month.days_in_month %}
-              <div class="p-1"><h2>{{ day.day }}</h2>
-                {% if day.data %}{% for entry in day.data %}
-                  {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
-            Morning: {{ entry.quantity }} {% if entry.absent %}
-                    <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
-                    {% if not entry.absent %}
-                      {% if entry.paid %}
-                        <span class="d-block bg-success text-white p-1"> PAID</span>
-                      {% else %}
-                        <span class="d-block bg-warning text-white p-1">DUE</span>
-                      {% endif %}{% endif %}
-                  {% endif %}
-                  {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
-            Evening: {{ entry.quantity }} {% if entry.absent %}
-                    <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
-                    {% if not entry.absent %}
-                      {% if entry.paid %}
-                        <span class="d-block bg-success text-white p-1"> PAID </span>
-                      {% else %}
-                        <span class="d-block bg-warning text-white p-1">DUE</span>
-                      {% endif %}{% endif %}
-                  {% endif %}
-
-                {% endfor %}{% endif %}
-              </div>
-            {% endfor %}
-          </ul>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    {% if register %}
-      <!--   Register Entry Table-->
-      <div class="mt-4 col-12" style="overflow-x:auto;">
-        <caption><h5 class="pt-2 mt-2 text-center">Register Entry</h5></caption>
-        <table class="table table-sm table-striped">
-          <thead>
-          <tr class="d-flex bg-info text-white">
-            <th class="p-2 col-1" scope="col">#</th>
-            <th class="p-2 col-1" scope="col">Entry ID</th>
-            <th class="p-2 col-3" scope="col">Transaction Date</th>
-            <th class="p-2 col-2" scope="col">Schedule</th>
-            <th class="p-2 col-1" scope="col">Quantity</th>
-            <th class="p-2 col-1" scope="col">@ Price / L</th>
-            <th class="p-2 col-2" scope="col">Billed Amount</th>
-            <th class="p-2 col-1" scope="col">Payment Status</th>
-          </tr>
-          </thead>
-          <tbody>
-          {% for entry in register %}
+      <div class="col-12">
+        <!-- Payment Due Table-->
+        {% if payment_due_amount_till_date %}
+          <h5 class="pt-2 mt-2 text-center">Payment Due</h5>
+          <table class="table table-sm table-striped">
+            <thead>
+            <tr class="d-flex bg-info text-white">
+              <th class="p-2 col-1" scope="col">#</th>
+              <th class="p-2 col-4" scope="col">Total Due</th>
+              <th class="p-2 col-4" scope="col">Due (till {{ previous_month_name }})</th>
+              <th class="p-2 col-3" scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
             <tr class="d-flex">
-              <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-              <td class="p-2 col-1">{{ entry.id }}</td>
-              <td class="p-2 col-3">{{ entry.display_log_date }}</td>
-              <td class="p-2 col-2">{{ entry.display_schedule }}</td>
-              <td class="p-2 col-1">{{ entry.quantity }}</td>
-              <td class="p-2 col-1">{{ entry.current_price }}</td>
-              <td class="p-2 col-2">{{ entry.billed_amount }}</td>
-              <td
-               class="p-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
-
+              <th class="p-2 col-1" scope="row">1</th>
+              <td class="p-2 col-4">{{ payment_due_amount_till_date }}</td>
+              <td class="p-2 col-4">{% if payment_due_amount_prev_month %}
+                <span class="font-weight-bold">{{ payment_due_amount_prev_month }}</span>
+                <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
+              <td class="col-3">
+                <button type="button" class="btn-sm btn-primary"
+                        data-toggle="modal"
+                        data-target="#exampleModal2"
+                        data-cid="{{ customer.id }}"
+                        data-cname="{{ customer.name }}"
+                        data-dueamount="{{ payment_due_amount_till_date }}"
+                 {% if payment_due_amount_prev_month %}
+                        data-prevdueamount="{{ payment_due_amount_prev_month }}"
+                 {% endif %}
+                >Make Payment
+                </button>
               </td>
             </tr>
-          {% endfor %}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        {% endif %}
       </div>
-      <p class="text-center"> --- END OF PAGE ---</p>
-    {% endif %}
 
+      {#    {% if expenses or due_customer or paid_customer %}#}
+      {% if transaction %}
+        <!-- Transaction Table-->
+        <div class="mt-4 col-12" style="overflow-x:auto;">
+          <caption><h5 class="pt-2 mt-2 text-center">Transaction</h5></caption>
+          <table class="table table-sm table-striped">
+            <thead>
+            <tr class="d-flex bg-info text-white">
+              <th class="p-2 col-1" scope="col">#</th>
+              <th class="p-2 col-2" scope="col">Transaction ID</th>
+              <th class="p-2 col-6" scope="col">Transaction Date</th>
+              <th class="p-2 col-3" scope="col">Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in transaction %}
+              <tr class="d-flex">
+                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                <td class="p-2 col-2">{{ entry.id }}</td>
+                <td class="p-2 col-6">{{ entry.log_date }}</td>
+                <td class="p-2 col-3">{{ entry.amount }}</td>
 
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
 
-    {#  Accept Payment Modal #}
-    <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog"
-         aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Accept Payment</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form name="addexp" action="/acceptpayment" method="post">{% csrf_token %}
-            <input type="hidden" class="form-control" id="return_url" name="return_url"
-                   value="profile/{{ customer.id }}">
-            <input type="hidden" class="form-control" id="c_id" name="c_id">
-            <div class="p-4">
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="name">Name</label>
-                  <input autofocus type="text" class="form-control" id="c_name" name="c_name"
-                         disabled placeholder="Name">
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="name">Due Amount</label>
-                  <input type="text" class="form-control" id="c_dueamount" name="c_dueamount"
-                         disabled placeholder="Due Amount">
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="name">Payment Amount (<span
-                   id="prevmonthdue">Till date</span>)</label>
-                  <input type="number" step="0.01" class="form-control" id="c_payment"
-                         name="c_payment"
-                         placeholder="Amount">
-                </div>
-              </div>
+      {#  Bill Summary #}
+      {% if bill_summary %}
+        <!--    Bill Summary -->
+        <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
+          <div class="text-center">
+            {% if tenant.download_pdf_pref %}
+              <a target="_blank"
+                 href="/register/print_bill/{{ customer.id }}"
+                 class="btn btn-info mb-1"><i
+               class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
+            {% endif %}
+            {% if tenant.sms_pref %}
               {% if customer.contact %}
-                <div class="form-row">
-                  <div class="form-group col-md-12">
-                    <label for="name">Send SMS Notification </label>
-                    <input type="checkbox" id="sms-notification" name="sms-notification" checked
-                           value="1">
-                  </div>
-                </div>
+                <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
+                        data-toggle="modal"
+                        data-target="#smsModal"
+                        data-cname="{{ customer.name }}"
+                        data-c_contact="{{ customer.contact }}"
+                        data-c_smstext="{{ sms_text }}"
+                ><i
+                 class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+                </button>{% endif %}
+            {% endif %}
+            {% if tenant.whatsapp_pref %}
+              <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
+                      class="btn btn-info mb-1">
+                <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
+              </button>
+            {% endif %}
+            {% if tenant.email_pref %}
+              {% if customer.email %}
+                <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
+                        class="btn btn-info mb-1">
+                  <i class="fa fa-mail" aria-hidden="true"></i> Send Email
+                </button>
+              {% endif %}
+            {% endif %}
+          </div>
+          <h5 class="pt-2 mt-2 text-center">Bill Summary </h5>
+          {# Check in session if SMS was already sent and disable button #}
+          <script>
+            if (sessionStorage.getItem("sms_{{ customer.id }}")) {
+              {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+              document.getElementById("sendsmsbuttonmain").innerText = 'SMS Sent';
+              document.getElementById("sendsmsbuttonmain").classList.remove('btn-info');
+              document.getElementById("sendsmsbuttonmain").classList.add('btn-secondary');
+            }
+            if (sessionStorage.getItem("wa_{{ customer.id }}")) {
+              {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+              document.getElementById("sendOnWAInit").innerText = 'Shared on WhatsApp';
+              document.getElementById("sendOnWAInit").classList.remove('btn-info');
+              document.getElementById("sendOnWAInit").classList.add('btn-secondary');
+            }
+            if (sessionStorage.getItem("email_{{ customer.id }}")) {
+              {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+              document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
+              document.getElementById("sendOnEmailInit").classList.remove('btn-info');
+              document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
+            }
+          </script>
+          <table style="width:100%">
+            <tr class=" bg-info text-white">
+              <th class="p-2 text-center" colspan="2">Description</th>
+              <th class="p-2 text-right">Amount</th>
+            </tr>
+            {% load mathfilters %}
+            {% for bill in bill_summary %}
+              {% if forloop.last %}
+                <tr>
+                  <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}. {{ milk_price }}</span>
+                  </td>
+                  <td colspan="1">
+                    {% if bill.balance %}
+                      <h5 class="pr-2 text-nowrap text-right font-weight-bold"> Sub
+                        Total: {{ bill.sub_total }}</h5>
+                      <h5 class="pr-2 text-nowrap text-right font-weight-bold"> Balance :
+                        -{{ bill.balance }}</h5>{% endif %}
+                    <h4 class="p-2 text-nowrap text-right font-weight-bold"> Grand
+                      Total: {{ bill.sum_total }}</h4></td>
+                  {% else %}
+                  <td class="m-2 dash text-center" rowspan="2">{{ bill.month_year }}</td>
+                <tr>
+                  <td class="m-2 dash text-right">
+                    {% for bill_month in bill.desc %}
+
+                      {% if forloop.last %}
+                        </td>
+                        <td
+                         class="m-2 p-2 dash text-right"><h5
+                         class="font-weight-bold">{{ bill_month.total }}</h5></td>
+                      {% else %}
+                        <p
+                         class="m-2">{{ bill_month.quantity }} ML
+                          <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }} unit(s)
+                          = {{ bill_month.total_units|div:1000 }} L</p>
+
+                      {% endif %}
+                    {% endfor %}
+                  </td>
+                </tr>
+                </tr>
               {% endif %}
 
-              <button type="submit" class="btn btn-success justify-content-center col-12">Accept
-                Payment
+            {% endfor %}
+          </table>
+        </div>
+      {% endif %}
+
+      {#  Calendar #}
+      {% if calendar %}
+        <!--  Calendar -->
+        <div class="mt-4 col-12">
+          {% for month in calendar %}
+            <div class="month">
+              <ul>
+                <li>
+                  {{ month.month }} {{ month.year }}
+                </li>
+              </ul>
+            </div>
+
+            <ul class="col-12 weekdays">
+              <li>Mon</li>
+              <li>Tue</li>
+              <li>Wed</li>
+              <li>Thu</li>
+              <li>Fri</li>
+              <li>Sat</li>
+              <li>Sun</li>
+            </ul>
+            <ul class="days">
+              {% for day in month.week_start_day %}
+                <div></div>
+              {% endfor %}
+              {% for day in month.days_in_month %}
+                <div class="p-1"><h2>{{ day.day }}</h2>
+                  {% if day.data %}{% for entry in day.data %}
+                    {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
+            Morning: {{ entry.quantity }} {% if entry.absent %}
+                      <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                      {% if not entry.absent %}
+                        {% if entry.paid %}
+                          <span class="d-block bg-success text-white p-1"> PAID</span>
+                        {% else %}
+                          <span class="d-block bg-warning text-white p-1">DUE</span>
+                        {% endif %}{% endif %}
+                    {% endif %}
+                    {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
+            Evening: {{ entry.quantity }} {% if entry.absent %}
+                      <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                      {% if not entry.absent %}
+                        {% if entry.paid %}
+                          <span class="d-block bg-success text-white p-1"> PAID </span>
+                        {% else %}
+                          <span class="d-block bg-warning text-white p-1">DUE</span>
+                        {% endif %}{% endif %}
+                    {% endif %}
+
+                  {% endfor %}{% endif %}
+                </div>
+              {% endfor %}
+            </ul>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if register %}
+        <!--   Register Entry Table-->
+        <div class="mt-4 col-12" style="overflow-x:auto;">
+          <caption><h5 class="pt-2 mt-2 text-center">Register Entry</h5></caption>
+          <table class="table table-sm table-striped">
+            <thead>
+            <tr class="d-flex bg-info text-white">
+              <th class="p-2 col-1" scope="col">#</th>
+              <th class="p-2 col-1" scope="col">Entry ID</th>
+              <th class="p-2 col-3" scope="col">Transaction Date</th>
+              <th class="p-2 col-2" scope="col">Schedule</th>
+              <th class="p-2 col-1" scope="col">Quantity</th>
+              <th class="p-2 col-1" scope="col">@ Price / L</th>
+              <th class="p-2 col-2" scope="col">Billed Amount</th>
+              <th class="p-2 col-1" scope="col">Payment Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in register %}
+              <tr class="d-flex">
+                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                <td class="p-2 col-1">{{ entry.id }}</td>
+                <td class="p-2 col-3">{{ entry.display_log_date }}</td>
+                <td class="p-2 col-2">{{ entry.display_schedule }}</td>
+                <td class="p-2 col-1">{{ entry.quantity }}</td>
+                <td class="p-2 col-1">{{ entry.current_price }}</td>
+                <td class="p-2 col-2">{{ entry.billed_amount }}</td>
+                <td
+                 class="p-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
+
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-center"> --- END OF PAGE ---</p>
+      {% endif %}
+
+
+
+      {#  Accept Payment Modal #}
+      <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Accept Payment</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
               </button>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
+            <form name="addexp" action="/acceptpayment" method="post">{% csrf_token %}
+              <input type="hidden" class="form-control" id="return_url" name="return_url"
+                     value="profile/{{ customer.id }}">
+              <input type="hidden" class="form-control" id="c_id" name="c_id">
+              <div class="p-4">
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Name</label>
+                    <input autofocus type="text" class="form-control" id="c_name" name="c_name"
+                           disabled placeholder="Name">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Due Amount</label>
+                    <input type="text" class="form-control" id="c_dueamount" name="c_dueamount"
+                           disabled placeholder="Due Amount">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Payment Amount (<span
+                     id="prevmonthdue">Till date</span>)</label>
+                    <input type="number" step="0.01" class="form-control" id="c_payment"
+                           name="c_payment"
+                           placeholder="Amount">
+                  </div>
+                </div>
+                {% if customer.contact %}
+                  <div class="form-row">
+                    <div class="form-group col-md-12">
+                      <label for="name">Send SMS Notification </label>
+                      <input type="checkbox" id="sms-notification" name="sms-notification" checked
+                             value="1">
+                    </div>
+                  </div>
+                {% endif %}
 
-
-    {#  SMS Modal #}
-    <div class="modal fade" id="smsModal" tabindex="-1" role="dialog"
-         aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Send SMS</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+                <button type="submit" class="btn btn-success justify-content-center col-12">Accept
+                  Payment
+                </button>
+              </div>
+            </form>
           </div>
-          <form id="sendsmsform" name="sendsms" action="/sendsms" method="post">{% csrf_token %}
-            <input type="hidden" class="form-control" id="return_url" name="return_url"
-                   value="profile/{{ customer.id }}">
-            <input type="hidden" class="form-control" id="c_id" name="c_id">
-            <div class="p-4">
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="name">Name</label>
-                  <input autofocus type="text" class="form-control" id="c_name" name="c_name"
-                         disabled placeholder="Name">
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="name">Contact</label>
-                  <input type="text" class="form-control" id="c_contact" name="c_contact"
-                         placeholder="Mobile Number">
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="textareabox">SMS Text</label>
-                  <textarea id="smstextareabox" name="smstextareabox" rows="4" cols="50">
-                  </textarea>
-                </div>
-              </div>
-
-              <button id="sendsmsbutton" type="submit"
-                      class="btn btn-success justify-content-center col-12">Send SMS
-              </button>
-            </div>
-          </form>
         </div>
       </div>
-    </div>
 
-  </div>
 
-  <script>
-    {#  accept payment #}
-    $('#exampleModal2').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget) // Button that triggered the modal
-      var c_id = button.data('cid') // Extract info from data-* attribute
-      var c_name = button.data('cname') // Extract info from data-* attribute
-      var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
-      var c_prevdueamount = button.data('prevdueamount') // Extract info from data-* attribute
-      var modal = $(this)
-      modal.find('#c_id').val(c_id);
-      modal.find('#c_name').val(c_name);
-      modal.find('#c_dueamount').val(c_dueamount);
-      if (c_prevdueamount) {
-        modal.find('#c_payment').val(c_prevdueamount);
-        modal.find('#prevmonthdue').text('Due till {{ previous_month_name }}');
-      } else {
-        modal.find('#c_payment').val(c_dueamount)
-        modal.find('#prevmonthdue').text('Due till date');
-      }
-    })
+      {#  SMS Modal #}
+      <div class="modal fade" id="smsModal" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Send SMS</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form id="sendsmsform" name="sendsms" action="/sendsms" method="post">{% csrf_token %}
+              <input type="hidden" class="form-control" id="return_url" name="return_url"
+                     value="profile/{{ customer.id }}">
+              <input type="hidden" class="form-control" id="c_id" name="c_id">
+              <div class="p-4">
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Name</label>
+                    <input autofocus type="text" class="form-control" id="c_name" name="c_name"
+                           disabled placeholder="Name">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Contact</label>
+                    <input type="text" class="form-control" id="c_contact" name="c_contact"
+                           placeholder="Mobile Number">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="textareabox">SMS Text</label>
+                    <textarea id="smstextareabox" name="smstextareabox" rows="4" cols="50">
+                  </textarea>
+                  </div>
+                </div>
 
-    {#  send sms  #}
-    $('#smsModal').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget) // Button that triggered the modal
-      var c_name = button.data('cname') // Extract info from data-* attribute
-      var c_contact = button.data('c_contact') // Extract info from data-* attribute
-      var c_smstext = button.data('c_smstext') // Extract info from data-* attribute
-      var modal = $(this)
-      modal.find('#c_name').val(c_name);
-      modal.find('#c_contact').val(c_contact);
-      modal.find('#smstextareabox').val(c_smstext);
-      if (sessionStorage.getItem("sms_{{ customer.id }}")) {
-        document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
-        document.getElementById("sendsmsbutton").disabled = true;
-      } else {
-        document.getElementById("sendsmsbutton").innerText = 'Send SMS';
-        document.getElementById("sendsmsbutton").disabled = false;
-      }
-    })
+                <button id="sendsmsbutton" type="submit"
+                        class="btn btn-success justify-content-center col-12">Send SMS
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
 
-    {#    Ajax for Send SMS  #}
-    document.getElementById("sendsmsform").addEventListener("submit", sendSMSFunction);
+      </div>
 
-    function sendSMSFunction() {
-      document.getElementById("sendsmsbutton").disabled = true;
-      event.preventDefault()
-      $.post($(this).attr('action'), $(this).serialize(), function (data) {
-        if (data.status === 'success') {
-          document.getElementById("sendsmsbuttonmain").disabled = true;
-          document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
-          {#  Update in session to disable send button#}
-          sessionStorage.setItem("sms_{{ customer.id }}", 'sent');
-        } else {
-          // Error code here
-          document.getElementById("sendsmsbutton").disabled = false;
-          document.getElementById("sendsmsbuttonmain").disabled = false;
-          alert('Something went wrong...')
+      <script>
+        {#  accept payment #}
+        $('#exampleModal2').on('show.bs.modal', function (event) {
+          var button = $(event.relatedTarget) // Button that triggered the modal
+          var c_id = button.data('cid') // Extract info from data-* attribute
+          var c_name = button.data('cname') // Extract info from data-* attribute
+          var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
+          var c_prevdueamount = button.data('prevdueamount') // Extract info from data-* attribute
+          var modal = $(this)
+          modal.find('#c_id').val(c_id);
+          modal.find('#c_name').val(c_name);
+          modal.find('#c_dueamount').val(c_dueamount);
+          if (c_prevdueamount) {
+            modal.find('#c_payment').val(c_prevdueamount);
+            modal.find('#prevmonthdue').text('Due till {{ previous_month_name }}');
+          } else {
+            modal.find('#c_payment').val(c_dueamount)
+            modal.find('#prevmonthdue').text('Due till date');
+          }
+        })
+
+        {#  send sms  #}
+        $('#smsModal').on('show.bs.modal', function (event) {
+          var button = $(event.relatedTarget) // Button that triggered the modal
+          var c_name = button.data('cname') // Extract info from data-* attribute
+          var c_contact = button.data('c_contact') // Extract info from data-* attribute
+          var c_smstext = button.data('c_smstext') // Extract info from data-* attribute
+          var modal = $(this)
+          modal.find('#c_name').val(c_name);
+          modal.find('#c_contact').val(c_contact);
+          modal.find('#smstextareabox').val(c_smstext);
+          if (sessionStorage.getItem("sms_{{ customer.id }}")) {
+            document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
+            document.getElementById("sendsmsbutton").disabled = true;
+          } else {
+            document.getElementById("sendsmsbutton").innerText = 'Send SMS';
+            document.getElementById("sendsmsbutton").disabled = false;
+          }
+        })
+
+        {#    Ajax for Send SMS  #}
+        document.getElementById("sendsmsform").addEventListener("submit", sendSMSFunction);
+
+        function sendSMSFunction() {
+          document.getElementById("sendsmsbutton").disabled = true;
+          event.preventDefault()
+          $.post($(this).attr('action'), $(this).serialize(), function (data) {
+            if (data.status === 'success') {
+              document.getElementById("sendsmsbuttonmain").disabled = true;
+              document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
+              {#  Update in session to disable send button#}
+              sessionStorage.setItem("sms_{{ customer.id }}", 'sent');
+            } else {
+              // Error code here
+              document.getElementById("sendsmsbutton").disabled = false;
+              document.getElementById("sendsmsbuttonmain").disabled = false;
+              alert('Something went wrong...')
+            }
+          }, 'json')
         }
-      }, 'json')
-    }
 
-    function shareOnWhatsApp() {
-      document.getElementById("sendOnWAInit").innerText = 'Please Wait...';
-      $.get("/print_bill/{{ customer.id }}/no-download/", function (data, status) {
-        if (data.status === 'success') {
-          document.getElementById("sendOnWAInit").disabled = true;
-          document.getElementById("sendOnWAInit").innerText = 'Shared';
-          var share_text = 'Dear {{ customer.name }}, Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
-          var url = "https://api.whatsapp.com/send?text=" + share_text;
-          var win = window.open(url, '_blank');
-          win.focus();
-          document.getElementById("sendOnWAInit").classList.remove('btn-info');
-          document.getElementById("sendOnWAInit").classList.add('btn-secondary');
-          {#  Update in session to disable send button#}
-          sessionStorage.setItem("wa_{{ customer.id }}", 'sent');
-        } else {
-          // Error code here
-          alert('Something went wrong...')
+        function shareOnWhatsApp() {
+          document.getElementById("sendOnWAInit").innerText = 'Please Wait...';
+          $.get("/print_bill/{{ customer.id }}/no-download/", function (data, status) {
+            if (data.status === 'success') {
+              document.getElementById("sendOnWAInit").disabled = true;
+              document.getElementById("sendOnWAInit").innerText = 'Shared';
+              var share_text = 'Dear {{ customer.name }}, Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
+              var url = "https://api.whatsapp.com/send?text=" + share_text;
+              var win = window.open(url, '_blank');
+              win.focus();
+              document.getElementById("sendOnWAInit").classList.remove('btn-info');
+              document.getElementById("sendOnWAInit").classList.add('btn-secondary');
+              {#  Update in session to disable send button#}
+              sessionStorage.setItem("wa_{{ customer.id }}", 'sent');
+            } else {
+              // Error code here
+              alert('Something went wrong...')
+            }
+            {#alert("Data: " + data + "\nStatus: " + status);#}
+
+          });
         }
-        {#alert("Data: " + data + "\nStatus: " + status);#}
 
-      });
-    }
+        function sendEmail() {
+          document.getElementById("sendOnEmailInit").innerText = 'Please Wait...';
+          $.get("/sendemail/{{ customer.id }}", function (data, status) {
+            if (data.status === 'success') {
+              document.getElementById("sendOnEmailInit").disabled = true;
+              document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
+              document.getElementById("sendOnEmailInit").classList.remove('btn-info');
+              document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
+              {#  Update in session to disable send button#}
+              sessionStorage.setItem("email_{{ customer.id }}", 'sent');
+            } else {
+              // Error code here
+              alert('Something went wrong...')
+              document.getElementById("sendOnEmailInit").innerText = 'Send Email';
+            }
+            {#alert("Data: " + data + "\nStatus: " + status);#}
 
-    function sendEmail() {
-      document.getElementById("sendOnEmailInit").innerText = 'Please Wait...';
-      $.get("/sendemail/{{ customer.id }}", function (data, status) {
-        if (data.status === 'success') {
-          document.getElementById("sendOnEmailInit").disabled = true;
-          document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
-          document.getElementById("sendOnEmailInit").classList.remove('btn-info');
-          document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
-          {#  Update in session to disable send button#}
-          sessionStorage.setItem("email_{{ customer.id }}", 'sent');
-        } else {
-          // Error code here
-          alert('Something went wrong...')
-          document.getElementById("sendOnEmailInit").innerText = 'Send Email';
+          });
         }
-        {#alert("Data: " + data + "\nStatus: " + status);#}
-
-      });
-    }
-  </script>
+      </script>
+    {% endif %}
 {% endblock %}
 <!-- Footer -->
 {% include "register/footer.html" %}

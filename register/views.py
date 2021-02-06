@@ -55,7 +55,7 @@ def index(request, year=None, month=None):
     milk = Milk.objects.last()
     if not milk:
         return redirect('setting')
-    active_customers = Customer.objects.filter(status=1)
+    active_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
     if year and month:
         date_time_str = f'01/{month}/{year} 01:01:01'
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
@@ -63,14 +63,16 @@ def index(request, year=None, month=None):
     m_register = []
     e_register = []
     # Get morning register for given month
-    register = Register.objects.filter(log_date__month=register_date.month,
+    register = Register.objects.filter(tenant_id=request.user.id,
+                                       log_date__month=register_date.month,
                                        schedule__in=['morning-yes', 'morning-no',
                                                      'e-morning']).values('customer_id',
                                                                           'customer__name',
                                                                           'customer__quantity').distinct()
 
     for customer in register:
-        register_entry = Register.objects.filter(log_date__month=register_date.month,
+        register_entry = Register.objects.filter(tenant_id=request.user.id,
+                                                 log_date__month=register_date.month,
                                                  customer=customer['customer_id'],
                                                  schedule__in=['morning-yes', 'morning-no',
                                                                'e-morning'])
@@ -83,14 +85,16 @@ def index(request, year=None, month=None):
             'is_active': check_customer_is_active(customer['customer_id']),
         })
     # Get evening register for given month
-    register = Register.objects.filter(log_date__month=register_date.month,
+    register = Register.objects.filter(tenant_id=request.user.id,
+                                       log_date__month=register_date.month,
                                        schedule__in=['evening-yes', 'evening-no',
                                                      'e-evening']).values('customer_id',
                                                                           'customer__name',
                                                                           'customer__quantity').distinct()
 
     for customer in register:
-        register_entry = Register.objects.filter(log_date__month=register_date.month,
+        register_entry = Register.objects.filter(tenant_id=request.user.id,
+                                                 log_date__month=register_date.month,
                                                  customer=customer['customer_id'],
                                                  schedule__in=['evening-yes', 'evening-no',
                                                                'e-evening'])
@@ -106,7 +110,7 @@ def index(request, year=None, month=None):
     # Get All customers if no entry is added - will be used in autopilot mode
     autopilot_morning_register, autopilot_evening_register = [], []
     if not e_register or not m_register:
-        all_customers = Customer.objects.filter(status=1)
+        all_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
         autopilot_morning_register = [{
             'customer_name': customer.name,
             'customer_id': customer.id,
@@ -156,19 +160,21 @@ def addcustomer(request):
             customer_evening = True if request.POST.get("evening", False) else False
             customer_quantity = request.POST.get("quantity", None)
             if not customer_morning and not customer_evening:
-                Customer.objects.filter(id=customer_id).update(contact=customer_contact,
-                                                               email=customer_email,
-                                                               morning=customer_morning,
-                                                               evening=customer_evening,
-                                                               quantity=customer_quantity,
-                                                               status=0)
+                Customer.objects.filter(tenent_id=request.user.id, id=customer_id).update(
+                    contact=customer_contact,
+                    email=customer_email,
+                    morning=customer_morning,
+                    evening=customer_evening,
+                    quantity=customer_quantity,
+                    status=0)
             else:
-                Customer.objects.filter(id=customer_id).update(contact=customer_contact,
-                                                               email=customer_email,
-                                                               morning=customer_morning,
-                                                               evening=customer_evening,
-                                                               quantity=customer_quantity,
-                                                               status=1)
+                Customer.objects.filter(tenent_id=request.user.id, id=customer_id).update(
+                    contact=customer_contact,
+                    email=customer_email,
+                    morning=customer_morning,
+                    evening=customer_evening,
+                    quantity=customer_quantity,
+                    status=1)
         else:
             form = CustomerForm(request.POST)
             name = form['name'].value()
@@ -178,10 +184,12 @@ def addcustomer(request):
             evening = form['evening'].value() or False
             quantity = form['quantity'].value()
             if not morning and not evening:
-                customer = Customer(name=name, contact=contact, email=email, morning=morning,
+                customer = Customer(tenant_id=request.user.id, name=name, contact=contact,
+                                    email=email, morning=morning,
                                     evening=evening, quantity=quantity, status=0)
             else:
-                customer = Customer(name=name, contact=contact, email=email, morning=morning,
+                customer = Customer(tenant_id=request.user.id, name=name, contact=contact,
+                                    email=email, morning=morning,
                                     evening=evening, quantity=quantity, status=1)
             customer.save()
         return redirect('view_customers')
@@ -198,16 +206,19 @@ def addentry(request, year=None, month=None):
         reload_status = False
         if request.POST.get("add-new-entry", None):
             customer = request.POST.get("customer", None)
-            customer_info = Customer.objects.filter(id=customer, status=1).first()
+            customer_info = Customer.objects.filter(tenant_id=request.user.id, id=customer,
+                                                    status=1).first()
             schedule = request.POST.get("schedule", None)
             log_date = request.POST.get("log_date", None)
             full_log_date = datetime.strptime(log_date, '%Y-%m-%d')
             current_price = milk.price
             # check if entry exists for give day and schedule
-            check_record = Register.objects.filter(customer_id=customer, log_date=full_log_date,
+            check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
+                                                   log_date=full_log_date,
                                                    schedule__startswith=schedule).first()
             if not check_record:
-                entry = Register(customer_id=customer_info.id, log_date=full_log_date,
+                entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
+                                 log_date=full_log_date,
                                  schedule=schedule,
                                  quantity=customer_info.quantity, current_price=current_price)
                 entry.save()
@@ -226,10 +237,12 @@ def addentry(request, year=None, month=None):
             current_price = milk.price
 
             # check if entry exists for give day and schedule
-            check_record = Register.objects.filter(customer_id=customer, log_date=full_log_date,
+            check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
+                                                   log_date=full_log_date,
                                                    schedule__startswith=schedule).first()
             if not check_record:
-                entry = Register(customer_id=customer, log_date=full_log_date,
+                entry = Register(tenant_id=request.user.id, customer_id=customer,
+                                 log_date=full_log_date,
                                  schedule=full_schedule,
                                  quantity=quantity, current_price=current_price)
                 entry.save()
@@ -290,15 +303,18 @@ def autopilot(request, year=None, month=None):
             day = start + timedelta(days=i)
             print(day)
             for cust in autopilot_data:
-                customer = Customer.objects.filter(id=cust['id']).first()
+                customer = Customer.objects.filter(tenant_id=request.user.id,
+                                                   id=cust['id']).first()
                 full_log_date = datetime.strptime(str(day), '%Y-%m-%d %H:%M:%S')
-                check_record = Register.objects.filter(customer_id=customer.id,
+                check_record = Register.objects.filter(tenant_id=request.user.id,
+                                                       customer_id=customer.id,
                                                        log_date=full_log_date,
                                                        schedule__startswith=cust[
                                                            'schedule']).first()
                 if not check_record:
                     full_schedule = f'{cust["schedule"]}-yes'
-                    entry = Register(customer_id=customer.id, log_date=full_log_date,
+                    entry = Register(tenant_id=request.user.id, customer_id=customer.id,
+                                     log_date=full_log_date,
                                      schedule=full_schedule,
                                      quantity=customer.quantity, current_price=current_price)
                     entry.save()
@@ -328,7 +344,7 @@ def customers(request):
         'page_title': 'Milk Basket - View customers',
         'menu_customer': True,
     }
-    customers = Customer.objects.filter(status=1)
+    customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
     for customer in customers:
 
         # TODO: Fix os path issue
@@ -350,7 +366,7 @@ def customers(request):
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
 
-    inactive_customers = Customer.objects.filter(status=0)
+    inactive_customers = Customer.objects.filter(tenant_id=request.user.id, status=0)
     for customer in inactive_customers:
         customer.contact = customer.contact if customer.contact else ''
         if customer.morning and not customer.evening:
@@ -361,7 +377,11 @@ def customers(request):
             customer.schedule = 'Morning and Evening'
 
     # Get Tenant prefrence
-    tenant = Tenant.objects.get(tenant_id=request.user.id)
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
+
     context.update({
         'customers': customers,
         'inactive_customers': inactive_customers,
@@ -383,27 +403,32 @@ def account(request, year=None, month=None):
 
     # Get expenses
     total_expense = 0
-    expenses = Expense.objects.filter(log_date__month=register_date.month)
+    expenses = Expense.objects.filter(tenant_id=request.user.id,
+                                      log_date__month=register_date.month)
     for exp in expenses:
         total_expense += exp.cost
     month_year = register_date.strftime("%B, %Y")
 
     # Get Payment Due
     total_payment = 0
-    due_customer = Register.objects.filter(schedule__endswith='yes', paid=0).values('customer_id',
-                                                                                    'customer__name',
-                                                                                    'customer__contact').distinct()
+    due_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
+                                           paid=0).values('customer_id',
+                                                          'customer__name',
+                                                          'customer__contact').distinct()
     for customer in due_customer:
-        payment_due = Register.objects.filter(customer_id=customer['customer_id'],
+        payment_due = Register.objects.filter(tenant_id=request.user.id,
+                                              customer_id=customer['customer_id'],
                                               schedule__endswith='yes', paid=0)
         payment_due_amount = 0
         for due in payment_due:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
-        balance_amount = Balance.objects.filter(customer_id=customer['customer_id']).first()
+        balance_amount = Balance.objects.filter(tenant_id=request.user.id,
+                                                customer_id=customer['customer_id']).first()
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
         customer['payment_due'] = round(payment_due_amount, 2) - abs(customer['adjusted_amount'])
-        due_prev_month = Register.objects.filter(customer_id=customer['customer_id'],
+        due_prev_month = Register.objects.filter(tenant_id=request.user.id,
+                                                 customer_id=customer['customer_id'],
                                                  schedule__endswith='yes', paid=0).exclude(
             log_date__month=current_date.month)
         due_prev_month_amount = 0
@@ -427,29 +452,36 @@ def account(request, year=None, month=None):
 
     # Get paid customer
     total_payment_received = 0
-    paid_customer = Register.objects.filter(schedule__endswith='yes', paid=1).values('customer_id',
-                                                                                     'customer__name').distinct()
+    paid_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
+                                            paid=1).values('customer_id',
+                                                           'customer__name').distinct()
     for customer in paid_customer:
-        payment_done = Register.objects.filter(customer_id=customer['customer_id'],
+        payment_done = Register.objects.filter(tenant_id=request.user.id,
+                                               customer_id=customer['customer_id'],
                                                schedule__endswith='yes', paid=1)
         payment_due_amount = 0
         for due in payment_done:
             payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
-        balance_amount = Balance.objects.filter(customer_id=customer['customer_id']).first()
+        balance_amount = Balance.objects.filter(tenant_id=request.user.id,
+                                                customer_id=customer['customer_id']).first()
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
         customer['payment_done'] = round(payment_due_amount, 2)
-        paid_amount = Payment.objects.filter(customer_id=customer['customer_id'],
+        paid_amount = Payment.objects.filter(tenant_id=request.user.id,
+                                             customer_id=customer['customer_id'],
                                              log_date__month=register_date.month).aggregate(
             Sum('amount'))
         customer['total_paid'] = paid_amount['amount__sum']
         total_payment_received += payment_due_amount
 
     # Get extra income
-    income = Income.objects.filter(log_date__month=register_date.month)
+    income = Income.objects.filter(tenant_id=request.user.id, log_date__month=register_date.month)
 
     # Get tenant prefrence
-    tenant = Tenant.objects.get(tenant_id=request.user.id)
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
@@ -497,12 +529,13 @@ def manage_expense(request, year=None, month=None):
         formatted_url = f'/register/account/{year}/{month}/'
     delete_id = request.POST.get("id", None)
     if delete_id:
-        Expense.objects.filter(id=delete_id).delete()
+        Expense.objects.filter(tenant_id=request.user.id, id=delete_id).delete()
     add_expense = request.POST.get("month_year", None)
     if add_expense:
         cost = request.POST.get("cost_amount", None)
         desc = request.POST.get("exp_desc", None)
-        new_expense = Expense(cost=cost, description=desc, log_date=expense_date)
+        new_expense = Expense(tenant_id=request.user.id, cost=cost, description=desc,
+                              log_date=expense_date)
         new_expense.save()
 
     return redirect(formatted_url)
@@ -518,12 +551,13 @@ def manage_income(request, year=None, month=None):
         formatted_url = f'/register/account/{year}/{month}/'
     delete_id = request.POST.get("id", None)
     if delete_id:
-        Income.objects.filter(id=delete_id).delete()
+        Income.objects.filter(tenant_id=request.user.id, id=delete_id).delete()
     add_income = request.POST.get("month_year", None)
     if add_income:
         amount = request.POST.get("income_amount", None)
         desc = request.POST.get("exp_desc", None)
-        new_income = Income(amount=amount, description=desc, log_date=income_date)
+        new_income = Income(tenant_id=request.user.id, amount=amount, description=desc,
+                            log_date=income_date)
         new_income.save()
 
     return redirect(formatted_url)
@@ -544,9 +578,9 @@ def accept_payment(request, year=None, month=None, return_url=None):
     payment_amount = request.POST.get("c_payment", None)
     sms_notification = request.POST.get("sms-notification", None)
     if c_id and payment_amount:
-        customer = Customer.objects.filter(id=c_id).first()
+        customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
         payment_amount = float(payment_amount)
-        new_payment = Payment(customer_id=c_id, amount=payment_amount)
+        new_payment = Payment(tenant_id=request.user.id, customer_id=c_id, amount=payment_amount)
         new_payment.save()
 
         # Send SMS notification
@@ -556,31 +590,36 @@ def accept_payment(request, year=None, month=None, return_url=None):
             send_sms_api(customer.contact, sms_text)
 
         # Update Register
-        balance_amount = Balance.objects.filter(customer_id=c_id).first()
+        balance_amount = Balance.objects.filter(tenant_id=request.user.id,
+                                                customer_id=c_id).first()
         adjust_amount = float(getattr(balance_amount, 'balance_amount')) if balance_amount else 0
-        Balance.objects.update_or_create(
-            customer_id=c_id, defaults={"balance_amount": 0}
-        )
+        Balance.objects.update_or_create(tenant_id=request.user.id,
+                                         customer_id=c_id, defaults={"balance_amount": 0}
+                                         )
         payment_amount = payment_amount + abs(adjust_amount)
-        accepting_payment = Register.objects.filter(customer_id=c_id, schedule__endswith='yes',
+        accepting_payment = Register.objects.filter(tenant_id=request.user.id, customer_id=c_id,
+                                                    schedule__endswith='yes',
                                                     paid=0).order_by('log_date')
         for entry in accepting_payment:
             if payment_amount > 0:
                 entry_cost = float(
                     entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
                 if payment_amount - entry_cost >= 0:
-                    Register.objects.filter(id=entry.id).update(paid=True)
+                    Register.objects.filter(tenent_id=request.user.id, id=entry.id).update(
+                        paid=True)
                     payment_amount = payment_amount - entry_cost
                 elif payment_amount != 0:
-                    Balance.objects.update_or_create(
-                        customer_id=c_id, defaults={"balance_amount": payment_amount}
-                    )
+                    Balance.objects.update_or_create(tenant_id=request.user.id,
+                                                     customer_id=c_id,
+                                                     defaults={"balance_amount": payment_amount}
+                                                     )
                     payment_amount = 0
 
         if payment_amount != 0:
-            Balance.objects.update_or_create(
-                customer_id=c_id, defaults={"balance_amount": -payment_amount}
-            )
+            Balance.objects.update_or_create(tenant_id=request.user.id,
+                                             customer_id=c_id,
+                                             defaults={"balance_amount": -payment_amount}
+                                             )
 
     return redirect(formatted_url)
 
@@ -644,17 +683,20 @@ def report_data(request, poll_id=None):
         request.session[f'{poll_id}_percent'] = percent
         request.session.save()
         # Fetch Expenses
-        month_expense = Expense.objects.filter(log_date__month=graph_month.month,
-                                               log_date__year=graph_month.year).aggregate(
-            Sum('cost'))['cost__sum'] or 0
+        month_expense = \
+            Expense.objects.filter(tenant_id=request.user.id, log_date__month=graph_month.month,
+                                   log_date__year=graph_month.year).aggregate(
+                Sum('cost'))['cost__sum'] or 0
 
         # Fetch Income
         month_income = 0
-        month_extra_income = float(Income.objects.filter(log_date__month=graph_month.month,
-                                                         log_date__year=graph_month.year).aggregate(
-            Sum('amount'))['amount__sum'] or 0)
+        month_extra_income = float(
+            Income.objects.filter(tenant_id=request.user.id, log_date__month=graph_month.month,
+                                  log_date__year=graph_month.year).aggregate(
+                Sum('amount'))['amount__sum'] or 0)
         month_income += month_extra_income
-        month_income_entry = Register.objects.filter(log_date__month=graph_month.month,
+        month_income_entry = Register.objects.filter(tenant_id=request.user.id,
+                                                     log_date__month=graph_month.month,
                                                      log_date__year=graph_month.year,
                                                      schedule__in=milk_delivered)
         for entry in month_income_entry:
@@ -662,7 +704,8 @@ def report_data(request, poll_id=None):
 
         # Fetch due per month
         month_due = 0
-        month_due_entry = Register.objects.filter(log_date__month=graph_month.month,
+        month_due_entry = Register.objects.filter(tenant_id=request.user.id,
+                                                  log_date__month=graph_month.month,
                                                   log_date__year=graph_month.year, paid=0,
                                                   schedule__in=milk_delivered)
         for entry in month_due_entry:
@@ -671,7 +714,8 @@ def report_data(request, poll_id=None):
         # Fetch paid per month
         month_paid = 0
         month_paid += month_extra_income
-        month_paid_entry = Register.objects.filter(log_date__month=graph_month.month,
+        month_paid_entry = Register.objects.filter(tenant_id=request.user.id,
+                                                   log_date__month=graph_month.month,
                                                    log_date__year=graph_month.year, paid=1)
         for entry in month_paid_entry:
             month_paid += float(entry.current_price / 1000) * entry.quantity
@@ -705,7 +749,7 @@ def report_data(request, poll_id=None):
         request.session[poll_id] = f'Milk Production ({graph_day.strftime("%d-%B-%Y")})'
         request.session[f'{poll_id}_percent'] = percent
         request.session.save()
-        mp = Register.objects.filter(log_date__year=graph_day.year,
+        mp = Register.objects.filter(tenant_id=request.user.id, log_date__year=graph_day.year,
                                      log_date__month=graph_day.month, log_date__day=graph_day.day)
         milk_production = mp.aggregate(Sum('quantity'))['quantity__sum'] or 0
         milk_production_morning = mp.filter(schedule='morning-yes').aggregate(Sum('quantity'))[
@@ -724,11 +768,16 @@ def report_data(request, poll_id=None):
     request.session[f'{poll_id}_percent'] = percent
     request.session.save()
     # Calculate all time Expenses
-    all_time_expense = Expense.objects.all().aggregate(Sum('cost'))['cost__sum'] or 0
+    all_time_expense = Expense.objects.filter(tenant_id=request.user.id).aggregate(Sum('cost'))[
+                           'cost__sum'] or 0
 
     # Calculate all time Income
-    all_time_milk_income = Payment.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
-    all_time_extra_income = Income.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
+    all_time_milk_income = \
+        Payment.objects.filter(tenant_id=request.user.id).aggregate(Sum('amount'))[
+            'amount__sum'] or 0
+    all_time_extra_income = \
+        Income.objects.filter(tenant_id=request.user.id).aggregate(Sum('amount'))[
+            'amount__sum'] or 0
     all_time_income = all_time_milk_income + all_time_extra_income
 
     # Calculate all time profit or loss
@@ -753,114 +802,6 @@ def report_data(request, poll_id=None):
 
 
 @login_required
-def report(request, months=None):
-    template = 'register/report.html'
-    chart_data = []
-    d1 = date.today()
-    milk_delivered = ['morning-yes', 'evening-yes']
-    for i in range(-12, 1):
-        graph_month = d1 + relativedelta(months=i)
-
-        # Fetch Expenses
-        month_expense = Expense.objects.filter(log_date__month=graph_month.month,
-                                               log_date__year=graph_month.year).aggregate(
-            Sum('cost'))['cost__sum'] or 0
-
-        # Fetch Income
-        month_income = 0
-        month_extra_income = float(Income.objects.filter(log_date__month=graph_month.month,
-                                                         log_date__year=graph_month.year).aggregate(
-            Sum('amount'))['amount__sum'] or 0)
-        month_income += month_extra_income
-        month_income_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                                     log_date__year=graph_month.year,
-                                                     schedule__in=milk_delivered)
-        for entry in month_income_entry:
-            month_income += float(entry.current_price / 1000) * entry.quantity
-
-        # Fetch due per month
-        month_due = 0
-        month_due_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                                  log_date__year=graph_month.year, paid=0,
-                                                  schedule__in=milk_delivered)
-        for entry in month_due_entry:
-            month_due += float(entry.current_price / 1000) * entry.quantity
-
-        # Fetch paid per month
-        month_paid = 0
-        month_paid += month_extra_income
-        month_paid_entry = Register.objects.filter(log_date__month=graph_month.month,
-                                                   log_date__year=graph_month.year, paid=1)
-        for entry in month_paid_entry:
-            month_paid += float(entry.current_price / 1000) * entry.quantity
-
-        # Calculate Profit and Loss value
-        if month_paid > month_expense:
-            profit = float(month_paid) - float(month_expense)
-            loss = False
-        else:
-            loss = float(month_expense) - float(month_paid)
-            profit = False
-
-        current_month = {
-            "monthName": graph_month.strftime('%B-%Y'),
-            "month": graph_month.strftime('%b-%y'),
-            "income": round(float(month_income), 2),
-            "paid": round(float(month_paid), 2),
-            "due": round(float(month_due), 2),
-            "expense": round(float(month_expense), 2),
-            "profit": profit,
-            "loss": loss,
-        }
-        chart_data.append(current_month)
-
-    #     Get mil k production over past 365 days
-    chart_data_milk = []
-    for i in range(-365, 1):
-        d1 = date.today()
-        graph_day = d1 + relativedelta(days=i)
-        mp = Register.objects.filter(log_date__year=graph_day.year,
-                                     log_date__month=graph_day.month, log_date__day=graph_day.day)
-        milk_production = mp.aggregate(Sum('quantity'))['quantity__sum'] or 0
-        milk_production_morning = mp.filter(schedule='morning-yes').aggregate(Sum('quantity'))[
-                                      'quantity__sum'] or 0
-        milk_production_evening = mp.filter(schedule='evening-yes').aggregate(Sum('quantity'))[
-                                      'quantity__sum'] or 0
-        current_day = {
-            "dayName": graph_day.strftime('%d-%B-%Y'),
-            'milkMorning': round(float(milk_production_morning / 1000), 2),
-            'milkEvening': round(float(milk_production_evening / 1000), 2),
-            "milkQuantity": round(float(milk_production / 1000), 2),
-        }
-        chart_data_milk.append(current_day)
-
-    # Calculate all time Expenses
-    all_time_expense = Expense.objects.all().aggregate(Sum('cost'))['cost__sum'] or 0
-
-    # Calculate all time Income
-    all_time_milk_income = Payment.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
-    all_time_extra_income = Income.objects.all().aggregate(Sum('amount'))['amount__sum'] or 0
-    all_time_income = all_time_milk_income + all_time_extra_income
-
-    # Calculate all time profit or loss
-    is_profit = True if all_time_expense < all_time_income else False
-    all_time_profit_or_loss = abs(all_time_income - all_time_expense)
-
-    context = {
-        'page_title': 'Milk Basket - Register',
-        'menu_report': True,
-        'graph_data': mark_safe(json.dumps(chart_data)),
-        'table_data': chart_data,
-        'chart_data_milk': mark_safe(json.dumps(chart_data_milk)),
-        'all_time_expense': all_time_expense,
-        'all_time_income': all_time_income,
-        'is_profit': is_profit,
-        'all_time_profit_or_loss': all_time_profit_or_loss,
-    }
-    return render(request, template, context)
-
-
-@login_required
 def setting(request):
     template = 'register/setting.html'
     if request.method == "POST":
@@ -870,32 +811,34 @@ def setting(request):
         email_pref = True if request.POST.get("email_pref") else False
         download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
-        if milk_price:
-            try:
-                milk = Milk.objects.latest('id')
-            except:
-                milk = None
-            if not milk:
-                new_milk_price = Milk(price=milk_price, date_effective=now)
-                new_milk_price.save()
-            elif milk.price != milk_price:
-                Milk.objects.filter(pk=milk.pk).update(price=milk_price, date_effective=now)
-            else:
-                print('not updating milk price')
-
         Tenant.objects.update_or_create(tenant_id=request.user.id,
                                         defaults={'sms_pref': sms_pref,
                                                   'whatsapp_pref': wa_pref,
                                                   'email_pref': email_pref,
                                                   'download_pdf_pref': download_pdf_pref},
                                         )
+        if milk_price:
+            try:
+                milk = Milk.objects.filter(tenant_id=request.user.id).order_by('-id')[0]
+            except:
+                milk = None
+            if not milk:
+                new_milk_price = Milk(tenant_id=request.user.id, price=milk_price,
+                                      date_effective=now)
+                new_milk_price.save()
+            elif milk.price != milk_price:
+                Milk.objects.filter(pk=milk.pk).update(price=milk_price, date_effective=now)
+            else:
+                print('not updating milk price')
+
         request.session['alert_class'] = 'success'
         request.session['alert_message'] = 'Settings Saved'
     try:
-        milk = Milk.objects.latest('id')
+        milk = Milk.objects.filter(tenant_id=request.user.id).order_by('-id')[0]
         tenant = Tenant.objects.get(tenant_id=request.user.id)
     except:
         milk = None
+        tenant = None
 
     context = {
         'page_title': 'Milk Basket - Setting',
@@ -924,8 +867,10 @@ def customer_profile(request, id=None):
     template = 'register/profile.html'
     current_date = date.today()
     if id:
-        customer = Customer.objects.filter(id=id).first()
-        transaction = Payment.objects.filter(customer_id=id)
+        customer = Customer.objects.filter(tenant_id=request.user.id, id=id).first()
+        if not customer:
+            return render(request, template, context={'nocustomer': True})
+        transaction = Payment.objects.filter(tenant_id=request.user.id, customer_id=id)
 
         if customer.morning and not customer.evening:
             customer.schedule = 'Morning'
@@ -933,7 +878,7 @@ def customer_profile(request, id=None):
             customer.schedule = 'Evening'
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
-        register = Register.objects.filter(customer_id=id,
+        register = Register.objects.filter(tenant_id=request.user.id, customer_id=id,
                                            schedule__in=['morning-yes', 'evening-yes', 'e-morning',
                                                          'e-evening']).order_by(
             '-log_date').values()
@@ -946,7 +891,7 @@ def customer_profile(request, id=None):
             entry['display_log_date'] = entry['log_date'].strftime('%d-%B-%Y')
 
         # Get due table
-        due_cust = Register.objects.filter(customer_id=id, paid=0,
+        due_cust = Register.objects.filter(tenant_id=request.user.id, customer_id=id, paid=0,
                                            schedule__in=['morning-yes', 'evening-yes', 'e-morning',
                                                          'e-evening']).order_by('-log_date')
         payment_due_amount_prev_month = 0
@@ -1008,7 +953,13 @@ def customer_profile(request, id=None):
             f'{prev_month_name} is Rs {due_till_prev_month}') if due_till_prev_month > 0 else (
             f'{current_month_name} is Rs {due_till_current_month}')
         sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
+
+        # Get Tenant Preference
+        try:
+            tenant = Tenant.objects.get(tenant_id=request.user.id)
+        except Tenant.DoesNotExist:
+            return redirect('setting')
+
         context = {
             'calendar': calendar,
             'milk_price': get_milk_current_price(description=True),
