@@ -401,7 +401,9 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-success justify-content-center col-12">Accept
+            <button type="submit" class="btn btn-success justify-content-center col-12"
+                    onClick="this.form.submit(); this.disabled=true; this.value='Please Wait…';">
+              Accept
               Payment
             </button>
           </div>
