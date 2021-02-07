@@ -27,7 +27,6 @@ from register.models import Balance
 from register.models import Customer
 from register.models import Expense
 from register.models import Income
-from register.models import Milk
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
@@ -46,15 +45,17 @@ from register.utils import send_sms_api
 
 @login_required
 def index(request, year=None, month=None):
+    # Get Tenant Preference
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
     template = 'register/register.html'
     context = {
         'page_title': 'Milk Basket - Register',
         'menu_register': True,
     }
     custom_month = None
-    milk = Milk.objects.last()
-    if not milk:
-        return redirect('setting')
     active_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
     if year and month:
         date_time_str = f'01/{month}/{year} 01:01:01'
@@ -81,7 +82,7 @@ def index(request, year=None, month=None):
             'customer_id': customer['customer_id'],
             'register_entry': register_entry,
             'customer_quantity': customer['customer__quantity'],
-            'default_price': milk.price,
+            'default_price': tenant.milk_price,
             'is_active': check_customer_is_active(customer['customer_id']),
         })
     # Get evening register for given month
@@ -103,7 +104,7 @@ def index(request, year=None, month=None):
             'customer_id': customer['customer_id'],
             'register_entry': register_entry,
             'customer_quantity': customer['customer__quantity'],
-            'default_price': milk.price,
+            'default_price': tenant.milk_price,
             'is_active': check_customer_is_active(customer['customer_id']),
         })
 
@@ -135,7 +136,7 @@ def index(request, year=None, month=None):
         'days': cal_days,
         'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
         'active_customers': active_customers,
-        'default_price': milk.price,
+        'default_price': tenant.milk_price,
         'autopilot_morning_register': autopilot_morning_register,
         'autopilot_evening_register': autopilot_evening_register,
     })
@@ -144,6 +145,11 @@ def index(request, year=None, month=None):
 
 @login_required
 def addcustomer(request):
+    # Get Tenant Preference
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
     template = 'register/customer.html'
     context = {
         'page_title': 'Milk Basket - Add new customer',
@@ -160,7 +166,7 @@ def addcustomer(request):
             customer_evening = True if request.POST.get("evening", False) else False
             customer_quantity = request.POST.get("quantity", None)
             if not customer_morning and not customer_evening:
-                Customer.objects.filter(tenent_id=request.user.id, id=customer_id).update(
+                Customer.objects.filter(tenant_id=request.user.id, id=customer_id).update(
                     contact=customer_contact,
                     email=customer_email,
                     morning=customer_morning,
@@ -168,7 +174,7 @@ def addcustomer(request):
                     quantity=customer_quantity,
                     status=0)
             else:
-                Customer.objects.filter(tenent_id=request.user.id, id=customer_id).update(
+                Customer.objects.filter(tenant_id=request.user.id, id=customer_id).update(
                     contact=customer_contact,
                     email=customer_email,
                     morning=customer_morning,
@@ -199,8 +205,13 @@ def addcustomer(request):
 
 @login_required
 def addentry(request, year=None, month=None):
+    # Get Tenant Preference
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
     if request.method == "POST":
-        milk = Milk.objects.last()
+
         yes_or_no = ''
         entry_status = False
         reload_status = False
@@ -211,7 +222,7 @@ def addentry(request, year=None, month=None):
             schedule = request.POST.get("schedule", None)
             log_date = request.POST.get("log_date", None)
             full_log_date = datetime.strptime(log_date, '%Y-%m-%d')
-            current_price = milk.price
+            current_price = tenant.milk_price
             # check if entry exists for give day and schedule
             check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
                                                    log_date=full_log_date,
@@ -234,7 +245,7 @@ def addentry(request, year=None, month=None):
             schedule = request.POST.get("schedule", 'morning').lower()
             full_schedule = f'{schedule.lower()}-{yes_or_no}'
             quantity = form['quantity'].value() or False
-            current_price = milk.price
+            current_price = tenant.milk_price
 
             # check if entry exists for give day and schedule
             check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
@@ -272,9 +283,13 @@ def addentry(request, year=None, month=None):
 @login_required
 @transaction.atomic()
 def autopilot(request, year=None, month=None):
+    # Get Tenant Preference
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
     if request.method == "POST":
-        milk = Milk.objects.last()
-        current_price = milk.price
+        current_price = tenant.milk_price
         autopilot_data = []
         # Get autopilot form data
         for key in request.POST:
@@ -339,6 +354,11 @@ def autopilot(request, year=None, month=None):
 
 @login_required
 def customers(request):
+    # Get Tenant Preference
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
     template = 'register/customer.html'
     context = {
         'page_title': 'Milk Basket - View customers',
@@ -376,12 +396,6 @@ def customers(request):
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
 
-    # Get Tenant prefrence
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
-        return redirect('setting')
-
     context.update({
         'customers': customers,
         'inactive_customers': inactive_customers,
@@ -393,6 +407,11 @@ def customers(request):
 
 @login_required
 def account(request, year=None, month=None):
+    # Get Tenant Preference
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        return redirect('setting')
     template = 'register/account.html'
     custom_month = None
     current_date = date.today()
@@ -477,11 +496,6 @@ def account(request, year=None, month=None):
     # Get extra income
     income = Income.objects.filter(tenant_id=request.user.id, log_date__month=register_date.month)
 
-    # Get tenant prefrence
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
-        return redirect('setting')
     context = {
         'page_title': 'Milk Basket - Accounts',
         'month_year': month_year,
@@ -605,7 +619,7 @@ def accept_payment(request, year=None, month=None, return_url=None):
                 entry_cost = float(
                     entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
                 if payment_amount - entry_cost >= 0:
-                    Register.objects.filter(tenent_id=request.user.id, id=entry.id).update(
+                    Register.objects.filter(tenant_id=request.user.id, id=entry.id).update(
                         paid=True)
                     payment_amount = payment_amount - entry_cost
                 elif payment_amount != 0:
@@ -805,45 +819,33 @@ def report_data(request, poll_id=None):
 def setting(request):
     template = 'register/setting.html'
     if request.method == "POST":
-        milk_price = request.POST.get("milkprice")
+        milk_price = float(request.POST.get("milkprice"))
         sms_pref = True if request.POST.get("sms_pref") else False
         wa_pref = True if request.POST.get("wa_pref") else False
         email_pref = True if request.POST.get("email_pref") else False
         download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
-        Tenant.objects.update_or_create(tenant_id=request.user.id,
-                                        defaults={'sms_pref': sms_pref,
-                                                  'whatsapp_pref': wa_pref,
-                                                  'email_pref': email_pref,
-                                                  'download_pdf_pref': download_pdf_pref},
-                                        )
-        if milk_price:
-            try:
-                milk = Milk.objects.filter(tenant_id=request.user.id).order_by('-id')[0]
-            except:
-                milk = None
-            if not milk:
-                new_milk_price = Milk(tenant_id=request.user.id, price=milk_price,
-                                      date_effective=now)
-                new_milk_price.save()
-            elif milk.price != milk_price:
-                Milk.objects.filter(pk=milk.pk).update(price=milk_price, date_effective=now)
-            else:
-                print('not updating milk price')
+        tenant, created = Tenant.objects.update_or_create(tenant_id=request.user.id,
+                                                          defaults={'sms_pref': sms_pref,
+                                                                    'whatsapp_pref': wa_pref,
+                                                                    'email_pref': email_pref,
+                                                                    'download_pdf_pref': download_pdf_pref},
+                                                          )
+        saved_milk_price = tenant.milk_price if tenant.milk_price else None
+        if created or saved_milk_price != milk_price:
+            Tenant.objects.filter(tenant_id=request.user.id).update(milk_price=milk_price,
+                                                                    date_effective=now)
 
         request.session['alert_class'] = 'success'
         request.session['alert_message'] = 'Settings Saved'
-    try:
-        milk = Milk.objects.filter(tenant_id=request.user.id).order_by('-id')[0]
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except:
-        milk = None
-        tenant = None
 
+    try:
+        tenant = Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        tenant = None
     context = {
         'page_title': 'Milk Basket - Setting',
         'menu_setting': True,
-        'milk': milk,
         'tenant': tenant,
         'alert_class': request.session.get('alert_class', None),
         'alert_message': request.session.get('alert_message', None),
@@ -962,7 +964,7 @@ def customer_profile(request, id=None):
 
         context = {
             'calendar': calendar,
-            'milk_price': get_milk_current_price(description=True),
+            'milk_price': get_milk_current_price(request.user.id, description=True),
             'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
             'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
@@ -984,9 +986,9 @@ class GeneratePdf(View):
         cust_id = self.kwargs['id']
         no_download = True if 'file_download' in kwargs else False
         if no_download:
-            return generate_bill(cust_id, no_download=True)
+            return generate_bill(request, cust_id, no_download=True)
         else:
-            data = generate_bill(cust_id)
+            data = generate_bill(request, cust_id)
             pdf = render_to_pdf('register/bill_pdf_template.html', data)
             # Force download PDf with file name
             pdf_download = HttpResponse(pdf, content_type='application/pdf')
@@ -1010,7 +1012,7 @@ def send_SMS(request):
 def send_EMAIL(request, id=None):
     if id:
         customer = Customer.objects.get(id=id)
-        data = generate_bill(id, raw_data=True)
+        data = generate_bill(request, id, raw_data=True)
         subject = f'🛍️🥛 Bill due for ₹ {data["raw_data"]["bill_summary"][-1]["sum_total"]} 🧾'
         status = send_email_api(customer.email, subject, data)
         return JsonResponse(status)

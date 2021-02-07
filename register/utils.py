@@ -20,12 +20,12 @@ from milkbasket.secret import MONGO_KEY
 from register.models import Balance
 from register.models import Bill
 from register.models import Customer
-from register.models import Milk
 from register.models import Register
-
-
 # ======== UTILITY ============
 # Only helper function beyond this point
+from register.models import Tenant
+
+
 def get_active_month(customer_id, only_paid=False, only_due=False, all_active=False):
     """ Returns active month list of customer """
     active_months = None
@@ -216,13 +216,13 @@ def get_register_transactions(cust_id, only_paid=False, only_due=True):
     return transactions
 
 
-def get_milk_current_price(description=False):
+def get_milk_current_price(tenant_id, description=False):
     """ Get Current milk price with or without description """
-    milk = Milk.objects.last()
+    tenant = Tenant.objects.get(tenant_id=tenant_id)
     if description:
-        current_price = f'Effective {milk.date_effective.strftime("%d %B %Y")}, current milk price is ₹ {milk.price} per liter.'
+        current_price = f'Effective {tenant.date_effective.strftime("%d %B %Y")}, current milk price is ₹ {tenant.milk_price} per liter.'
     else:
-        current_price = milk.price
+        current_price = tenant.milk_price
     return current_price
 
 
@@ -247,7 +247,7 @@ def send_email_api(to_email, subject, data):
     return status
 
 
-def generate_bill(cust_id, no_download=False, raw_data=False):
+def generate_bill(request, cust_id, no_download=False, raw_data=False):
     """Generate bill and upload to mongo """
     res = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
     bill_number = f'MB-{cust_id}-{datetime.now().year}-{datetime.now().month}-{res}'
@@ -300,7 +300,8 @@ def generate_bill(cust_id, no_download=False, raw_data=False):
             'bill_date': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
             'last_update': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
             'bill_summary': bill_summary,
-            'milk_price': get_milk_current_price(description=True).replace('₹', 'Rs.'),
+            'milk_price': get_milk_current_price(request.user.id, description=True).replace('₹',
+                                                                                            'Rs.'),
             'transaction_ids': list(get_register_transactions(cust_id, only_due=True))}
     # Upload Bill metadata to Mongo
     mongo_id = save_bill_to_mongo(data)

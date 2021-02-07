@@ -17,10 +17,12 @@ class Tenant(models.Model):
     sms_pref = models.BooleanField(default=True)
     whatsapp_pref = models.BooleanField(default=True)
     email_pref = models.BooleanField(default=False)
+    milk_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
+    date_effective = models.DateTimeField(default=None, null=True)
 
 
 class Customer(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING)
+    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, default=2)
     name = models.CharField(max_length=50, unique=True)
     contact = models.CharField(max_length=10, null=True, default=None)
     email = models.CharField(max_length=50, null=True, default=None)
@@ -31,14 +33,8 @@ class Customer(models.Model):
     member_since = models.DateTimeField(auto_now_add=True, null=True)
 
 
-class Milk(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    date_effective = models.DateTimeField()
-
-
 class Register(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING)
+    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, default=2)
     customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
     log_date = models.DateTimeField()
     schedule = models.CharField(max_length=15, null=True, default=None)
@@ -48,21 +44,21 @@ class Register(models.Model):
 
 
 class Expense(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING)
+    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, default=2)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
     log_date = models.DateTimeField(null=False, default=datetime.now)
 
 
 class Payment(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING)
+    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, default=2)
     customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     log_date = models.DateTimeField(auto_now_add=True, null=True)
 
 
 class Balance(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING)
+    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, default=2)
     customer = models.OneToOneField(
         Customer,
         on_delete=models.CASCADE,
@@ -72,7 +68,7 @@ class Balance(models.Model):
 
 
 class Income(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING)
+    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, default=2)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
     log_date = models.DateTimeField(null=False, default=datetime.now)

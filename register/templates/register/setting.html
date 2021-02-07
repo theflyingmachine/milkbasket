@@ -29,7 +29,7 @@
           <div class="form-group">
             <span class="ex3">{{ milk.price }}</span><span class="ex1"> INR / Liter</span><br>
             <span class="ex2">Milk Price per liter</span>
-            <p class="ex1">Updated: {{ milk.date_effective }}</p>
+            <p class="ex1">Updated: {{ tenant.date_effective }}</p>
             <p>Current Time: {% now "jS F Y H:i" %}</p>
             <br>
             <br>
@@ -38,9 +38,9 @@
             <div class="row text-center justify-content-center">
               <div class="col-6">
                 <input type="number" step="0.01" class="form-control text-center" id="milkprice"
-                       name="milkprice"
+                       name="milkprice" required
                        aria-describedby="emailHelp" placeholder="Enter amount / L"
-                       value="{{ milk.price }}">
+                       value="{{ tenant.milk_price }}">
 
                 <br>
 

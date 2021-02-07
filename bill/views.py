@@ -22,6 +22,9 @@ def index(request, bill_number=None):
         }
         bill_metadata = fetch_bill(bill_number, full_data=True)
         if bill_metadata:
+            # Fetch Tenant ID
+            tenant = Register.objects.get(id=bill_metadata['transaction_ids'][0])
+            tenant_id = tenant.tenant_id
             context.update(bill_metadata)
             due_transactions = Register.objects.filter(id__in=bill_metadata['transaction_ids'])
             payment_status = True if due_transactions.filter(paid=1) else False
@@ -48,7 +51,7 @@ def index(request, bill_number=None):
                 entry.display_log_date = entry.log_date.strftime('%d-%b-%y')
             context.update({'calendar': calendar,
                             'due_transactions': due_transactions,
-                            'milk_price': get_milk_current_price(description=True)})
+                            'milk_price': get_milk_current_price(tenant_id, description=True)})
 
         return render(request, template, context)
     else:
