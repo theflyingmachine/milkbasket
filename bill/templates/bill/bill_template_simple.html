@@ -343,11 +343,11 @@
       <div class="text-center">
         {% if payment_status %}
           <img
-           src="https://cdn.pixabay.com/photo/2020/04/10/13/23/paid-5025785_1280.png"
+           src="{% static "/bill/paid-img.png" %}"
            alt="Bill Not Available" width="300" height="300">
         {% else %}
           <img
-           src="https://ahadcorporation.com/payment-due.png"
+           src="{% static "/bill/due-img.jpeg" %}"
            alt="Bill Not Available" width="300" height="100">
         {% endif %}
       </div>
