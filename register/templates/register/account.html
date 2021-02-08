@@ -26,6 +26,7 @@
   </div>
   <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
   <hr>
+  {% load mathfilters %}
   <div class="container mb-5">
     <div class="row justify-content-center">
       {% if expenses or due_customer or paid_customer or income %}
@@ -124,7 +125,14 @@
                   <th class="p-2 col-4" scope="row"><a
                    href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
                   </th>
-                  <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
+                  {% if entry.adjusted_amount < 0 %}
+                    <td
+                     class="p-2 text-success col-2 font-weight-bold">{{ entry.adjusted_amount|abs }}
+                      (Adv)
+                    </td>
+                  {% else %}
+                    <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
+                  {% endif %}
                   <td class="p-2 col-2">{{ entry.payment_done }}</td>
                   <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
                 </tr>

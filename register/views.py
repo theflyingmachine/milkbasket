@@ -470,7 +470,6 @@ def account(request, year=None, month=None):
             'sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]"
 
     # Get paid customer
-    total_payment_received = 0
     paid_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
                                             paid=1).values('customer_id',
                                                            'customer__name').distinct()
@@ -478,20 +477,19 @@ def account(request, year=None, month=None):
         payment_done = Register.objects.filter(tenant_id=request.user.id,
                                                customer_id=customer['customer_id'],
                                                schedule__endswith='yes', paid=1)
-        payment_due_amount = 0
+        accepted_amount = 0
         for due in payment_done:
-            payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+            accepted_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
         balance_amount = Balance.objects.filter(tenant_id=request.user.id,
                                                 customer_id=customer['customer_id']).first()
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
-        customer['payment_done'] = round(payment_due_amount, 2)
         paid_amount = Payment.objects.filter(tenant_id=request.user.id,
                                              customer_id=customer['customer_id'],
                                              log_date__month=register_date.month).aggregate(
             Sum('amount'))
+        customer['payment_done'] = accepted_amount
         customer['total_paid'] = paid_amount['amount__sum']
-        total_payment_received += payment_due_amount
 
     # Get extra income
     income = Income.objects.filter(tenant_id=request.user.id, log_date__month=register_date.month)
@@ -947,8 +945,8 @@ def customer_profile(request, id=None):
             bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
 
         bill_summary.append(bill_sum_total)
-        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(balance_amount, 2)
-        due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount, 2)
+        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(balance_amount)
+        due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount)
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
         month_and_amount = (

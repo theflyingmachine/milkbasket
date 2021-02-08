@@ -131,7 +131,7 @@
         </div>
       </div>
 
-
+      {% load mathfilters %}
       <div class="col-12">
         <!-- Payment Due Table-->
         {% if payment_due_amount_till_date %}
@@ -148,8 +148,13 @@
             <tbody>
             <tr class="d-flex">
               <th class="p-2 col-1" scope="row">1</th>
-              <td class="p-2 col-4">{{ payment_due_amount_till_date }}</td>
-              <td class="p-2 col-4">{% if payment_due_amount_prev_month %}
+              {% if payment_due_amount_till_date < 0 %}
+                <td class="p-2 col-4">{{ payment_due_amount_till_date|abs }} <span
+                 class="text-success">(Advance)</span></td>
+              {% else %}
+                <td class="p-2 col-4">{{ payment_due_amount_till_date }}</td>
+              {% endif %}
+              <td class="p-2 col-4">{% if payment_due_amount_prev_month > 0 %}
                 <span class="font-weight-bold">{{ payment_due_amount_prev_month }}</span>
                 <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
               <td class="col-3">
