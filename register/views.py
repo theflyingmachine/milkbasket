@@ -947,8 +947,8 @@ def customer_profile(request, id=None):
             bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
 
         bill_summary.append(bill_sum_total)
-        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(balance_amount)
-        due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount)
+        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(balance_amount, 2)
+        due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount, 2)
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
         month_and_amount = (
