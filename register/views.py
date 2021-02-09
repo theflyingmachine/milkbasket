@@ -820,12 +820,14 @@ def setting(request):
         milk_price = float(request.POST.get("milkprice"))
         sms_pref = True if request.POST.get("sms_pref") else False
         wa_pref = True if request.POST.get("wa_pref") else False
+        wa_direct_pref = True if request.POST.get("wa_direct_pref") else False
         email_pref = True if request.POST.get("email_pref") else False
         download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
         tenant, created = Tenant.objects.update_or_create(tenant_id=request.user.id,
                                                           defaults={'sms_pref': sms_pref,
                                                                     'whatsapp_pref': wa_pref,
+                                                                    'whatsapp_direct_pref': wa_direct_pref,
                                                                     'email_pref': email_pref,
                                                                     'download_pdf_pref': download_pdf_pref},
                                                           )

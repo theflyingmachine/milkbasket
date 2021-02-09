@@ -209,63 +209,65 @@
       {#  Bill Summary #}
       {% if bill_summary %}
         <!--    Bill Summary -->
-        <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
-          <div class="text-center">
-            {% if tenant.download_pdf_pref %}
-              <a target="_blank"
-                 href="/register/print_bill/{{ customer.id }}"
-                 class="btn btn-info mb-1"><i
-               class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
-            {% endif %}
-            {% if tenant.sms_pref %}
-              {% if customer.contact %}
-                <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
-                        data-toggle="modal"
-                        data-target="#smsModal"
-                        data-cname="{{ customer.name }}"
-                        data-c_contact="{{ customer.contact }}"
-                        data-c_smstext="{{ sms_text }}"
-                ><i
-                 class="fa fa-commenting" aria-hidden="true"></i> Send SMS
-                </button>{% endif %}
-            {% endif %}
-            {% if tenant.whatsapp_pref %}
-              <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
+
+        <div class="text-center">
+          {% if tenant.download_pdf_pref %}
+            <a target="_blank"
+               href="/register/print_bill/{{ customer.id }}"
+               class="btn btn-info mb-1"><i
+             class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
+          {% endif %}
+          {% if tenant.sms_pref %}
+            {% if customer.contact %}
+              <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
+                      data-toggle="modal"
+                      data-target="#smsModal"
+                      data-cname="{{ customer.name }}"
+                      data-c_contact="{{ customer.contact }}"
+                      data-c_smstext="{{ sms_text }}"
+              ><i
+               class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+              </button>{% endif %}
+          {% endif %}
+          {% if tenant.whatsapp_pref %}
+            <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
+                    class="btn btn-info mb-1">
+              <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
+            </button>
+          {% endif %}
+          {% if tenant.email_pref %}
+            {% if customer.email %}
+              <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
                       class="btn btn-info mb-1">
-                <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
+                <i class="fa fa-mail" aria-hidden="true"></i> Send Email
               </button>
             {% endif %}
-            {% if tenant.email_pref %}
-              {% if customer.email %}
-                <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
-                        class="btn btn-info mb-1">
-                  <i class="fa fa-mail" aria-hidden="true"></i> Send Email
-                </button>
-              {% endif %}
-            {% endif %}
-          </div>
-          <h5 class="pt-2 mt-2 text-center">Bill Summary </h5>
-          {# Check in session if SMS was already sent and disable button #}
-          <script>
-            if (sessionStorage.getItem("sms_{{ customer.id }}")) {
-              {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-              document.getElementById("sendsmsbuttonmain").innerText = 'SMS Sent';
-              document.getElementById("sendsmsbuttonmain").classList.remove('btn-info');
-              document.getElementById("sendsmsbuttonmain").classList.add('btn-secondary');
-            }
-            if (sessionStorage.getItem("wa_{{ customer.id }}")) {
-              {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-              document.getElementById("sendOnWAInit").innerText = 'Shared on WhatsApp';
-              document.getElementById("sendOnWAInit").classList.remove('btn-info');
-              document.getElementById("sendOnWAInit").classList.add('btn-secondary');
-            }
-            if (sessionStorage.getItem("email_{{ customer.id }}")) {
-              {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-              document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
-              document.getElementById("sendOnEmailInit").classList.remove('btn-info');
-              document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
-            }
-          </script>
+          {% endif %}
+        </div>
+
+        <h5 class="pt-2 mt-2 text-center">Bill Summary </h5>
+        {# Check in session if SMS was already sent and disable button #}
+        <script>
+          if (sessionStorage.getItem("sms_{{ customer.id }}")) {
+            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+            document.getElementById("sendsmsbuttonmain").innerText = 'SMS Sent';
+            document.getElementById("sendsmsbuttonmain").classList.remove('btn-info');
+            document.getElementById("sendsmsbuttonmain").classList.add('btn-secondary');
+          }
+          if (sessionStorage.getItem("wa_{{ customer.id }}")) {
+            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+            document.getElementById("sendOnWAInit").innerText = 'Shared on WhatsApp';
+            document.getElementById("sendOnWAInit").classList.remove('btn-info');
+            document.getElementById("sendOnWAInit").classList.add('btn-secondary');
+          }
+          if (sessionStorage.getItem("email_{{ customer.id }}")) {
+            {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+            document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
+            document.getElementById("sendOnEmailInit").classList.remove('btn-info');
+            document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
+          }
+        </script>
+        <div class="mt-4 mb-4 col-12" style="overflow-x:auto;">
           <table style="width:100%">
             <tr class=" bg-info text-white">
               <th class="p-2 text-center" colspan="2">Description</th>
@@ -591,7 +593,11 @@
               document.getElementById("sendOnWAInit").disabled = true;
               document.getElementById("sendOnWAInit").innerText = 'Shared';
               var share_text = 'Dear {{ customer.name }}, Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
-              var url = "https://api.whatsapp.com/send?text=" + share_text;
+              {% if tenant.whatsapp_direct_pref %}
+                var url = "https://api.whatsapp.com/send?phone=91{{ customer.contact }}&text=" + share_text;
+              {% else %}
+                var url = "https://api.whatsapp.com/send?text=" + share_text;
+              {% endif %}
               var win = window.open(url, '_blank');
               win.focus();
               document.getElementById("sendOnWAInit").classList.remove('btn-info');
