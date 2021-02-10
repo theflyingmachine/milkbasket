@@ -107,8 +107,14 @@
           margin-right: auto;
       }
 
-  </style>
+      .popover {
+          top: 10px !important;
+          background: yellowgreen;
+          text-align: center;
+      }
 
+  </style>
+  {% load mathfilters %}
   <div class="d-flex bd-highlight mb-3">
     <div class="col-6 mr-auto p-2 bd-highlight">
       <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
@@ -150,7 +156,9 @@
                   <td{% for single_entry in entry.register_entry %}
                     id="{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
-                    class="cal-yes" title="{{ single_entry.quantity }} ML"
+                    class="cal-yes " data-toggle="popover"
+                    title="{{ entry.customer_name }}" data-trigger="hover"
+                    data-placement="top" data-content="{{ single_entry.quantity|floatformat }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'morning-no' %}
                     class="cal-no"
                     {% endif %}{% endfor %} >
@@ -182,7 +190,9 @@
                   <td{% for single_entry in entry.register_entry %}
                     id="{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
-                    class="cal-yes" title="{{ single_entry.quantity }} ML"
+                    class="cal-yes" data-toggle="popover"
+                    title="{{ entry.customer_name }}" data-trigger="hover"
+                    data-placement="top" data-content="{{ single_entry.quantity|floatformat }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'evening-no' %}
                     class="cal-no"  {% endif %}{% endfor %} >
                     <button type="button" class="btn" data-toggle="modal"
@@ -521,6 +531,10 @@
       $("#autoimg").hide();
     });
 
+    {#  PopOver #}
+    $(function () {
+      $('[data-toggle="popover"]').popover()
+    })
   </script>
 {% endblock %}
 <!-- Footer -->

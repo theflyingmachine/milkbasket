@@ -33,6 +33,11 @@
         margin-left: .25em;
         color: #1c7430;
     }
+
+    input[type="checkbox"] {
+        width: 15px; /*Desired width*/
+        height: 15px; /*Desired height*/
+    }
 </style>
 
 {% block content %}
@@ -75,11 +80,11 @@
 
               <div class="pt-2 separator text-secondary font-weight-bold">WhatsApp</div>
               <div class="checkbox">
-                <label><input type="checkbox" name="wa_pref"
+                <label><input id="mainWA" type="checkbox" name="wa_pref" onclick="waPref()"
                               {% if tenant.whatsapp_pref %}checked{% endif %} value="1"> Enable
                   WhatsApp</label>
               </div>
-              <div class="checkbox">
+              <div id="secWAdiv" class="checkbox">
                 <label><input type="checkbox" name="wa_direct_pref"
                               {% if tenant.whatsapp_direct_pref %}checked{% endif %} value="1">
                   WhatsApp Direct</label>
@@ -114,7 +119,17 @@
     </div>
   </div>
   <script>
-
+    function waPref() {
+      let checkBox = document.getElementById("mainWA");
+      let action = true
+      if (checkBox.checked) {
+        action = false;
+      }
+      let nodes = document.getElementById("secWAdiv").getElementsByTagName('*');
+      for (let i = 0; i < nodes.length; i++) {
+        nodes[i].disabled = action;
+      }
+    }
 
   </script>
 
