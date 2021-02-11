@@ -511,7 +511,13 @@
             $(".modal-backdrop").remove();
             $(".progress").hide();
             $(".modal-footer").show();
-            $(".modal").hide();
+            $('#exampleModal').modal('hide');
+            $('#' + data.cell).popover({
+              trigger: 'hover',
+              title: data.customer_name,
+              content: data.quantity,
+              placement: 'bottom'
+            })
 
           } else {
             // Error code here

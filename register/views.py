@@ -215,6 +215,7 @@ def addentry(request, year=None, month=None):
         yes_or_no = ''
         entry_status = False
         reload_status = False
+        extended_data = None
         if request.POST.get("add-new-entry", None):
             customer = request.POST.get("customer", None)
             customer_info = Customer.objects.filter(tenant_id=request.user.id, id=customer,
@@ -248,6 +249,7 @@ def addentry(request, year=None, month=None):
             current_price = tenant.milk_price
 
             # check if entry exists for give day and schedule
+
             check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
                                                    log_date=full_log_date,
                                                    schedule__startswith=schedule).first()
@@ -263,13 +265,18 @@ def addentry(request, year=None, month=None):
                 check_record.quantity = quantity
                 check_record.save()
                 entry_status = True if check_record.id else False
-
+            if full_schedule.endswith("-yes"):
+                cust = Customer.objects.get(id=customer)
+                extended_data = {'customer_name': cust.name,
+                                 'quantity': quantity, }
         data = {
             'return': entry_status,
             'cell': f'{customer}_{full_log_date.day}',
             'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
             'reload': reload_status,
         }
+        if extended_data:
+            data.update(extended_data)
 
         return JsonResponse(data)
 
