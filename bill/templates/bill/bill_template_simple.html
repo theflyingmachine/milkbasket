@@ -119,7 +119,7 @@
           }
 
           .days div {
-              font-size: 0.4rem;
+              font-size: 0.5rem;
           }
 
           h2 {
@@ -133,7 +133,7 @@
           }
 
           h2 {
-              font-size: 1.5rem !important;
+              font-size: 1.4rem !important;
           }
       }
 
@@ -147,7 +147,7 @@
           }
 
           h2 {
-              font-size: 1.5rem !important;
+              font-size: 1.4rem !important;
           }
       }
 
@@ -255,6 +255,10 @@
       .switcher-text {
           font-size: large;
           font-weight: bold;
+      }
+
+      .cal-border {
+          border-style: groove;
       }
   </style>
 </head>
@@ -393,10 +397,10 @@
                 <div></div>
               {% endfor %}
               {% for day in month.days_in_month %}
-                <div class="p-1"><h2>{{ day.day }}</h2>
+                <div class="p-0 cal-border"><h2>{{ day.day }}</h2>
                   {% if day.data %}{% for entry in day.data %}
-                    {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
-            Morning: {{ entry.quantity }} {% if entry.absent %}
+                    {% if entry.morning %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Morning {{ entry.quantity }} {% if entry.absent %}
                       <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
                       {% if not entry.absent %}
                         {% if entry.paid %}
@@ -405,8 +409,8 @@
                           <span class="d-block bg-warning text-white p-1">DUE</span>
                         {% endif %}{% endif %}
                     {% endif %}
-                    {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
-            Evening: {{ entry.quantity }} {% if entry.absent %}
+                    {% if entry.evening %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Evening {{ entry.quantity }} {% if entry.absent %}
                       <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
                       {% if not entry.absent %}
                         {% if entry.paid %}
@@ -438,8 +442,8 @@
               <th class="p-2 col-2" scope="col">Schedule</th>
               <th class="p-2 col-2" scope="col">Quantity</th>
               <th class="p-2 col-2" scope="col">Price</th>
-              <th class="p-2 col-2" scope="col">Billed Amount</th>
-              <th class="p-2 col-1" scope="col">Payment Status</th>
+              <th class="p-2 col-2" scope="col">Billed</th>
+              <th class="p-2 col-1" scope="col">Status</th>
             </tr>
             </thead>
             <tbody>

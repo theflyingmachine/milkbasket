@@ -148,6 +148,10 @@
           }
       }
 
+      .cal-border {
+          border-style: groove;
+      }
+
   </style>
   <!-- Main Div -->
   <div class="container mb-5 p-0" class="row justify-content-center">
@@ -387,11 +391,11 @@
                   <div></div>
                 {% endfor %}
                 {% for day in month.days_in_month %}
-                  <div class="p-1"><h2>{{ day.day }}</h2>
+                  <div class="p-0 cal-border"><h2>{{ day.day }}</h2>
                     {% if day.data %}{% for entry in day.data %}
-                      {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
-            Morning: {{ entry.quantity }} {% if entry.absent %}
-                        <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                      {% if entry.morning %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Morning {{ entry.quantity }} {% if entry.absent %}
+                        <span class="p-0 bg-danger text-white"> ABSENT </span>{% endif %}</span>
                         {% if not entry.absent %}
                           {% if entry.paid %}
                             <span class="d-block bg-success text-white p-1"> PAID</span>
@@ -399,8 +403,8 @@
                             <span class="d-block bg-warning text-white p-1">DUE</span>
                           {% endif %}{% endif %}
                       {% endif %}
-                      {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
-            Evening: {{ entry.quantity }} {% if entry.absent %}
+                      {% if entry.evening %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Evening {{ entry.quantity }} {% if entry.absent %}
                         <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
                         {% if not entry.absent %}
                           {% if entry.paid %}
