@@ -7,12 +7,36 @@
         font-size: 30px;
     }
 
-    span.ex2 {
-        font-size: 50px;
-    }
-
     span.ex3 {
         font-size: 120px;
+    }
+
+    .separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+
+    }
+
+    .separator::before, .separator::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #D3D3D3;
+    }
+
+    .separator::before {
+        margin-right: .25em;
+
+    }
+
+    .separator::after {
+        margin-left: .25em;
+        color: #1c7430;
+    }
+
+    input[type="checkbox"] {
+        width: 15px; /*Desired width*/
+        height: 15px; /*Desired height*/
     }
 </style>
 
@@ -27,13 +51,13 @@
       <div class="col">
         <form name="setting" method="post" action="setting">{% csrf_token %}
           <div class="form-group">
-            <span class="ex3">{{ milk.price }}</span><span class="ex1"> INR / Liter</span><br>
-            <span class="ex2">Milk Price per liter</span>
+            <span class="ex3">{{ tenant.milk_price }}</span><span
+           class="ex1"> INR / Liter</span><br>
+            <span class="">Milk Price per liter</span>
             <p class="ex1">Updated: {{ tenant.date_effective }}</p>
             <p>Current Time: {% now "jS F Y H:i" %}</p>
             <br>
-            <br>
-            <br>
+
             <label for="exampleInputEmail1">Current Milk Price: </label>
             <div class="row text-center justify-content-center">
               <div class="col-6">
@@ -41,44 +65,73 @@
                        name="milkprice" required
                        aria-describedby="emailHelp" placeholder="Enter amount / L"
                        value="{{ tenant.milk_price }}">
-
-                <br>
-
-                <div class="checkbox">
-                  <label><input type="checkbox" name="sms_pref"
-                                {% if tenant.sms_pref %}checked{% endif %} value="1"> Enable
-                    SMS</label>
-                </div>
-                <div class="checkbox">
-                  <label><input type="checkbox" name="wa_pref"
-                                {% if tenant.whatsapp_pref %}checked{% endif %} value="1"> Enable
-                    WhatsApp</label>
-                </div>
-                <div class="checkbox">
-                  <label><input type="checkbox" name="download_pdf_pref"
-                                {% if tenant.download_pdf_pref %}checked{% endif %} value="1">
-                    Enable
-                    PDF Download</label>
-                </div>
-                <div class="checkbox disabled">
-                  <label><input type="checkbox" name="email_pref"
-                                {% if tenant.email_pref %}checked{% endif %} value="1"> Enable
-                    Email</label>
-                </div>
-                {% if alert_message %}
-                  <button type="submit"
-                          class="btn btn-lg btn-block btn-{{ alert_class }}">{{ alert_message }}</button>
-                {% else %}
-                  <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
-                {% endif %}
               </div>
+            </div>
+            <br>
+            <h4 class="text-center">Preferences</h4>
+
+            <div class="col-12">
+              <div class="pt-2 separator text-secondary font-weight-bold">Mobile</div>
+              <div class="checkbox">
+                <label><input type="checkbox" name="sms_pref"
+                              {% if tenant.sms_pref %}checked{% endif %} value="1"> Enable
+                  SMS</label>
+              </div>
+
+              <div class="pt-2 separator text-secondary font-weight-bold">WhatsApp</div>
+              <div class="checkbox">
+                <label><input id="mainWA" type="checkbox" name="wa_pref" onclick="waPref()"
+                              {% if tenant.whatsapp_pref %}checked{% endif %} value="1"> Enable
+                  WhatsApp</label>
+              </div>
+              <div id="secWAdiv" class="checkbox">
+                <label><input type="checkbox" name="wa_direct_pref"
+                              {% if tenant.whatsapp_direct_pref %}checked{% endif %} value="1">
+                  WhatsApp Direct</label>
+              </div>
+
+              <div class="pt-2 separator text-secondary font-weight-bold">PDF Download</div>
+              <div class="checkbox">
+                <label><input type="checkbox" name="download_pdf_pref"
+                              {% if tenant.download_pdf_pref %}checked{% endif %} value="1">
+                  Enable
+                  PDF Download</label>
+              </div>
+
+              <div class="pt-2 separator text-secondary font-weight-bold">Email</div>
+              <div class="checkbox disabled">
+                <label><input type="checkbox" name="email_pref"
+                              {% if tenant.email_pref %}checked{% endif %} value="1"> Enable
+                  Email</label>
+              </div>
+            </div>
+            <div class="p-3 text-center col-sm-12 ">
+              {% if alert_message %}
+                <button type="submit"
+                        class="btn btn-lg btn-block btn-{{ alert_class }}">{{ alert_message }}</button>
+              {% else %}
+                <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
+              {% endif %}
             </div>
           </div>
         </form>
       </div>
     </div>
   </div>
+  <script>
+    function waPref() {
+      let checkBox = document.getElementById("mainWA");
+      let action = true
+      if (checkBox.checked) {
+        action = false;
+      }
+      let nodes = document.getElementById("secWAdiv").getElementsByTagName('*');
+      for (let i = 0; i < nodes.length; i++) {
+        nodes[i].disabled = action;
+      }
+    }
 
+  </script>
 
 {% endblock %}
 <!-- Footer -->

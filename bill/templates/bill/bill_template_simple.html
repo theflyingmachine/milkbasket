@@ -119,7 +119,7 @@
           }
 
           .days div {
-              font-size: 0.4rem;
+              font-size: 0.5rem;
           }
 
           h2 {
@@ -133,7 +133,7 @@
           }
 
           h2 {
-              font-size: 1.5rem !important;
+              font-size: 1.4rem !important;
           }
       }
 
@@ -147,7 +147,7 @@
           }
 
           h2 {
-              font-size: 1.5rem !important;
+              font-size: 1.4rem !important;
           }
       }
 
@@ -166,8 +166,7 @@
       }
 
       @media (min-width: 992px) {
-          .seven-cols .col-sm-1,
-          {
+          .seven-cols .col-sm-1 {
               width: 14.285714285714285714285714285714%;
               *width: 14.285714285714285714285714285714%;
           }
@@ -257,6 +256,10 @@
           font-size: large;
           font-weight: bold;
       }
+
+      .cal-border {
+          border-style: groove;
+      }
   </style>
 </head>
 <!-- partial:index.partial.html -->
@@ -308,7 +311,7 @@
                 <td colspan="1">
                   {% if bill.balance %}
                     <p class="pr-2 text-nowrap text-right font-weight-bold">
-                      Total: {{ bill.sub_total }}</p>
+                      {{ bill.sub_total }}</p>
                     <p class="pr-2 text-nowrap text-right font-weight-bold"> Bal:
                       - {{ bill.balance }}</p>{% endif %}
                   <p class="pr-2 text-nowrap text-right font-weight-bold">
@@ -343,11 +346,11 @@
       <div class="text-center">
         {% if payment_status %}
           <img
-           src="https://cdn.pixabay.com/photo/2020/04/10/13/23/paid-5025785_1280.png"
+           src="{% static "/bill/paid-img.png" %}"
            alt="Bill Not Available" width="300" height="300">
         {% else %}
           <img
-           src="https://ahadcorporation.com/payment-due.png"
+           src="{% static "/bill/due-img.jpeg" %}"
            alt="Bill Not Available" width="300" height="100">
         {% endif %}
       </div>
@@ -355,12 +358,12 @@
 
 
     <div class="text-center mt-2">
-    <span class="switcher-text">Calendar
+    <span class="switcher-text">Show Calendar
     <label class="switch">
       <input id="details-switch" onclick="showDetails()" type="checkbox">
       <span class="slider round"></span>
     </label>
-    Details
+    Show Details
       </span>
     </div>
 
@@ -394,10 +397,10 @@
                 <div></div>
               {% endfor %}
               {% for day in month.days_in_month %}
-                <div class="p-1"><h2>{{ day.day }}</h2>
+                <div class="p-0 cal-border"><h2>{{ day.day }}</h2>
                   {% if day.data %}{% for entry in day.data %}
-                    {% if entry.morning %}<span class="d-block text-white bg-primary p-1">
-            Morning: {{ entry.quantity }} {% if entry.absent %}
+                    {% if entry.morning %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Morning {{ entry.quantity }} {% if entry.absent %}
                       <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
                       {% if not entry.absent %}
                         {% if entry.paid %}
@@ -406,8 +409,8 @@
                           <span class="d-block bg-warning text-white p-1">DUE</span>
                         {% endif %}{% endif %}
                     {% endif %}
-                    {% if entry.evening %}<span class="d-block text-white bg-primary p-1">
-            Evening: {{ entry.quantity }} {% if entry.absent %}
+                    {% if entry.evening %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Evening {{ entry.quantity }} {% if entry.absent %}
                       <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
                       {% if not entry.absent %}
                         {% if entry.paid %}
@@ -431,29 +434,29 @@
       <div id="details-view">
         <caption><h5 class="pt-2 mt-2 text-center">Register Entry</h5></caption>
         <div class="mt-4 col-12" style="overflow-x:auto;">
-          <table class="table table-sm table-striped">
+          <table class="table table-striped">
             <thead>
             <tr class="d-flex bg-info text-white">
-              <th class="p-2 col-1" scope="col">#</th>
-              <th class="p-2 col-2" scope="col">Date</th>
-              <th class="p-2 col-2" scope="col">Schedule</th>
-              <th class="p-2 col-2" scope="col">Quantity</th>
-              <th class="p-2 col-2" scope="col">Price</th>
-              <th class="p-2 col-2" scope="col">Billed Amount</th>
-              <th class="p-2 col-1" scope="col">Payment Status</th>
+              <th class="p-0 p-lg-2 col-1" scope="col">#</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Date</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Time</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Quota</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Price</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Billed</th>
+              <th class="p-0 p-lg-2 col-1" scope="col">Status</th>
             </tr>
             </thead>
             <tbody>
             {% for entry in due_transactions %}
               <tr class="d-flex">
-                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                <td class="p-2 col-2">{{ entry.display_log_date }}</td>
-                <td class="p-2 col-2">{{ entry.display_schedule }}</td>
-                <td class="p-2 col-2">{{ entry.quantity }}</td>
-                <td class="p-2 col-2">{{ entry.current_price }}/L</td>
-                <td class="p-2 col-2">{{ entry.billed_amount }}</td>
+                <th class="p-0 p-lg-2 col-1" scope="row">{{ forloop.counter }}</th>
+                <td class="p-0 p-lg-2 col-2">{{ entry.display_log_date }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.display_schedule }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.quantity }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.current_price }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.billed_amount }}</td>
                 <td
-                 class="p-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
+                 class="p-0 p-lg-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
 
                 </td>
               </tr>

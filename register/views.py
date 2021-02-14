@@ -215,6 +215,7 @@ def addentry(request, year=None, month=None):
         yes_or_no = ''
         entry_status = False
         reload_status = False
+        extended_data = None
         if request.POST.get("add-new-entry", None):
             customer = request.POST.get("customer", None)
             customer_info = Customer.objects.filter(tenant_id=request.user.id, id=customer,
@@ -248,6 +249,7 @@ def addentry(request, year=None, month=None):
             current_price = tenant.milk_price
 
             # check if entry exists for give day and schedule
+
             check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
                                                    log_date=full_log_date,
                                                    schedule__startswith=schedule).first()
@@ -263,13 +265,18 @@ def addentry(request, year=None, month=None):
                 check_record.quantity = quantity
                 check_record.save()
                 entry_status = True if check_record.id else False
-
+            if full_schedule.endswith("-yes"):
+                cust = Customer.objects.get(id=customer)
+                extended_data = {'customer_name': cust.name,
+                                 'quantity': quantity, }
         data = {
             'return': entry_status,
             'cell': f'{customer}_{full_log_date.day}',
             'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
             'reload': reload_status,
         }
+        if extended_data:
+            data.update(extended_data)
 
         return JsonResponse(data)
 
@@ -470,7 +477,6 @@ def account(request, year=None, month=None):
             'sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]"
 
     # Get paid customer
-    total_payment_received = 0
     paid_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
                                             paid=1).values('customer_id',
                                                            'customer__name').distinct()
@@ -478,20 +484,19 @@ def account(request, year=None, month=None):
         payment_done = Register.objects.filter(tenant_id=request.user.id,
                                                customer_id=customer['customer_id'],
                                                schedule__endswith='yes', paid=1)
-        payment_due_amount = 0
+        accepted_amount = 0
         for due in payment_done:
-            payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+            accepted_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
         balance_amount = Balance.objects.filter(tenant_id=request.user.id,
                                                 customer_id=customer['customer_id']).first()
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
-        customer['payment_done'] = round(payment_due_amount, 2)
         paid_amount = Payment.objects.filter(tenant_id=request.user.id,
                                              customer_id=customer['customer_id'],
                                              log_date__month=register_date.month).aggregate(
             Sum('amount'))
+        customer['payment_done'] = accepted_amount
         customer['total_paid'] = paid_amount['amount__sum']
-        total_payment_received += payment_due_amount
 
     # Get extra income
     income = Income.objects.filter(tenant_id=request.user.id, log_date__month=register_date.month)
@@ -822,12 +827,14 @@ def setting(request):
         milk_price = float(request.POST.get("milkprice"))
         sms_pref = True if request.POST.get("sms_pref") else False
         wa_pref = True if request.POST.get("wa_pref") else False
+        wa_direct_pref = True if request.POST.get("wa_direct_pref") else False
         email_pref = True if request.POST.get("email_pref") else False
         download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
         tenant, created = Tenant.objects.update_or_create(tenant_id=request.user.id,
                                                           defaults={'sms_pref': sms_pref,
                                                                     'whatsapp_pref': wa_pref,
+                                                                    'whatsapp_direct_pref': wa_direct_pref,
                                                                     'email_pref': email_pref,
                                                                     'download_pdf_pref': download_pdf_pref},
                                                           )

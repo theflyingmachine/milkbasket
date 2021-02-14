@@ -2,15 +2,15 @@
 
 <!-- Navbar content -->
 {% block content %}
-  <div class="d-flex bd-highlight">
-    <div class="col-6 mr-auto p-2 bd-highlight">
-      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+  <div class="row bd-highlight">
+    <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
+      <button type="button" class="btn mt-2 mr-2 btn-success" data-toggle="modal"
               data-target="#exampleModal1"
-              data-whatever="@fat"><i class="fa fa-usd"></i> | Add New Expense
+              data-whatever="@fat"><i class="fa fa-usd"></i> | Add Expense
       </button>
-      <button type="button" class="btn mt-2 ml-2 btn-success" data-toggle="modal"
+      <button type="button" class="btn mt-2  btn-success" data-toggle="modal"
               data-target="#addIncomeModal"
-              data-whatever="@fat"><i class="fa fa-inr"></i> | Add New Income
+              data-whatever="@fat"><i class="fa fa-inr"></i> | Add Income
       </button>
     </div>
     <div class="justify-content-end inline p-2 bd-highlight">
@@ -26,11 +26,12 @@
   </div>
   <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
   <hr>
-  <div class="container mb-5">
+  {% load mathfilters %}
+  <div class="container p-0 mb-5">
     <div class="row justify-content-center">
       {% if expenses or due_customer or paid_customer or income %}
         <!--    Payment Table-->
-        <div class="col-12">
+        <div class="col-12 p-0">
           {#    Payment Area    #}
           {#    Payment due#}
           {% if due_customer %}
@@ -47,61 +48,63 @@
               </thead>
               <tbody>
               {% for entry in due_customer %}
-                <tr class="d-flex">
-                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <th class="p-2 col-3" scope="row"><a
-                   href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
-                  </th>
-                  <td class="p-2 col-2">{{ entry.payment_due }}</td>
-                  <td class="p-2 col-3">{% if entry.payment_due_prev %}
-                    <span class="font-weight-bold">{{ entry.payment_due_prev }}</span>
-                    <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
-                  <td class="col-3">
-                    <button type="button" class="btn-sm btn-primary"
-                            data-toggle="modal"
-                            data-target="#exampleModal2"
-                            data-cid="{{ entry.customer_id }}"
-                            data-cname="{{ entry.customer__name }}"
-                            data-c_contact="{{ entry.customer__contact }}"
-                            data-dueamount="{{ entry.payment_due }}"
-                     {% if entry.payment_due_prev %}
-                            data-prevdueamount="{{ entry.payment_due_prev }}"
-                     {% endif %}
-                    >Make Payment
-                    </button>
-                    {% if tenant.sms_pref %}
-                      {% if entry.customer__contact %}
-                        <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
-                                class="btn-sm btn-info"
-                                data-toggle="modal"
-                                data-target="#smsModal"
-                                data-cid="{{ entry.customer_id }}"
-                                data-cname="{{ entry.customer__name }}"
-                                data-c_contact="{{ entry.customer__contact }}"
-                                data-c_smstext="{{ entry.sms_text }}"
-                        ><i
-                         class="fa fa-commenting" aria-hidden="true"></i> Send SMS
-                        </button>{% endif %}
-                    {% endif %}
-                  </td>
-                </tr>
-                {# Check in session if SMS was already sent and disable button #}
-                <script>
-                  if (sessionStorage.getItem("sms_{{ entry.customer_id }}")) {
-                    {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-                    document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").innerText = 'SMS Sent';
-                    document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.remove('btn-info');
-                    document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.add('btn-secondary');
-                  }
-                </script>
+                {% if entry.payment_due > 0 %}
+                  <tr class="d-flex">
+                    <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                    <th class="p-2 col-3" scope="row"><a
+                     href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
+                    </th>
+                    <td class="p-2 col-2">{{ entry.payment_due }}</td>
+                    <td class="p-2 col-3">{% if entry.payment_due_prev %}
+                      <span class="font-weight-bold">{{ entry.payment_due_prev }}</span>
+                      <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
+                    <td class="col-3">
+                      <button type="button" class="btn-sm btn-primary"
+                              data-toggle="modal"
+                              data-target="#exampleModal2"
+                              data-cid="{{ entry.customer_id }}"
+                              data-cname="{{ entry.customer__name }}"
+                              data-c_contact="{{ entry.customer__contact }}"
+                              data-dueamount="{{ entry.payment_due }}"
+                       {% if entry.payment_due_prev %}
+                              data-prevdueamount="{{ entry.payment_due_prev }}"
+                       {% endif %}
+                      >Make Payment
+                      </button>
+                      {% if tenant.sms_pref %}
+                        {% if entry.customer__contact %}
+                          <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
+                                  class="btn-sm btn-info"
+                                  data-toggle="modal"
+                                  data-target="#smsModal"
+                                  data-cid="{{ entry.customer_id }}"
+                                  data-cname="{{ entry.customer__name }}"
+                                  data-c_contact="{{ entry.customer__contact }}"
+                                  data-c_smstext="{{ entry.sms_text }}"
+                          ><i
+                           class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+                          </button>{% endif %}
+                      {% endif %}
+                    </td>
+                  </tr>
 
+                  {# Check in session if SMS was already sent and disable button #}
+                  <script>
+                    if (sessionStorage.getItem("sms_{{ entry.customer_id }}")) {
+                      {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
+                      document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").innerText = 'SMS Sent';
+                      document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.remove('btn-info');
+                      document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.add('btn-secondary');
+                    }
+                  </script>
+                {% endif %}
               {% endfor %}
               </tbody>
             </table>
           {% endif %}
         </div>
         <!--    Paid Table-->
-        <div class="col-12">
+        <div class="col-12 p-0">
           {# Paid customer #}
           {% if paid_customer %}
             <h3 class="pt-2 mt-2 text-center">Paid Customers</h3>
@@ -109,22 +112,29 @@
               <thead>
               <tr class="d-flex bg-info text-white">
                 <th class="p-2 col-1" scope="col">#</th>
-                <th class="p-2 col-4" scope="col">Name</th>
-                <th class="p-2 col-2" scope="col">Adjusted Amount</th>
-                <th class="p-2 col-2" scope="col">Accepted Amount</th>
+                <th class="p-2 col-5" scope="col">Name</th>
+                <th class="p-2 col-3" scope="col">Adjusted Amount</th>
+                {#                <th class="p-2 col-2" scope="col">Accepted Amount</th>#}
                 <th class="p-2 col-3" scope="col">Paid Amount</th>
               </tr>
               </thead>
               <tbody>
               {% for entry in paid_customer %}
                 <tr class="d-flex">
-                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <th class="p-2 col-4" scope="row"><a
+                  <th class=" col-1" scope="row">{{ forloop.counter }}</th>
+                  <th class="p-2 col-5" scope="row"><a
                    href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
                   </th>
-                  <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
-                  <td class="p-2 col-2">{{ entry.payment_done }}</td>
-                  <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
+                  {% if entry.adjusted_amount < 0 %}
+                    <td
+                     class=" text-success col-3 font-weight-bold">{{ entry.adjusted_amount|abs }}
+                      (Adv)
+                    </td>
+                  {% else %}
+                    <td class=" col-3">{{ entry.adjusted_amount }}</td>
+                  {% endif %}
+                  {#                  <td class="p-2 col-2">{{ entry.payment_done }}</td>#}
+                  <td class=" col-3"><b>{{ entry.total_paid }}</b></td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -236,7 +246,7 @@
                             disabled></textarea>
                 </div>
               </div>
-              <button type="submit" class="btn btn-danger justify-content-center col-12">Delete
+              <button type="submit" class="btn btn-danger justify-content-center">Delete
               </button>
           </form>
         </div>
@@ -265,7 +275,7 @@
                           disabled></textarea>
               </div>
             </div>
-            <button type="submit" class="btn btn-danger justify-content-center col-12">Delete
+            <button type="submit" class="btn btn-danger justify-content-center">Delete
             </button>
         </form>
       </div>
@@ -306,7 +316,7 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary justify-content-center col-12">Add Expense
+            <button type="submit" class="btn btn-primary justify-content-center">Add Expense
             </button>
           </div>
         </form>
@@ -347,7 +357,7 @@
                        placeholder="Amount">
               </div>
             </div>
-            <button type="submit" class="btn btn-primary justify-content-center col-12">Add Income
+            <button type="submit" class="btn btn-primary justify-content-center">Add Income
             </button>
           </div>
         </form>
@@ -401,7 +411,9 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-success justify-content-center col-12">Accept
+            <button type="submit" class="btn btn-success justify-content-center"
+                    onClick="this.form.submit(); this.disabled=true; this.value='Please Wait…';">
+              Accept
               Payment
             </button>
           </div>
@@ -448,7 +460,7 @@
             </div>
 
             <button id="sendsmsbutton" type="submit"
-                    class="btn btn-success justify-content-center col-12">Send SMS
+                    class="btn btn-success justify-content-center ">Send SMS
             </button>
           </div>
         </form>

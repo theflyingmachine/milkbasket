@@ -16,6 +16,7 @@ class Tenant(models.Model):
     download_pdf_pref = models.BooleanField(default=True)
     sms_pref = models.BooleanField(default=True)
     whatsapp_pref = models.BooleanField(default=True)
+    whatsapp_direct_pref = models.BooleanField(default=True)
     email_pref = models.BooleanField(default=False)
     milk_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
     date_effective = models.DateTimeField(default=None, null=True)
