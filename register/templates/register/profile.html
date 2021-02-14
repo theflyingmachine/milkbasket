@@ -642,7 +642,7 @@
               document.getElementById("sendOnWAInit").disabled = true;
               document.getElementById("sendOnWAInit").innerText = 'Shared';
               var share_text = 'Dear {{ customer.name }}, Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
-              {% if tenant.whatsapp_direct_pref %}
+              {% if tenant.whatsapp_direct_pref and customer.contact %}
                 var url = "https://api.whatsapp.com/send?phone=91{{ customer.contact }}&text=" + share_text;
               {% else %}
                 var url = "https://api.whatsapp.com/send?text=" + share_text;

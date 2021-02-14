@@ -358,12 +358,12 @@
 
 
     <div class="text-center mt-2">
-    <span class="switcher-text">Calendar
+    <span class="switcher-text">Show Calendar
     <label class="switch">
       <input id="details-switch" onclick="showDetails()" type="checkbox">
       <span class="slider round"></span>
     </label>
-    Details
+    Show Details
       </span>
     </div>
 
@@ -434,29 +434,29 @@
       <div id="details-view">
         <caption><h5 class="pt-2 mt-2 text-center">Register Entry</h5></caption>
         <div class="mt-4 col-12" style="overflow-x:auto;">
-          <table class="table table-sm table-striped">
+          <table class="table table-striped">
             <thead>
             <tr class="d-flex bg-info text-white">
-              <th class="p-2 col-1" scope="col">#</th>
-              <th class="p-2 col-2" scope="col">Date</th>
-              <th class="p-2 col-2" scope="col">Schedule</th>
-              <th class="p-2 col-2" scope="col">Quantity</th>
-              <th class="p-2 col-2" scope="col">Price</th>
-              <th class="p-2 col-2" scope="col">Billed</th>
-              <th class="p-2 col-1" scope="col">Status</th>
+              <th class="p-0 p-lg-2 col-1" scope="col">#</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Date</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Time</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Quota</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Price</th>
+              <th class="p-0 p-lg-2 col-2" scope="col">Billed</th>
+              <th class="p-0 p-lg-2 col-1" scope="col">Status</th>
             </tr>
             </thead>
             <tbody>
             {% for entry in due_transactions %}
               <tr class="d-flex">
-                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                <td class="p-2 col-2">{{ entry.display_log_date }}</td>
-                <td class="p-2 col-2">{{ entry.display_schedule }}</td>
-                <td class="p-2 col-2">{{ entry.quantity }}</td>
-                <td class="p-2 col-2">{{ entry.current_price }}/L</td>
-                <td class="p-2 col-2">{{ entry.billed_amount }}</td>
+                <th class="p-0 p-lg-2 col-1" scope="row">{{ forloop.counter }}</th>
+                <td class="p-0 p-lg-2 col-2">{{ entry.display_log_date }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.display_schedule }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.quantity }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.current_price }}</td>
+                <td class="p-0 p-lg-2 col-2">{{ entry.billed_amount }}</td>
                 <td
-                 class="p-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
+                 class="p-0 p-lg-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
 
                 </td>
               </tr>
