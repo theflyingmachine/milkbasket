@@ -166,8 +166,7 @@
       }
 
       @media (min-width: 992px) {
-          .seven-cols .col-sm-1,
-          {
+          .seven-cols .col-sm-1 {
               width: 14.285714285714285714285714285714%;
               *width: 14.285714285714285714285714285714%;
           }
@@ -308,7 +307,7 @@
                 <td colspan="1">
                   {% if bill.balance %}
                     <p class="pr-2 text-nowrap text-right font-weight-bold">
-                      Total: {{ bill.sub_total }}</p>
+                      {{ bill.sub_total }}</p>
                     <p class="pr-2 text-nowrap text-right font-weight-bold"> Bal:
                       - {{ bill.balance }}</p>{% endif %}
                   <p class="pr-2 text-nowrap text-right font-weight-bold">

@@ -27,11 +27,11 @@
   <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
   <hr>
   {% load mathfilters %}
-  <div class="container mb-5">
+  <div class="container p-0 mb-5">
     <div class="row justify-content-center">
       {% if expenses or due_customer or paid_customer or income %}
         <!--    Payment Table-->
-        <div class="col-12">
+        <div class="col-12 p-0">
           {#    Payment Area    #}
           {#    Payment due#}
           {% if due_customer %}
@@ -104,7 +104,7 @@
           {% endif %}
         </div>
         <!--    Paid Table-->
-        <div class="col-12">
+        <div class="col-12 p-0">
           {# Paid customer #}
           {% if paid_customer %}
             <h3 class="pt-2 mt-2 text-center">Paid Customers</h3>
@@ -112,29 +112,29 @@
               <thead>
               <tr class="d-flex bg-info text-white">
                 <th class="p-2 col-1" scope="col">#</th>
-                <th class="p-2 col-4" scope="col">Name</th>
-                <th class="p-2 col-2" scope="col">Adjusted Amount</th>
-                <th class="p-2 col-2" scope="col">Accepted Amount</th>
+                <th class="p-2 col-5" scope="col">Name</th>
+                <th class="p-2 col-3" scope="col">Adjusted Amount</th>
+                {#                <th class="p-2 col-2" scope="col">Accepted Amount</th>#}
                 <th class="p-2 col-3" scope="col">Paid Amount</th>
               </tr>
               </thead>
               <tbody>
               {% for entry in paid_customer %}
                 <tr class="d-flex">
-                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <th class="p-2 col-4" scope="row"><a
+                  <th class=" col-1" scope="row">{{ forloop.counter }}</th>
+                  <th class="p-2 col-5" scope="row"><a
                    href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
                   </th>
                   {% if entry.adjusted_amount < 0 %}
                     <td
-                     class="p-2 text-success col-2 font-weight-bold">{{ entry.adjusted_amount|abs }}
+                     class=" text-success col-3 font-weight-bold">{{ entry.adjusted_amount|abs }}
                       (Adv)
                     </td>
                   {% else %}
-                    <td class="p-2 col-2">{{ entry.adjusted_amount }}</td>
+                    <td class=" col-3">{{ entry.adjusted_amount }}</td>
                   {% endif %}
-                  <td class="p-2 col-2">{{ entry.payment_done }}</td>
-                  <td class="p-2 col-3"><b>{{ entry.total_paid }}</b></td>
+                  {#                  <td class="p-2 col-2">{{ entry.payment_done }}</td>#}
+                  <td class=" col-3"><b>{{ entry.total_paid }}</b></td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -246,7 +246,7 @@
                             disabled></textarea>
                 </div>
               </div>
-              <button type="submit" class="btn btn-danger justify-content-center col-12">Delete
+              <button type="submit" class="btn btn-danger justify-content-center">Delete
               </button>
           </form>
         </div>
@@ -275,7 +275,7 @@
                           disabled></textarea>
               </div>
             </div>
-            <button type="submit" class="btn btn-danger justify-content-center col-12">Delete
+            <button type="submit" class="btn btn-danger justify-content-center">Delete
             </button>
         </form>
       </div>
@@ -316,7 +316,7 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary justify-content-center col-12">Add Expense
+            <button type="submit" class="btn btn-primary justify-content-center">Add Expense
             </button>
           </div>
         </form>
@@ -357,7 +357,7 @@
                        placeholder="Amount">
               </div>
             </div>
-            <button type="submit" class="btn btn-primary justify-content-center col-12">Add Income
+            <button type="submit" class="btn btn-primary justify-content-center">Add Income
             </button>
           </div>
         </form>
@@ -411,7 +411,7 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-success justify-content-center col-12"
+            <button type="submit" class="btn btn-success justify-content-center"
                     onClick="this.form.submit(); this.disabled=true; this.value='Please Wait…';">
               Accept
               Payment
@@ -460,7 +460,7 @@
             </div>
 
             <button id="sendsmsbutton" type="submit"
-                    class="btn btn-success justify-content-center col-12">Send SMS
+                    class="btn btn-success justify-content-center ">Send SMS
             </button>
           </div>
         </form>
