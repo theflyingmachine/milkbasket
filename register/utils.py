@@ -38,9 +38,14 @@ def get_active_month(customer_id, only_paid=False, only_due=False, all_active=Fa
                                                     schedule__endswith='-yes', paid=1).dates(
                 'log_date', 'month', order='DESC')
         if only_due:
+            tenant = Tenant.objects.get(customer__id=customer_id)
             active_months = Register.objects.filter(customer_id=customer_id,
                                                     schedule__endswith='-yes', paid=0).dates(
-                'log_date', 'month', order='DESC')
+                'log_date', 'month',
+                order='DESC') if tenant.bill_till_date else Register.objects.filter(
+                customer_id=customer_id,
+                schedule__endswith='-yes', paid=0).dates(
+                'log_date', 'month', order='DESC').exclude(log_date__month=datetime.now().month)
 
     return active_months
 
@@ -200,10 +205,16 @@ def get_register_transactions(cust_id, only_paid=False, only_due=True):
     transactions = None
     if cust_id:
         if only_due:
+            tenant = Tenant.objects.get(customer__id=cust_id)
             transactions = Register.objects.filter(customer_id=cust_id, paid=0,
                                                    schedule__in=['morning-yes',
                                                                  'evening-yes']).values_list('id',
-                                                                                             flat=True)
+                                                                                             flat=True) if tenant.bill_till_date else Register.objects.filter(
+                customer_id=cust_id, paid=0,
+                schedule__in=['morning-yes',
+                              'evening-yes']).exclude(
+                log_date__month=datetime.now().month).values_list('id',
+                                                                  flat=True)
         elif only_paid:
             transactions = Register.objects.filter(customer_id=cust_id, paid=1,
                                                    schedule__in=['morning-yes',

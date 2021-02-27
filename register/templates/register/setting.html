@@ -104,6 +104,15 @@
                               {% if tenant.email_pref %}checked{% endif %} value="1"> Enable
                   Email</label>
               </div>
+
+              <div class="pt-2 separator text-secondary font-weight-bold">Bill</div>
+              <div class="checkbox">
+                <label><input type="checkbox" name="bill_till_date"
+                              {% if tenant.bill_till_date %}checked{% endif %} value="1"> Generate
+                  Bill
+                  Till Date
+                </label>
+              </div>
             </div>
             <div class="p-3 text-center col-sm-12 ">
               {% if alert_message %}

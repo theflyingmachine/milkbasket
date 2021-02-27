@@ -829,6 +829,7 @@ def setting(request):
         wa_pref = True if request.POST.get("wa_pref") else False
         wa_direct_pref = True if request.POST.get("wa_direct_pref") else False
         email_pref = True if request.POST.get("email_pref") else False
+        bill_till_date = True if request.POST.get("bill_till_date") else False
         download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
         tenant, created = Tenant.objects.update_or_create(tenant_id=request.user.id,
@@ -836,6 +837,7 @@ def setting(request):
                                                                     'whatsapp_pref': wa_pref,
                                                                     'whatsapp_direct_pref': wa_direct_pref,
                                                                     'email_pref': email_pref,
+                                                                    'bill_till_date': bill_till_date,
                                                                     'download_pdf_pref': download_pdf_pref},
                                                           )
         saved_milk_price = tenant.milk_price if tenant.milk_price else None
