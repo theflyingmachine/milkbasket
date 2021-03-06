@@ -1039,13 +1039,16 @@ def bill_views(request):
     metadata = get_mongo_client()
     bills = metadata.find({'customer_id': {'$in': customers_list}},
                           {'bill_number': 1, 'customer_id': 1, 'customer_name': 1, 'bill_date': 1,
-                           'views': 1})
+                           'views': 1, 'transaction_ids': 1, 'bill_summary': 1})
     bill_list = []
     for bill in bills:
         string_date = bill['bill_date']  # 09 January, 2021, 09:32 AM
         bill['bill_date_obj'] = datetime.strptime(string_date, '%d %B, %Y, %H:%M %p')
         bill['bill_date'] = bill['bill_date_obj'].strftime("%Y/%m/%d %I:%M %p")
         if not 'views' in bill: bill['views'] = 'Not Viewed'
+        bill['payment_status'] = True if Register.objects.filter(id__in=bill['transaction_ids'],
+                                                                 paid=1) else False
+        bill['bill_amount'] = bill['bill_summary'][-1]['sum_total']
         bill_list.append(bill)
 
     bill_list.sort(key=lambda x: x['bill_date_obj'], reverse=True)
