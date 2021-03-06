@@ -26,6 +26,15 @@ from register.models import Register
 from register.models import Tenant
 
 
+def get_mongo_client():
+    """ Helper function to return mongo DB client based on correct environment """
+    client = MongoClient(
+        f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/{MONGO_DATABASE}?retryWrites=true&w=majority')
+    db = client[MONGO_DATABASE]
+    # Fetch Bill Metadata
+    return db[MONGO_COLLECTION]
+
+
 def get_active_month(customer_id, only_paid=False, only_due=False, all_active=False):
     """ Returns active month list of customer """
     active_months = None
@@ -190,11 +199,8 @@ def send_sms_api(contact, sms_text):
 
 def save_bill_to_mongo(bill_metadata):
     """ Upload bill metadata to cloud mongo db """
-    client = MongoClient(
-        f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/{MONGO_DATABASE}?retryWrites=true&w=majority')
-    db = client[MONGO_DATABASE]
     # Upload Bill Metadata
-    metadata = db[MONGO_COLLECTION]
+    metadata = get_mongo_client()
     bill_metadata_id = metadata.insert(bill_metadata)
 
     return bill_metadata_id

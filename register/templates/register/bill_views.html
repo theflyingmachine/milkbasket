@@ -1,0 +1,56 @@
+{% include "register/header.html" %}
+<!-- Navbar content -->
+{% block content %}
+  <div class="row mt-2 justify-content-center">
+    <div class="col-lg-10 col-md-12">
+      <h2 class="text-center">Bill Views</h2>
+    </div>
+  </div>
+
+  <hr>
+  {#  ACTIVE CUSTOMERS #}
+  <div id="customer-list" class="container mb-5">
+    {% if all_bills %}
+      <table id="example" class="table table-bordered table-striped" style="width:100%">
+        <thead class="bg-info text-white">
+        <tr>
+          <th>Bill Number</th>
+          <th>Name</th>
+          <th>Bill Date</th>
+          <th>Views</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for bill in all_bills %}
+          <tr>
+            <td><a target="_blank" href="/bill/{{ bill.bill_number }}">{{ bill.bill_number }}</a>
+            </td>
+            <td><a href="/register/profile/{{ bill.customer_id }}">{{ bill.customer_name }}</a>
+            </td>
+            <td>{{ bill.bill_date }}</td>
+            <td>{{ bill.views }}</td>
+
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <h3 class="pt-5 mt-4 text-center">No Customers to display</h3>
+    {% endif %}
+  </div>
+
+
+
+
+  <script>
+    $(document).ready(function () {
+      $('#example').DataTable({
+        "order": [[2, "desc"]],
+        "pageLength": 25
+      });
+    });
+  </script>
+
+{% endblock %}
+<!-- Footer -->
+{% include "register/footer.html" %}

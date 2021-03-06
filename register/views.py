@@ -16,7 +16,6 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
-# Create your views here.
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
@@ -37,6 +36,7 @@ from register.utils import get_active_month
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
 from register.utils import get_milk_current_price
+from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
 from register.utils import render_to_pdf
 from register.utils import send_email_api
@@ -1027,3 +1027,32 @@ def send_EMAIL(request, id=None):
         return JsonResponse(status)
     else:
         return None
+
+
+@login_required
+def bill_views(request):
+    """ Fetch all bill views for a given tenent """
+    # Fetch all clients belonging to the logged in tenant
+    customers_list = list(
+        Customer.objects.filter(tenant_id=request.user.id).values_list('id', flat=True))
+    # Fetch all bills in list of customer ids
+    metadata = get_mongo_client()
+    bills = metadata.find({'customer_id': {'$in': customers_list}},
+                          {'bill_number': 1, 'customer_id': 1, 'customer_name': 1, 'bill_date': 1,
+                           'views': 1})
+    bill_list = []
+    for bill in bills:
+        string_date = bill['bill_date']  # 09 January, 2021, 09:32 AM
+        bill['bill_date_obj'] = datetime.strptime(string_date, '%d %B, %Y, %H:%M %p')
+        bill['bill_date'] = bill['bill_date_obj'].strftime("%Y/%m/%d %I:%M %p")
+        if not 'views' in bill: bill['views'] = 'Not Viewed'
+        bill_list.append(bill)
+
+    bill_list.sort(key=lambda x: x['bill_date_obj'], reverse=True)
+    template = 'register/bill_views.html'
+    context = {
+        'page_title': 'Milk Basket - Bill Views',
+        'all_bills': bill_list,
+        'menu_bill': True
+    }
+    return render(request, template, context)
