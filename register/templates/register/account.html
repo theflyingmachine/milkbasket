@@ -412,7 +412,7 @@
             </div>
 
             <button type="submit" class="btn btn-success justify-content-center"
-                    onClick="this.form.submit(); this.disabled=true; this.value='Please Wait…';">
+                    onclick="acceptPaymentFn(this);">
               Accept
               Payment
             </button>
@@ -563,6 +563,13 @@
           alert('Something went wrong...')
         }
       }, 'json')
+    }
+
+    function acceptPaymentFn(acceptPayment) {
+      //Showing please wait spinner while accepting payment
+      acceptPayment.disabled = true;
+      acceptPayment.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
+      acceptPayment.form.submit();
     }
   </script>
 {% endblock %}
