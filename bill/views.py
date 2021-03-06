@@ -2,13 +2,10 @@ from calendar import monthrange
 
 from django.http import JsonResponse
 from django.shortcuts import render
-from pymongo import MongoClient
 
-from milkbasket.secret import MONGO_COLLECTION
-from milkbasket.secret import MONGO_DATABASE
-from milkbasket.secret import MONGO_KEY
 from register.models import Register
 from register.utils import get_milk_current_price
+from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
 
 
@@ -20,7 +17,8 @@ def index(request, bill_number=None):
         context = {
             'page_title': 'Milk Basket - Bill',
         }
-        bill_metadata = fetch_bill(bill_number, full_data=True)
+        logged_in = False if request.user.id else True
+        bill_metadata = fetch_bill(bill_number, full_data=True, update_count=logged_in)
         if bill_metadata:
             # Fetch Tenant ID
             tenant = Register.objects.get(id=bill_metadata['transaction_ids'][0])
@@ -76,15 +74,14 @@ def validate_bill(request, full_data=False):
     return JsonResponse(response)
 
 
-def fetch_bill(bill_number, full_data=False):
+def fetch_bill(bill_number, full_data=False, update_count=False):
     """ Fetch bill metadata from cloud Mongo DB """
-    client = MongoClient(
-        f'mongodb+srv://milkbasket:{MONGO_KEY}@cluster0.4wgsn.mongodb.net/{MONGO_DATABASE}?retryWrites=true&w=majority')
-    db = client[MONGO_DATABASE]
     # Fetch Bill Metadata
-    metadata = db[MONGO_COLLECTION]
+    metadata = get_mongo_client()
     if full_data:
         bill_metadata = metadata.find_one({'bill_number': bill_number})
     else:
         bill_metadata = metadata.find_one({'bill_number': bill_number}, {'_id': 1})
+    if update_count:
+        metadata.update({'bill_number': bill_metadata['bill_number']}, {'$inc': {'views': 1, }})
     return bill_metadata
