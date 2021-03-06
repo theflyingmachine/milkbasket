@@ -1,6 +1,27 @@
 {% include "register/header.html" %}
 <!-- Navbar content -->
 {% block content %}
+  <style>
+      @media screen and (max-width: 420px) {
+          .bill-table th {
+              font-size: 0.9rem !important;
+          }
+
+          .bill-table td {
+              font-size: 0.8rem !important;
+          }
+      }
+
+      @media screen and (max-width: 290px) {
+          .bill-table th {
+              font-size: 0.7rem;
+          }
+
+          .bill-table td {
+              font-size: 0.4rem;
+          }
+      }
+  </style>
   <div class="row mt-2 justify-content-center">
     <div class="col-lg-10 col-md-12">
       <h2 class="text-center">Bill Views</h2>
@@ -8,8 +29,8 @@
   </div>
 
   <hr>
-  {#  ACTIVE CUSTOMERS #}
-  <div id="customer-list" class="container mb-5">
+
+  <div id="customer-list" class="container p-0 mb-5 bill-table">
     {% if all_bills %}
       <table id="example" class="table table-bordered table-striped" style="width:100%">
         <thead class="bg-info text-white">
@@ -49,7 +70,8 @@
     $(document).ready(function () {
       $('#example').DataTable({
         "order": [[1, "desc"]],
-        "pageLength": 25
+        "pageLength": 25,
+        "scrollX": true
       });
     });
   </script>
