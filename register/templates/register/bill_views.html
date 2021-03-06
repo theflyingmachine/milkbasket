@@ -15,9 +15,11 @@
         <thead class="bg-info text-white">
         <tr>
           <th>Bill Number</th>
-          <th>Name</th>
           <th>Bill Date</th>
+          <th>Name</th>
           <th>Views</th>
+          <th>Amount</th>
+          <th>Payment Status</th>
         </tr>
         </thead>
         <tbody>
@@ -25,10 +27,14 @@
           <tr>
             <td><a target="_blank" href="/bill/{{ bill.bill_number }}">{{ bill.bill_number }}</a>
             </td>
+            <td>{{ bill.bill_date }}</td>
             <td><a href="/register/profile/{{ bill.customer_id }}">{{ bill.customer_name }}</a>
             </td>
-            <td>{{ bill.bill_date }}</td>
-            <td>{{ bill.views }}</td>
+            <td class="font-weight-bold">{{ bill.views }}</td>
+            <td>{{ bill.bill_amount }}</td>
+            <td>{% if bill.payment_status %} <span class="text-success font-weight-bold">
+              Paid {% else %} <span class="text-danger font-weight-bold">Due {% endif %}</span>
+            </td>
 
           </tr>
         {% endfor %}
@@ -39,13 +45,10 @@
     {% endif %}
   </div>
 
-
-
-
   <script>
     $(document).ready(function () {
       $('#example').DataTable({
-        "order": [[2, "desc"]],
+        "order": [[1, "desc"]],
         "pageLength": 25
       });
     });
