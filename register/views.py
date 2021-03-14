@@ -1046,8 +1046,8 @@ def bill_views(request):
         bill['bill_date_obj'] = datetime.strptime(string_date, '%d %B, %Y, %H:%M %p')
         bill['bill_date'] = bill['bill_date_obj'].strftime("%Y/%m/%d %I:%M %p")
         if not 'views' in bill: bill['views'] = 'Not Viewed'
-        bill['payment_status'] = True if Register.objects.filter(id__in=bill['transaction_ids'],
-                                                                 paid=1) else False
+        bill['payment_status'] = False if Register.objects.filter(id__in=bill['transaction_ids'],
+                                                                  paid=0) else True
         bill['bill_amount'] = bill['bill_summary'][-1]['sum_total']
         bill_list.append(bill)
 

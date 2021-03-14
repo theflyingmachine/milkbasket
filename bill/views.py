@@ -25,7 +25,7 @@ def index(request, bill_number=None):
             tenant_id = tenant.tenant_id
             context.update(bill_metadata)
             due_transactions = Register.objects.filter(id__in=bill_metadata['transaction_ids'])
-            payment_status = True if due_transactions.filter(paid=1) else False
+            payment_status = False if due_transactions.filter(paid=0) else True
             context.update({'payment_status': payment_status})
 
             # Extract months which has due for calendar
