@@ -317,9 +317,7 @@
                       <p class="pr-2 text-nowrap text-right font-weight-bold"> Bal:
                         - {{ bill.balance }}</p>{% endif %}
                     <p class="pr-2 text-nowrap text-right font-weight-bold">
-                      Total</p>
-                    <p class="pr-2 text-nowrap text-right font-weight-bold">
-                      {{ bill.sum_total }}</p></td>
+                      Total: {{ bill.sum_total }}</p></td>
                   {% else %}
                   <td class="m-2 dash text-center" rowspan="2">{{ bill.month_year }}</td>
                 <tr>
