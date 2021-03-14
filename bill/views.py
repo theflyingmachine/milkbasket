@@ -89,5 +89,11 @@ def fetch_bill(bill_number, full_data=False, update_count=False):
     else:
         bill_metadata = metadata.find_one({'bill_number': bill_number}, {'_id': 1})
     if update_count:
-        metadata.update({'bill_number': bill_metadata['bill_number']}, {'$inc': {'views': 1, }})
+        tenant = Register.objects.get(id=bill_metadata['transaction_ids'][0])
+        tenant_id = tenant.tenant_id
+        tenant_pref = Tenant.objects.filter(tenant_id=tenant_id).first()
+        if tenant_pref.customers_bill_access:
+            metadata.update({'bill_number': bill_metadata['bill_number']},
+                            {'$inc': {'views': 1, }})
+
     return bill_metadata
