@@ -11,32 +11,114 @@
         font-size: 120px;
     }
 
-    .separator {
-        display: flex;
-        align-items: center;
-        text-align: center;
-
-    }
-
-    .separator::before, .separator::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid #D3D3D3;
-    }
-
-    .separator::before {
-        margin-right: .25em;
-
-    }
-
-    .separator::after {
-        margin-left: .25em;
-        color: #1c7430;
-    }
-
     input[type="checkbox"] {
         width: 15px; /*Desired width*/
         height: 15px; /*Desired height*/
+    }
+
+    .onoffswitch {
+        position: relative;
+        width: 90px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .onoffswitch-checkbox {
+        display: none;
+    }
+
+    .onoffswitch-label {
+        display: block;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid #999999;
+        border-radius: 30px;
+    }
+
+    .onoffswitch-inner {
+        display: block;
+        width: 200%;
+        margin-left: -100%;
+        -moz-transition: margin 0.3s ease-in 0s;
+        -webkit-transition: margin 0.3s ease-in 0s;
+        -o-transition: margin 0.3s ease-in 0s;
+        transition: margin 0.3s ease-in 0s;
+    }
+
+    .onoffswitch-inner:before, .onoffswitch-inner:after {
+        display: block;
+        float: left;
+        width: 50%;
+        height: 30px;
+        padding: 0;
+        line-height: 30px;
+        font-size: 14px;
+        color: white;
+        font-family: Trebuchet, Arial, sans-serif;
+        font-weight: bold;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        border-radius: 30px;
+        box-shadow: 0px 15px 0px rgba(0, 0, 0, 0.08) inset;
+    }
+
+    .onoffswitch-inner:before {
+        content: "On";
+        padding-left: 5px;
+        background-color: #81d404;
+        color: #FFFFFF;
+        border-radius: 30px 0 0 30px;
+    }
+
+    .onoffswitch-inner:after {
+        content: "Off";
+        padding-right: 10px;
+        background-color: #d96c58;
+        color: #ffffff;
+        text-align: right;
+        border-radius: 0 30px 30px 0;
+    }
+
+    .onoffswitch-switch {
+        display: block;
+        width: 30px;
+        margin: 0px;
+        background: #358c8f;
+        border: 2px solid #1f4541;
+        border-radius: 30px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 56px;
+        -moz-transition: all 0.3s ease-in 0s;
+        -webkit-transition: all 0.3s ease-in 0s;
+        -o-transition: all 0.3s ease-in 0s;
+        transition: all 0.3s ease-in 0s;
+        background-image: -moz-linear-gradient(center top, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 80%);
+        background-image: -webkit-linear-gradient(center top, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 80%);
+        background-image: -o-linear-gradient(center top, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 80%);
+        background-image: linear-gradient(center top, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0) 80%);
+        box-shadow: 0 1px 1px white inset;
+    }
+
+    .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+        margin-left: 0px;
+    }
+
+    .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+        right: 0px;
+    }
+
+    table, th, td {
+        border: 1px solid rgba(220, 220, 220);
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 5px;
+        text-align: left;
     }
 </style>
 
@@ -70,50 +152,125 @@
             <br>
             <h4 class="text-center">Preferences</h4>
 
-            <div class="col-12">
-              <div class="pt-2 separator text-secondary font-weight-bold">Mobile</div>
-              <div class="checkbox">
-                <label><input type="checkbox" name="sms_pref"
-                              {% if tenant.sms_pref %}checked{% endif %} value="1"> Enable
-                  SMS</label>
-              </div>
+            <table style="width:100%">
+              {# Contact Number #}
+              <tr>
+                <td colspan="2" class="text-center text-secondary">Contacts</td>
+              </tr>
+              <tr>
+                <td>Mobile Number and SMS</td>
+                <td>
+                  <div class="onoffswitch">
+                    <input class="onoffswitch-checkbox" id="myonoffswitch1" type="checkbox"
+                           name="sms_pref"
+                           {% if tenant.sms_pref %}checked{% endif %} value="1">
+                    <label class="onoffswitch-label" for="myonoffswitch1">
+                      <span class="onoffswitch-inner"></span>
+                      <span class="onoffswitch-switch"></span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
 
-              <div class="pt-2 separator text-secondary font-weight-bold">WhatsApp</div>
-              <div class="checkbox">
-                <label><input id="mainWA" type="checkbox" name="wa_pref" onclick="waPref()"
-                              {% if tenant.whatsapp_pref %}checked{% endif %} value="1"> Enable
-                  WhatsApp</label>
-              </div>
-              <div id="secWAdiv" class="checkbox">
-                <label><input type="checkbox" name="wa_direct_pref"
-                              {% if tenant.whatsapp_direct_pref %}checked{% endif %} value="1">
-                  WhatsApp Direct</label>
-              </div>
+              {# WhatsApp Notification#}
 
-              <div class="pt-2 separator text-secondary font-weight-bold">PDF Download</div>
-              <div class="checkbox">
-                <label><input type="checkbox" name="download_pdf_pref"
-                              {% if tenant.download_pdf_pref %}checked{% endif %} value="1">
-                  Enable
-                  PDF Download</label>
-              </div>
+              <tr>
+                <td>WhatsApp Notification</td>
+                <td>
+                  <div class="onoffswitch">
+                    <input class="onoffswitch-checkbox" id="myonoffswitch2" type="checkbox"
+                           name="wa_pref"
+                           {% if tenant.whatsapp_pref %}checked{% endif %} value="1">
+                    <label class="onoffswitch-label" for="myonoffswitch2">
+                      <span class="onoffswitch-inner"></span>
+                      <span class="onoffswitch-switch"></span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>WhatsApp Direct</td>
+                <td>
+                  <div class="onoffswitch">
+                    <input class="onoffswitch-checkbox" id="myonoffswitch3" type="checkbox"
+                           name="wa_direct_pref"
+                           {% if tenant.whatsapp_direct_pref %}checked{% endif %} value="1">
+                    <label class="onoffswitch-label" for="myonoffswitch3">
+                      <span class="onoffswitch-inner"></span>
+                      <span class="onoffswitch-switch"></span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
 
-              <div class="pt-2 separator text-secondary font-weight-bold">Email</div>
-              <div class="checkbox disabled">
-                <label><input type="checkbox" name="email_pref"
-                              {% if tenant.email_pref %}checked{% endif %} value="1"> Enable
-                  Email</label>
-              </div>
+              {# Email Notification #}
+              <tr>
+                <td>Email ID</td>
+                <td>
+                  <div class="onoffswitch">
+                    <input class="onoffswitch-checkbox" id="myonoffswitch4" type="checkbox"
+                           name="email_pref"
+                           {% if tenant.email_pref %}checked{% endif %} value="1">
+                    <label class="onoffswitch-label" for="myonoffswitch4">
+                      <span class="onoffswitch-inner"></span>
+                      <span class="onoffswitch-switch"></span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
 
-              <div class="pt-2 separator text-secondary font-weight-bold">Bill</div>
-              <div class="checkbox">
-                <label><input type="checkbox" name="bill_till_date"
-                              {% if tenant.bill_till_date %}checked{% endif %} value="1"> Generate
-                  Bill
-                  Till Date
-                </label>
-              </div>
-            </div>
+              {# Bill - PDF and Download #}
+              <tr>
+                <td colspan="2" class="text-center text-secondary">Bills</td>
+              </tr>
+              <tr>
+                <td>PDF Bill Downloads</td>
+                <td>
+                  <div class="onoffswitch">
+                    <input class="onoffswitch-checkbox" id="myonoffswitch5" type="checkbox"
+                           name="download_pdf_pref"
+                           {% if tenant.download_pdf_pref %}checked{% endif %} value="1">
+                    <label class="onoffswitch-label" for="myonoffswitch5">
+                      <span class="onoffswitch-inner"></span>
+                      <span class="onoffswitch-switch"></span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+
+              {# Bills till date #}
+              <tr>
+                <td>Generate Bill Till Today</td>
+                <td>
+                  <div class="onoffswitch">
+                    <input class="onoffswitch-checkbox" id="myonoffswitch6" type="checkbox"
+                           name="bill_till_date"
+                           {% if tenant.bill_till_date %}checked{% endif %} value="1">
+                    <label class="onoffswitch-label" for="myonoffswitch6">
+                      <span class="onoffswitch-inner"></span>
+                      <span class="onoffswitch-switch"></span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+
+              {# Temproarly disable Bills #}
+              <tr>
+                <td>Customers Bill Access</td>
+                <td>
+                  <div class="onoffswitch">
+                    <input class="onoffswitch-checkbox" id="myonoffswitch7" type="checkbox"
+                           name="customers_bill_access"
+                           {% if tenant.customers_bill_access %}checked{% endif %} value="1">
+                    <label class="onoffswitch-label" for="myonoffswitch7">
+                      <span class="onoffswitch-inner"></span>
+                      <span class="onoffswitch-switch"></span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+
+            </table>
             <div class="p-3 text-center col-sm-12 ">
               {% if alert_message %}
                 <button type="submit"
@@ -127,20 +284,6 @@
       </div>
     </div>
   </div>
-  <script>
-    function waPref() {
-      let checkBox = document.getElementById("mainWA");
-      let action = true
-      if (checkBox.checked) {
-        action = false;
-      }
-      let nodes = document.getElementById("secWAdiv").getElementsByTagName('*');
-      for (let i = 0; i < nodes.length; i++) {
-        nodes[i].disabled = action;
-      }
-    }
-
-  </script>
 
 {% endblock %}
 <!-- Footer -->

@@ -830,6 +830,7 @@ def setting(request):
         wa_direct_pref = True if request.POST.get("wa_direct_pref") else False
         email_pref = True if request.POST.get("email_pref") else False
         bill_till_date = True if request.POST.get("bill_till_date") else False
+        customers_bill_access = True if request.POST.get("customers_bill_access") else False
         download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
         tenant, created = Tenant.objects.update_or_create(tenant_id=request.user.id,
@@ -838,6 +839,7 @@ def setting(request):
                                                                     'whatsapp_direct_pref': wa_direct_pref,
                                                                     'email_pref': email_pref,
                                                                     'bill_till_date': bill_till_date,
+                                                                    'customers_bill_access': customers_bill_access,
                                                                     'download_pdf_pref': download_pdf_pref},
                                                           )
         saved_milk_price = tenant.milk_price if tenant.milk_price else None
@@ -1046,8 +1048,8 @@ def bill_views(request):
         bill['bill_date_obj'] = datetime.strptime(string_date, '%d %B, %Y, %H:%M %p')
         bill['bill_date'] = bill['bill_date_obj'].strftime("%Y/%m/%d %I:%M %p")
         if not 'views' in bill: bill['views'] = 'Not Viewed'
-        bill['payment_status'] = True if Register.objects.filter(id__in=bill['transaction_ids'],
-                                                                 paid=1) else False
+        bill['payment_status'] = False if Register.objects.filter(id__in=bill['transaction_ids'],
+                                                                  paid=0) else True
         bill['bill_amount'] = bill['bill_summary'][-1]['sum_total']
         bill_list.append(bill)
 

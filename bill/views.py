@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from register.models import Register
+from register.models import Tenant
 from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
@@ -23,34 +24,39 @@ def index(request, bill_number=None):
             # Fetch Tenant ID
             tenant = Register.objects.get(id=bill_metadata['transaction_ids'][0])
             tenant_id = tenant.tenant_id
-            context.update(bill_metadata)
-            due_transactions = Register.objects.filter(id__in=bill_metadata['transaction_ids'])
-            payment_status = True if due_transactions.filter(paid=1) else False
-            context.update({'payment_status': payment_status})
+            tenant_pref = Tenant.objects.filter(tenant_id=tenant_id).first()
+            if tenant_pref.customers_bill_access:
+                context.update(bill_metadata)
+                due_transactions = Register.objects.filter(id__in=bill_metadata['transaction_ids'])
+                payment_status = False if due_transactions.filter(paid=0) else True
+                context.update({'payment_status': payment_status})
 
-            # Extract months which has due for calendar
-            active_months = due_transactions.dates('log_date', 'month', order='DESC')
-            calendar = [{'month': active_month.strftime('%B'),
-                         'year': active_month.strftime('%Y'),
-                         'week_start_day': [x for x in range(0, active_month.weekday())],
-                         'days_in_month': [{'day': day,
-                                            'data': get_register_day_entry(
-                                                bill_metadata['customer_id'], day=day,
-                                                month=active_month.month,
-                                                year=active_month.year,
-                                                transaction_list=due_transactions)
-                                            } for day in range(1, (
-                             monthrange(active_month.year, active_month.month)[1]) + 1)]
-                         } for active_month in active_months]
-            for entry in due_transactions:
-                entry.billed_amount = float(entry.current_price / 1000) * entry.quantity
-                entry.display_paid = 'Paid' if entry.paid else 'Due'
-                entry.display_schedule = 'Morning' if entry.schedule == 'morning-yes' else 'Evening'
-                entry.display_log_date = entry.log_date.strftime('%d-%b-%y')
-            context.update({'calendar': calendar,
-                            'due_transactions': due_transactions,
-                            'milk_price': get_milk_current_price(tenant_id, description=True)})
-
+                # Extract months which has due for calendar
+                active_months = due_transactions.dates('log_date', 'month', order='DESC')
+                calendar = [{'month': active_month.strftime('%B'),
+                             'year': active_month.strftime('%Y'),
+                             'week_start_day': [x for x in range(0, active_month.weekday())],
+                             'days_in_month': [{'day': day,
+                                                'data': get_register_day_entry(
+                                                    bill_metadata['customer_id'], day=day,
+                                                    month=active_month.month,
+                                                    year=active_month.year,
+                                                    transaction_list=due_transactions)
+                                                } for day in range(1, (
+                                 monthrange(active_month.year, active_month.month)[1]) + 1)]
+                             } for active_month in active_months]
+                for entry in due_transactions:
+                    entry.billed_amount = float(entry.current_price / 1000) * entry.quantity
+                    entry.display_paid = 'Paid' if entry.paid else 'Due'
+                    entry.display_schedule = 'Morning' if entry.schedule == 'morning-yes' else 'Evening'
+                    entry.display_log_date = entry.log_date.strftime('%d-%b-%y')
+                context.update({'calendar': calendar,
+                                'bill_access': True,
+                                'due_transactions': due_transactions,
+                                'milk_price': get_milk_current_price(tenant_id, description=True)})
+            else:
+                context.update({'bill_access': False,
+                                'customer_name': 'Not Available'})
         return render(request, template, context)
     else:
         template = 'bill/index.html'
