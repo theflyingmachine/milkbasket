@@ -256,12 +256,12 @@
 
               {# Temproarly disable Bills #}
               <tr>
-                <td>Temporarily Disable Bill Views</td>
+                <td>Customers Bill Access</td>
                 <td>
                   <div class="onoffswitch">
                     <input class="onoffswitch-checkbox" id="myonoffswitch7" type="checkbox"
-                           name="disable_bill_views"
-                           {% if tenant.disable_bill_views %}checked{% endif %} value="1">
+                           name="customers_bill_access"
+                           {% if tenant.customers_bill_access %}checked{% endif %} value="1">
                     <label class="onoffswitch-label" for="myonoffswitch7">
                       <span class="onoffswitch-inner"></span>
                       <span class="onoffswitch-switch"></span>

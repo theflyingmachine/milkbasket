@@ -18,6 +18,7 @@ class Tenant(models.Model):
     whatsapp_pref = models.BooleanField(default=True)
     whatsapp_direct_pref = models.BooleanField(default=True)
     email_pref = models.BooleanField(default=False)
+    customers_bill_access = models.BooleanField(default=True)
     bill_till_date = models.BooleanField(default=True)
     milk_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
     date_effective = models.DateTimeField(default=None, null=True)
