@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum
 from django.http import HttpResponse
@@ -555,7 +556,14 @@ def manage_expense(request, year=None, month=None):
         desc = request.POST.get("exp_desc", None)
         new_expense = Expense(tenant_id=request.user.id, cost=cost, description=desc,
                               log_date=expense_date)
-        new_expense.save()
+        try:
+            new_expense.save()
+        except ValidationError as e:
+            template = 'register/error_page.html'
+            context = {'page_title': 'Error - MilkBasket',
+                       'error_code': 'Error!',
+                       'error_msg': 'Please fill all the fields before submitting'}
+            return render(request, template, context)
 
     return redirect(formatted_url)
 
@@ -577,8 +585,14 @@ def manage_income(request, year=None, month=None):
         desc = request.POST.get("exp_desc", None)
         new_income = Income(tenant_id=request.user.id, amount=amount, description=desc,
                             log_date=income_date)
-        new_income.save()
-
+        try:
+            new_income.save()
+        except ValidationError as e:
+            template = 'register/error_page.html'
+            context = {'page_title': 'Error - MilkBasket',
+                       'error_code': 'Error!',
+                       'error_msg': 'Please fill all the fields before submitting'}
+            return render(request, template, context)
     return redirect(formatted_url)
 
 
