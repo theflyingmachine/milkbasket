@@ -10,6 +10,7 @@ from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.template.loader import get_template
 from pymongo import MongoClient
 from xhtml2pdf import pisa
@@ -333,3 +334,16 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
              'mongo': str(mongo_id), 'bill_number': data['bill_number'],
              'raw_data': data})
     return data
+
+
+#  ===================== Custom Error Handler Views ==============================
+def error_403_view(request, *args, **argv):
+    return render(request, 'register/errors/403.html', status=403)
+
+
+def error_404_view(request, *args, **argv):
+    return render(request, 'register/errors/404.html', status=404)
+
+
+def error_500_view(request, *args, **argv):
+    return render(request, 'register/errors/500.html', status=500)

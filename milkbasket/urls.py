@@ -15,9 +15,8 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from django.urls import path, include
-
-import register
+from django.urls import include
+from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,3 +25,7 @@ urlpatterns = [
     url(r'^register/', include('register.urls')),
 
 ]
+# Custom Error Handlers
+handler403 = 'register.utils.error_403_view'
+handler404 = 'register.utils.error_404_view'
+handler500 = 'register.utils.error_500_view'

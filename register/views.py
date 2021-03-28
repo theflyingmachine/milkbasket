@@ -559,7 +559,7 @@ def manage_expense(request, year=None, month=None):
         try:
             new_expense.save()
         except ValidationError as e:
-            template = 'register/error_page.html'
+            template = 'register/errors/custom_error_page.html'
             context = {'page_title': 'Error - MilkBasket',
                        'error_code': 'Error!',
                        'error_msg': 'Please fill all the fields before submitting'}
@@ -588,7 +588,7 @@ def manage_income(request, year=None, month=None):
         try:
             new_income.save()
         except ValidationError as e:
-            template = 'register/error_page.html'
+            template = 'register/errors/custom_error_page.html'
             context = {'page_title': 'Error - MilkBasket',
                        'error_code': 'Error!',
                        'error_msg': 'Please fill all the fields before submitting'}
