@@ -16,6 +16,7 @@ from pathlib import Path
 from django.urls import reverse_lazy
 
 from milkbasket.secret import EMAIL_PASSWORD
+from milkbasket.secret import ENV_DEBUG
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '06^)^*-!6m9pp_21aq)(j#a5yv^#7y5&c8o+l#4hmgy+s!eekk'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = ENV_DEBUG
 
 ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1']
 
