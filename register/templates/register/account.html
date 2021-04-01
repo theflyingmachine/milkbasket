@@ -20,7 +20,7 @@
         <input type="hidden" name="nav-type" value="account" id="nav">
         <input class="inline" type="month" name="register_month" id="mydate"
                value="{% now 'Y-m' %}">
-        <button type="submit" class="btn btn-info">GO</button>
+        <button type="submit" class="btn btn-primary">GO</button>
       </form>
     </div>
   </div>
@@ -59,7 +59,7 @@
                       <span class="font-weight-bold">{{ entry.payment_due_prev }}</span>
                       <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
                     <td class="col-3">
-                      <button type="button" class="btn-sm btn-primary"
+                      <button type="button" class="btn-sm btn-primary my-1"
                               data-toggle="modal"
                               data-target="#exampleModal2"
                               data-cid="{{ entry.customer_id }}"
@@ -415,7 +415,7 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-success justify-content-center"
+            <button type="submit" class="btn btn-primary justify-content-center"
                     onclick="submitFormFn(this);">
               Accept
               Payment
@@ -464,7 +464,7 @@
             </div>
 
             <button id="sendsmsbutton" type="submit"
-                    class="btn btn-success justify-content-center ">Send SMS
+                    class="btn btn-primary justify-content-center ">Send SMS
             </button>
           </div>
         </form>
