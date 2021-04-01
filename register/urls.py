@@ -41,3 +41,7 @@ urlpatterns = [
     path('sendsms', views.send_SMS, name='send_sms'),
     path('sendemail/<int:id>', views.send_EMAIL, name='send_email'),
 ]
+
+handler403 = 'register.utils.error_403_view'
+handler404 = 'register.utils.error_404_view'
+handler500 = 'register.utils.error_500_view'

@@ -260,12 +260,12 @@
           {% if tenant.download_pdf_pref %}
             <a target="_blank"
                href="/register/print_bill/{{ customer.id }}"
-               class="btn btn-info mb-1"><i
+               class="btn btn-primary mb-1"><i
              class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
           {% endif %}
           {% if tenant.sms_pref %}
             {% if customer.contact %}
-              <button id="sendsmsbuttonmain" type="button" class="btn btn-info mb-1"
+              <button id="sendsmsbuttonmain" type="button" class="btn btn-primary mb-1"
                       data-toggle="modal"
                       data-target="#smsModal"
                       data-cname="{{ customer.name }}"
@@ -277,14 +277,14 @@
           {% endif %}
           {% if tenant.whatsapp_pref %}
             <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
-                    class="btn btn-info mb-1">
+                    class="btn btn-primary mb-1">
               <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
             </button>
           {% endif %}
           {% if tenant.email_pref %}
             {% if customer.email %}
               <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
-                      class="btn btn-info mb-1">
+                      class="btn btn-primary mb-1">
                 <i class="fa fa-mail" aria-hidden="true"></i> Send Email
               </button>
             {% endif %}
@@ -513,7 +513,7 @@
                   </div>
                 {% endif %}
 
-                <button type="submit" class="btn btn-success justify-content-center col-12"
+                <button type="submit" class="btn btn-primary justify-content-center col-12"
                         onclick="acceptPaymentFn(this);">
                   Accept
                   Payment
@@ -564,7 +564,7 @@
                 </div>
 
                 <button id="sendsmsbutton" type="submit"
-                        class="btn btn-success justify-content-center col-12">Send SMS
+                        class="btn btn-primary justify-content-center col-12">Send SMS
                 </button>
               </div>
             </form>
