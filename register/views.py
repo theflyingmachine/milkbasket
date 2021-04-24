@@ -39,6 +39,7 @@ from register.utils import get_customer_balance_amount
 from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
+from register.utils import is_last_day_of_month
 from register.utils import render_to_pdf
 from register.utils import send_email_api
 from register.utils import send_sms_api
@@ -470,9 +471,10 @@ def account(request, year=None, month=None):
         # Due sms text
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
+        last_day_of_month = is_last_day_of_month()
         month_and_amount = (
             f"{prev_month_name} is Rs {customer['payment_due_prev']}") if customer[
-                                                                              'payment_due_prev'] > 0 else (
+                                                                              'payment_due_prev'] > 0 and not last_day_of_month else (
             f"{current_month_name} is Rs {customer['payment_due']}")
         customer[
             'sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]"
@@ -976,8 +978,9 @@ def customer_profile(request, id=None):
         due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount)
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
+        last_day_of_month = is_last_day_of_month()
         month_and_amount = (
-            f'{prev_month_name} is Rs {due_till_prev_month}') if due_till_prev_month > 0 else (
+            f'{prev_month_name} is Rs {due_till_prev_month}') if due_till_prev_month > 0 and not last_day_of_month else (
             f'{current_month_name} is Rs {due_till_current_month}')
         sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
 

@@ -336,6 +336,13 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
     return data
 
 
+def is_last_day_of_month():
+    """Function to check if today is the last day of the month"""
+    today = datetime.today().date()
+    last_day = today.replace(day=monthrange(today.year, today.month)[1])
+    return True if today == last_day else False
+
+
 #  ===================== Custom Error Handler Views ==============================
 def error_403_view(request, *args, **argv):
     return render(request, 'register/errors/403.html', status=403)
