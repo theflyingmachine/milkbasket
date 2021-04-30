@@ -21,6 +21,8 @@ from django.utils.safestring import mark_safe
 from django.views.generic import View
 
 from milkbasket.secret import RUN_ENVIRONMENT
+from register.constant import DUE_TEMPLATE_ID
+from register.constant import PAYMENT_TEMPLATE_ID
 from register.forms import CustomerForm
 from register.forms import RegisterForm
 from register.models import Balance
@@ -625,7 +627,7 @@ def accept_payment(request, year=None, month=None, return_url=None):
         if sms_notification:
             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
             sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
-            send_sms_api(customer.contact, sms_text)
+            send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
 
         # Update Register
         balance_amount = Balance.objects.filter(tenant_id=request.user.id,
@@ -1035,7 +1037,7 @@ def send_SMS(request):
     smstext = request.POST.get("smstextareabox")
     data = {'status': 'failed'}
     if contact and smstext:
-        data = send_sms_api(contact, smstext)
+        data = send_sms_api(contact, smstext, DUE_TEMPLATE_ID)
     return HttpResponse(data, content_type='application/json')
 
 

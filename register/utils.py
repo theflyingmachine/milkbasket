@@ -179,7 +179,7 @@ def get_base_64_barcode(barcode_text):
     return barcode
 
 
-def send_sms_api(contact, sms_text):
+def send_sms_api(contact, sms_text, template_id):
     """ Send SMS api """
     response = None
 
@@ -193,7 +193,9 @@ def send_sms_api(contact, sms_text):
         payload = {'apikey': SMS_API_KEY,
                    'mobile': contact,
                    'message': sms_text,
+                   'template_id': template_id,
                    }
+        print(payload)
         response = requests.post(url, data=payload)
     return response
 
