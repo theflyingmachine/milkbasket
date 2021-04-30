@@ -480,7 +480,7 @@ def account(request, year=None, month=None):
                                                                               'payment_due_prev'] > 0 and not last_day_of_month else (
             f"{current_month_name} is Rs {customer['payment_due']}")
         customer[
-            'sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount {'till' if customer['payment_due_prev'] else 'for'} the month of {month_and_amount}.\n[Milk Basket]"
+            'sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]"
 
     # Get paid customer
     paid_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
@@ -987,7 +987,7 @@ def customer_profile(request, id=None):
         month_and_amount = (
             f'{prev_month_name} is Rs {due_till_prev_month}') if due_till_prev_month > 0 and not last_day_of_month else (
             f'{current_month_name} is Rs {due_till_current_month}')
-        sms_text = f'Dear {customer.name},\nTotal due amount {"till" if due_till_prev_month else "for"} the month of {month_and_amount}.\n[Milk Basket]'
+        sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
 
         # Get Tenant Preference
         try:
