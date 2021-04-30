@@ -147,21 +147,21 @@
             <table class="table mb-5 table-sm table-striped">
               <thead>
               <tr class="d-flex bg-info text-white">
-                <th class="p-2 col-1" scope="col">#</th>
-                <th class="p-2 col-5" scope="col">Description</th>
-                <th class="p-2 col-1" scope="col">Cost</th>
-                <th class="p-2 col-3" scope="col">Log Date</th>
-                <th class="p-2 col-2" scope="col">Action</th>
+                <th class="p-1 col-1" scope="col">#</th>
+                <th class="p-1 col-5" scope="col">Description</th>
+                <th class="p-1 col-2" scope="col">Cost</th>
+                <th class="p-1 col-2" scope="col">Log Date</th>
+                <th class="p-1 col-2" scope="col">Action</th>
               </tr>
               </thead>
               <tbody>
               {% for entry in expenses %}
                 <tr class="d-flex">
-                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <td class="p-2 col-5">{{ entry.description }}</td>
-                  <td class="p-2 col-1">{{ entry.cost }}</td>
-                  <td class="p-2 col-3">{{ entry.log_date }}</td>
-                  <td class="p-2 col-2">
+                  <th class="py-2 col-1" scope="row">{{ forloop.counter }}</th>
+                  <td class="py-2 col-5">{{ entry.description }}</td>
+                  <td class="py-2 col-2">{{ entry.cost|floatformat }}</td>
+                  <td class="py-2 col-2 text-center">{{ entry.log_date }}</td>
+                  <td class="py-2 col-2">
                     <button type="button" class="btn-sm btn-danger"
                             data-toggle="modal"
                             data-target="#exampleModal"
@@ -186,21 +186,21 @@
             <table class="table mb-5 table-sm table-striped">
               <thead>
               <tr class="d-flex bg-info text-white">
-                <th class="p-2 col-1" scope="col">#</th>
-                <th class="p-2 col-5" scope="col">Description</th>
-                <th class="p-2 col-1" scope="col">Amount</th>
-                <th class="p-2 col-3" scope="col">Log Date</th>
-                <th class="p-2 col-2" scope="col">Action</th>
+                <th class="p-1 col-1" scope="col">#</th>
+                <th class="p-1 col-5" scope="col">Description</th>
+                <th class="p-1 col-2" scope="col">Amount</th>
+                <th class="p-1 col-2" scope="col">Log Date</th>
+                <th class="p-1 col-2" scope="col">Action</th>
               </tr>
               </thead>
               <tbody>
               {% for entry in income %}
                 <tr class="d-flex">
-                  <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <td class="p-2 col-5">{{ entry.description }}</td>
-                  <td class="p-2 col-1">{{ entry.amount }}</td>
-                  <td class="p-2 col-3">{{ entry.log_date }}</td>
-                  <td class="p-2 col-2">
+                  <th class="py-2 col-1" scope="row">{{ forloop.counter }}</th>
+                  <td class="py-2 col-5">{{ entry.description }}</td>
+                  <td class="py-2 col-2">{{ entry.amount|floatformat }}</td>
+                  <td class="py-2 col-2">{{ entry.log_date }}</td>
+                  <td class="py-2 col-2">
                     <button type="button" class="btn-sm btn-danger"
                             data-toggle="modal"
                             data-target="#deleteIncomeModal"

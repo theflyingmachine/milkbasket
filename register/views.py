@@ -435,6 +435,7 @@ def account(request, year=None, month=None):
     expenses = Expense.objects.filter(tenant_id=request.user.id,
                                       log_date__month=register_date.month)
     for exp in expenses:
+        exp.log_date = exp.log_date.strftime("%b %d")
         total_expense += exp.cost
     month_year = register_date.strftime("%B, %Y")
 
@@ -503,6 +504,8 @@ def account(request, year=None, month=None):
 
     # Get extra income
     income = Income.objects.filter(tenant_id=request.user.id, log_date__month=register_date.month)
+    for inc in income:
+        inc.log_date = inc.log_date.strftime("%b %d")
 
     context = {
         'page_title': 'Milk Basket - Accounts',
