@@ -222,36 +222,6 @@
         {% endif %}
       </div>
 
-      {#    {% if expenses or due_customer or paid_customer %}#}
-      {% if transaction %}
-        <!-- Transaction Table-->
-        <div class="mt-4 col-12  p-0" style="overflow-x:auto;">
-          <caption><h5 class="pt-2 mt-2 text-center">Transaction</h5></caption>
-          <table class="table table-sm table-striped">
-            <thead>
-            <tr class="d-flex bg-info text-white">
-              <th class="p-2 col-1" scope="col">#</th>
-              <th class="p-2 col-2" scope="col">Transaction ID</th>
-              <th class="p-2 col-6" scope="col">Transaction Date</th>
-              <th class="p-2 col-3" scope="col">Amount</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for entry in transaction %}
-              <tr class="d-flex">
-                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                <td class="p-2 col-2">{{ entry.id }}</td>
-                <td class="p-2 col-6">{{ entry.log_date }}</td>
-                <td class="p-2 col-3">{{ entry.amount }}</td>
-
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% endif %}
-
       {#  Bill Summary #}
       {% if bill_summary %}
         <!--    Bill Summary -->
@@ -358,6 +328,35 @@
               {% endif %}
 
             {% endfor %}
+          </table>
+        </div>
+      {% endif %}
+
+      {% if transaction %}
+        <!-- Transaction Table-->
+        <div class="mt-4 col-12  p-0" style="overflow-x:auto;">
+          <caption><h5 class="pt-2 mt-2 text-center">Transaction</h5></caption>
+          <table class="table table-sm table-striped">
+            <thead>
+            <tr class="d-flex bg-info text-white">
+              <th class="p-2 col-1" scope="col">#</th>
+              <th class="p-2 col-2" scope="col">Transaction ID</th>
+              <th class="p-2 col-6" scope="col">Transaction Date</th>
+              <th class="p-2 col-3" scope="col">Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in transaction %}
+              <tr class="d-flex">
+                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
+                <td class="p-2 col-2">{{ entry.id }}</td>
+                <td class="p-2 col-6">{{ entry.log_date }}</td>
+                <td class="p-2 col-3">{{ entry.amount }}</td>
+
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
           </table>
         </div>
       {% endif %}
