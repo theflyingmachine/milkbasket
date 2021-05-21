@@ -1,6 +1,11 @@
 {% include "register/header.html" %}
 
 <!-- Navbar content -->
+<style>
+    .info-row {
+        background-color: #F8D79B !important;
+    }
+</style>
 {% block content %}
   <div class="row bd-highlight">
     <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
@@ -99,6 +104,11 @@
                   </script>
                 {% endif %}
               {% endfor %}
+              <tr class="info-row">
+                <td class="py-2 font-weight-bold">Total Due till date:
+                  Rs {{ due_total }} &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+                  Total Due ({{ previous_month_name }}): {{ due_total_prev }}</td>
+              </tr>
               </tbody>
             </table>
           {% endif %}
@@ -137,6 +147,10 @@
                   <td class=" col-3"><b>{{ entry.total_paid }}</b></td>
                 </tr>
               {% endfor %}
+              <tr class="info-row">
+                <td class="py-2 font-weight-bold">Total Received:
+                  Rs {{ reveieved_total }}</td>
+              </tr>
               </tbody>
             </table>
           {% endif %}
@@ -174,6 +188,10 @@
                   </td>
                 </tr>
               {% endfor %}
+              <tr class="info-row">
+                <td class="py-2 font-weight-bold">Total Expenses:
+                  Rs {{ entry_expense_total|floatformat }}</td>
+              </tr>
               </tbody>
             </table>
           {% endif %}
@@ -213,6 +231,10 @@
                   </td>
                 </tr>
               {% endfor %}
+              <tr class="info-row">
+                <td class="py-2 font-weight-bold">Total Income:
+                  Rs {{ entry_income_total|floatformat }}</td>
+              </tr>
               </tbody>
             </table>
           {% endif %}

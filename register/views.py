@@ -514,11 +514,17 @@ def account(request, year=None, month=None):
         'month_year': month_year,
         'menu_account': True,
         'expenses': expenses,
+        'entry_expense_total': sum([float(entry.cost) for entry in expenses]),
         'income': income,
+        'entry_income_total': sum([float(entry.amount) for entry in income]),
         'total_payment': total_payment,
         'total_expense': total_expense,
         'due_customer': due_customer,
+        'due_total': sum([float(entry['payment_due']) for entry in due_customer]),
+        'due_total_prev': sum([float(entry['payment_due_prev']) for entry in due_customer]),
         'paid_customer': [cust for cust in paid_customer if cust['total_paid']],
+        'reveieved_total': sum(
+            [cust['total_paid'] for cust in paid_customer if cust['total_paid']]),
         'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
         'tenant': tenant,
     }
