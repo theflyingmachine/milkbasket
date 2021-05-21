@@ -370,8 +370,8 @@
                 <div class="form-group">
                   <select name='start' class="form-control custom-select-lg">
                     {% for day in days %}
-                      <option {% if day == today_day %} selected {% endif %}
-                                                        value="{{ day }}">{{ day }} {{ month_year }}</option>
+                      <option {% if day == last_entry_day %} selected {% endif %}
+                                                             value="{{ day }}">{{ day }} {{ month_year }}</option>
                     {% endfor %}
                   </select>
                 </div>

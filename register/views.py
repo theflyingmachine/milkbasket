@@ -132,11 +132,17 @@ def index(request, year=None, month=None):
     month_year = register_date.strftime("%B, %Y")
     cal_days = range(1, days[1] + 1)
 
+    # Get last entry date
+    last_entry_date = Register.objects.filter(tenant_id=request.user.id,
+                                              log_date__month=register_date.month).latest(
+        'log_date__day')
+
     context.update({
         'month_year': month_year,
         'm_register': m_register,
         'e_register': e_register,
         'today_day': date.today().day,
+        'last_entry_day': int(last_entry_date.log_date.strftime("%d")),
         'days': cal_days,
         'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
         'active_customers': active_customers,
