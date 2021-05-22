@@ -142,7 +142,7 @@ def index(request, year=None, month=None):
         'm_register': m_register,
         'e_register': e_register,
         'today_day': date.today().day,
-        'last_entry_day': int(last_entry_date.log_date.strftime("%d")),
+        'last_entry_day': int(last_entry_date.log_date.strftime("%d")) + 1,
         'days': cal_days,
         'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
         'active_customers': active_customers,
