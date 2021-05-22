@@ -41,14 +41,14 @@
           {#    Payment due#}
           {% if due_customer %}
             <h3 class="pt-2 mt-2 text-center">Payment Due</h3>
-            <table class="table mb-5 table-sm table-striped">
+            <table class="table mb-5 table-striped">
               <thead>
               <tr class="d-flex bg-info text-white">
                 <th class="p-2 col-1" scope="col">#</th>
                 <th class="p-2 col-3" scope="col">Name</th>
                 <th class="p-2 col-2" scope="col">Total Due</th>
-                <th class="p-2 col-3" scope="col">Due (till {{ previous_month_name }})</th>
-                <th class="p-2 col-3" scope="col">Action</th>
+                <th class="p-2 col-2" scope="col">Due (till {{ previous_month_name }})</th>
+                <th class="p-2 col-4" scope="col">Action</th>
               </tr>
               </thead>
               <tbody>
@@ -60,10 +60,10 @@
                      href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
                     </th>
                     <td class="p-2 col-2">{{ entry.payment_due }}</td>
-                    <td class="p-2 col-3">{% if entry.payment_due_prev %}
+                    <td class="p-2 col-2">{% if entry.payment_due_prev %}
                       <span class="font-weight-bold">{{ entry.payment_due_prev }}</span>
                       <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
-                    <td class="col-3">
+                    <td class="col-4">
                       <button type="button" class="btn-sm btn-primary my-1"
                               data-toggle="modal"
                               data-target="#exampleModal2"
@@ -79,7 +79,7 @@
                       {% if tenant.sms_pref %}
                         {% if entry.customer__contact %}
                           <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
-                                  class="btn btn-info px-4 py-2 my-1"
+                                  class="btn btn-info px-3 py-2 my-1"
                                   data-toggle="modal"
                                   data-target="#smsModal"
                                   data-cid="{{ entry.customer_id }}"
@@ -94,8 +94,17 @@
                           <button id="sendwabuttonmain{{ entry.customer_id }}"
                                   onclick="shareOnWhatsApp(this, {{ entry.customer_id }},'{{ entry.customer__name }}', {{ entry.customer__contact }})"
                                   type="button"
-                                  class="btn btn-info px-4 py-2">
+                                  class="btn btn-info px-3 py-2">
                             <i class="fab fa-whatsapp"></i>
+                          </button>
+                        {% endif %}
+                      {% endif %}
+                      {% if tenant.email_pref %}
+                        {% if entry.customer__email %}
+                          <button id="sendemailbuttonmain{{ entry.customer_id }}"
+                                  onclick="sendEmail(this, {{ entry.customer_id }})" type="button"
+                                  class="btn btn-info px-3 py-2">
+                            <i class="fas fa-envelope-open-text"></i>
                           </button>
                         {% endif %}
                       {% endif %}
@@ -115,6 +124,11 @@
                     if (sessionStorage.getItem("wa_{{ entry.customer_id }}")) {
                       document.getElementById("sendwabuttonmain{{ entry.customer_id }}").classList.remove('btn-info');
                       document.getElementById("sendwabuttonmain{{ entry.customer_id }}").classList.add('btn-secondary');
+                    }
+                    {# Check for email session #}
+                    if (sessionStorage.getItem("email_{{ entry.customer_id }}")) {
+                      document.getElementById("sendemailbuttonmain{{ entry.customer_id }}").classList.remove('btn-info');
+                      document.getElementById("sendemailbuttonmain{{ entry.customer_id }}").classList.add('btn-secondary');
                     }
                   </script>
                 {% endif %}
@@ -648,6 +662,26 @@
           alert('Something went wrong...')
           this_button.disabled = false;
           this_button.innerHTML = '<i class="fab fa-whatsapp"></i>';
+        }
+        {#alert("Data: " + data + "\nStatus: " + status);#}
+      });
+    }
+
+    function sendEmail(this_button, customer_id) {
+      {# Send Email #}
+      this_button.disabled = true;
+      this_button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+      $.get("/sendemail/" + customer_id, function (data, status) {
+        if (data.status === 'success') {
+          this_button.innerHTML = '<i class="fa fa-envelope-open-text"></i>';
+          this_button.classList.remove('btn-info');
+          this_button.classList.add('btn-secondary');
+          {#  Update in session to disable send button#}
+          sessionStorage.setItem("email_" + customer_id, 'sent');
+        } else {
+          // Error code here
+          alert('Something went wrong...')
+          this_button.innerHTML = '<i class="fa fa-envelope-open-text"></i>';
         }
         {#alert("Data: " + data + "\nStatus: " + status);#}
       });

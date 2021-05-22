@@ -452,7 +452,8 @@ def account(request, year=None, month=None):
     due_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
                                            paid=0).values('customer_id',
                                                           'customer__name',
-                                                          'customer__contact').distinct()
+                                                          'customer__contact',
+                                                          'customer__email').distinct()
     for customer in due_customer:
         payment_due = Register.objects.filter(tenant_id=request.user.id,
                                               customer_id=customer['customer_id'],
