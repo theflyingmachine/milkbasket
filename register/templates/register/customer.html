@@ -250,6 +250,9 @@
       if (recipient_name) {
         modal.find('#recipient_name').val(recipient_name)
         $('#recipient_name').prop('disabled', true);
+      } else {
+        $('#recipient_name').prop('disabled', false);
+        modal.find('#recipient_name').val('');
       }
       modal.find('#recipient_id').val(recipient_id)
       modal.find('#recipient-quantity').val(recipient_quantity)
