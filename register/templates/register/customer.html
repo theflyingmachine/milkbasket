@@ -1,5 +1,49 @@
 {% include "register/header.html" %}
+<style>
+    .quantity-input {
+        font-size: 30px;
+    }
 
+    .inbox {
+        max-width: 400px;
+    }
+
+    .item {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #F1F1F1;
+    }
+
+    .item:last-child {
+        border-bottom: 0;
+    }
+
+    input:checked + label {
+        background: #c3e7b4;
+        text-decoration: none;
+    }
+
+    input[type="checkbox"] {
+        margin: 10px;
+        width: 40px; /*Desired width*/
+        height: 40px; /*Desired height*/
+        cursor: pointer;
+
+    }
+
+    .schedule-label {
+        margin: 0;
+        padding: 10px;
+        transition: background 0.5s;
+        text-decoration: line-through;
+        flex: 1;
+        font-family: 'helvetica neue';
+        font-size: 25px;
+        font-weight: 200;
+        border-radius: 5px;
+    {#border-left: 1px solid green;#}
+    }
+</style>
 <!-- Navbar content -->
 {% block content %}
   <div class="d-flex bd-highlight mb-3">
@@ -44,7 +88,7 @@
               <br>{% endif %}
             {% if customer.email %}<span class="card-text">{{ customer.email }}</span>
               <br>{% endif %}
-            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>
+            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity|floatformat }} ML</span><br>
             <div class="row justify-content-center">
               {#              <button type="button" class="btn btn-secondary col-5 m-2">History</button>#}
               <a href="/register/profile/{{ customer.id }}" class="btn btn-secondary col-5 m-2">History</a>
@@ -54,7 +98,7 @@
                       data-id="{{ customer.id }}"
                       data-contact="{{ customer.contact }}"
                       data-email="{{ customer.email }}"
-                      data-quantity="{{ customer.quantity }}"
+                      data-quantity="{{ customer.quantity|floatformat }}"
                       data-morning="{{ customer.morning }}"
                       data-evening="{{ customer.evening }}"
               >Edit
@@ -98,7 +142,7 @@
                       data-id="{{ customer.id }}"
                       data-contact="{{ customer.contact }}"
                       data-email="{{ customer.email }}"
-                      data-quantity="{{ customer.quantity }}"
+                      data-quantity="{{ customer.quantity|floatformat }}"
                       data-morning="{{ customer.morning }}"
                       data-evening="{{ customer.evening }}"
               >Edit
@@ -158,18 +202,25 @@
             {% endif %}
             <div class="form-row">
               <div class="form-group col-md-12">
-                <label for="inputState">Schedule: </label>
+                <label>Schedule</label>
+                <div class="inbox mx-3">
+                  <div class="item">
+                    <input type="checkbox" id="recipient_morning"
+                           name="morning">
+                    <label for="recipient_morning" class="schedule-label"><i
+                     class="fas fa-cloud-sun text-warning"></i> Monring</label>
+                  </div>
+                  <div class="item">
+                    <input type="checkbox" id="recipient_evening"
+                           name="evening">
+                    <label for="recipient_evening" class="schedule-label"><i
+                     class="fas fa-cloud-moon text-info"></i> Evening</label>
+                  </div>
+                </div>
 
-
-                <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_morning"
-                       name="morning">
-                <label for="vehicle1"> Morning</label>
-                <input class="ml-lg-5 ml-md-5" type="checkbox" id="recipient_evening"
-                       name="evening">
-                <label for="vehicle2"> Evening</label><br>
-
-                <label for="inputZip">Quantity</label>
-                <input type="number" required class="form-control" id="recipient-quantity"
+                <label for="recipient-quantity">Quantity</label>
+                <input class="form-control quantity-input font-weight-bold" step="0" type="number"
+                       required id="recipient-quantity"
                        name="quantity"
                        placeholder="ML">
               </div>
