@@ -79,7 +79,7 @@
                       {% if tenant.sms_pref %}
                         {% if entry.customer__contact %}
                           <button id="sendsmsbuttonmain{{ entry.customer_id }}" type="button"
-                                  class="btn-sm btn-info"
+                                  class="btn btn-info px-4 py-2 my-1"
                                   data-toggle="modal"
                                   data-target="#smsModal"
                                   data-cid="{{ entry.customer_id }}"
@@ -87,19 +87,35 @@
                                   data-c_contact="{{ entry.customer__contact }}"
                                   data-c_smstext="{{ entry.sms_text }}"
                           ><i
-                           class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+                           class="fa fa-commenting" aria-hidden="true"></i>
                           </button>{% endif %}
+                      {% endif %}
+                      {% if tenant.whatsapp_pref %}
+                        {% if entry.customer__contact %}
+                          <button id="sendwabuttonmain{{ entry.customer_id }}"
+                                  onclick="shareOnWhatsApp(this, {{ entry.customer_id }},'{{ entry.customer__name }}', {{ entry.customer__contact }})"
+                                  type="button"
+                                  class="btn btn-info px-4 py-2">
+                            <i class="fa fa-whatsapp" aria-hidden="true"></i>
+                          </button>
+                        {% endif %}
                       {% endif %}
                     </td>
                   </tr>
 
-                  {# Check in session if SMS was already sent and disable button #}
+                  {# Check in session if SMS or WhatsApp was already sent and disable button #}
                   <script>
+                    {# Check for SMS session #}
                     if (sessionStorage.getItem("sms_{{ entry.customer_id }}")) {
                       {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").disabled = true;#}
-                      document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").innerText = 'SMS Sent';
+                      {#document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").innerText = 'SMS Sent';#}
                       document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.remove('btn-info');
                       document.getElementById("sendsmsbuttonmain{{ entry.customer_id }}").classList.add('btn-secondary');
+                    }
+                    {# Check for whatsapp session #}
+                    if (sessionStorage.getItem("wa_{{ entry.customer_id }}")) {
+                      document.getElementById("sendwabuttonmain{{ entry.customer_id }}").classList.remove('btn-info');
+                      document.getElementById("sendwabuttonmain{{ entry.customer_id }}").classList.add('btn-secondary');
                     }
                   </script>
                 {% endif %}
@@ -595,10 +611,41 @@
     }
 
     function submitFormFn(submitForm) {
-      //Showing please wait spinner while accepting payment
+      {# Showing please wait spinner while accepting payment #}
       submitForm.disabled = true;
       submitForm.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
       submitForm.form.submit();
+    }
+
+    function shareOnWhatsApp(this_button, customer_id, customer_name, contact_number) {
+      {# Send WhatsApp #}
+      this_button.disabled = true;
+      this_button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+      $.get("/print_bill/" + customer_id + "/no-download/", function (data, status) {
+        if (data.status === 'success') {
+          document.getElementById("sendwabuttonmain" + customer_id).disabled = true;
+          {#document.getElementById("sendwabuttonmain"+customer_id).innerText = 'Shared';#}
+          var share_text = 'Dear ' + customer_name + ', Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
+          {% if tenant.whatsapp_direct_pref and customer.contact %}
+            var url = "https://api.whatsapp.com/send?phone=91" + contact_number + "&text=" + share_text;
+          {% else %}
+            var url = "https://api.whatsapp.com/send?text=" + share_text;
+          {% endif %}
+          var win = window.open(url, '_blank');
+          win.focus();
+          document.getElementById("sendwabuttonmain" + customer_id).classList.remove('btn-info');
+          document.getElementById("sendwabuttonmain" + customer_id).classList.add('btn-secondary');
+          {#  Update in session to disable send button#}
+          sessionStorage.setItem("wa_" + customer_id, 'sent');
+          this_button.innerHTML = '<i class="fa fa-whatsapp"></i>';
+        } else {
+          // Error code here
+          alert('Something went wrong...')
+          this_button.disabled = false;
+          this_button.innerHTML = '<i class="fa fa-whatsapp"></i>';
+        }
+        {#alert("Data: " + data + "\nStatus: " + status);#}
+      });
     }
   </script>
 {% endblock %}
