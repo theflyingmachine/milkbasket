@@ -123,6 +123,60 @@
           }
       }
 
+      .quantity-input {
+          font-size: 30px;
+      }
+
+      {# Attendance box CSS #}
+      .wrapper {
+          display: inline-flex;
+          background: #fff;
+          height: 100px;
+          width: 100%;
+          align-items: center;
+          justify-content: space-evenly;
+          border-radius: 5px;
+          padding: 15px 15px;
+      {#box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.2);#}
+      }
+
+      .wrapper .option {
+          background: #fff;
+          height: 100%;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-evenly;
+          margin: 0 10px;
+          border-radius: 10px;
+          cursor: pointer;
+          padding: 0 10px;
+          border: 2px solid lightgrey;
+          transition: all 0.3s ease;
+      }
+
+      input[type="radio"] {
+          display: none;
+      }
+
+      #option-1:checked:checked ~ .option-1 {
+          background: green;
+      }
+
+      #option-2:checked:checked ~ .option-2 {
+          background: red;
+      }
+
+      .wrapper .option span {
+          font-size: 20px;
+          color: #808080;
+      }
+
+      #option-1:checked:checked ~ .option-1 span,
+      #option-2:checked:checked ~ .option-2 span {
+          color: #fff;
+      }
+
   </style>
   {% load mathfilters %}
   <div class="row bd-highlight mb-3">
@@ -176,7 +230,7 @@
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Morning" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
-                            data-quantity="{{ entry.customer_quantity }}"
+                            data-quantity="{{ entry.customer_quantity|floatformat }}"
                             data-price="{{ entry.default_price }}">{{ day }}</button>
                   </td></td>
                 {% endfor %}
@@ -209,7 +263,7 @@
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Evening" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
-                            data-quantity="{{ entry.customer_quantity }}"
+                            data-quantity="{{ entry.customer_quantity|floatformat }}"
                             data-price="{{ entry.default_price }}">{{ day }}</button>
                   </td>
                 {% endfor %}
@@ -250,19 +304,21 @@
             </div>
             <div class="form-group">
               <label for="recipient-quantity" class="col-form-label">Quantity:</label>
-              <input type="number" class="form-control" name="quantity" id="recipient-quantity">
+              <input type="number" class="form-control quantity-input font-weight-bold" step='0'
+                     name="quantity" id="recipient-quantity">
             </div>
             <div class="form-group">
               <label for="yn">Attendance:</label>
-              <div id='yn' class="form-check form-check-inline p-3">
-                <input class="form-check-input" type="radio" name="attendance" id="inlineRadio1"
-                       value="1" checked>
-                <label class="form-check-label" for="yes">Yes</label>
-              </div>
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="attendance" id="inlineRadio2"
-                       value="0">
-                <label class="form-check-label" for="no">No</label>
+              <div class="wrapper">
+                <input type="radio" name="attendance" id="option-1" value="1"
+                       checked>
+                <input type="radio" name="attendance" id="option-2" value="0">
+                <label for="option-1" class="option option-1">
+                  <span>✅ Present</span>
+                </label>
+                <label for="option-2" class="option option-2">
+                  <span>❌ Absent</span>
+                </label>
               </div>
             </div>
             <div class="progress">
