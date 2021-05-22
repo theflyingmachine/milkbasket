@@ -241,21 +241,20 @@
                       data-cname="{{ customer.name }}"
                       data-c_contact="{{ customer.contact }}"
                       data-c_smstext="{{ sms_text }}"
-              ><i
-               class="fa fa-commenting" aria-hidden="true"></i> Send SMS
+              ><i class="fas fa-sms"></i> Send SMS
               </button>{% endif %}
           {% endif %}
           {% if tenant.whatsapp_pref %}
             <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
                     class="btn btn-primary mb-1">
-              <i class="fa fa-whatsapp" aria-hidden="true"></i> Share on WhatsApp
+              <i class="fab fa-whatsapp"></i> Share on WhatsApp
             </button>
           {% endif %}
           {% if tenant.email_pref %}
             {% if customer.email %}
               <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
                       class="btn btn-primary mb-1">
-                <i class="fa fa-mail" aria-hidden="true"></i> Send Email
+                <i class="fas fa-envelope-open-text"></i> Send Email
               </button>
             {% endif %}
           {% endif %}

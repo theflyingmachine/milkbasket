@@ -11,11 +11,11 @@
     <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
       <button type="button" class="btn mt-2 mr-2 btn-primary" data-toggle="modal"
               data-target="#exampleModal1"
-              data-whatever="@fat"><i class="fa fa-usd"></i> | Add Expense
+              data-whatever="@fat"><i class="fas fa-dollar-sign"></i> | Add Expense
       </button>
       <button type="button" class="btn mt-2  btn-primary" data-toggle="modal"
               data-target="#addIncomeModal"
-              data-whatever="@fat"><i class="fa fa-inr"></i> | Add Income
+              data-whatever="@fat"><i class="fas fa-rupee-sign"></i> | Add Income
       </button>
     </div>
     <div class="justify-content-end inline p-2 bd-highlight">
@@ -86,8 +86,7 @@
                                   data-cname="{{ entry.customer__name }}"
                                   data-c_contact="{{ entry.customer__contact }}"
                                   data-c_smstext="{{ entry.sms_text }}"
-                          ><i
-                           class="fa fa-commenting" aria-hidden="true"></i>
+                          ><i class="fas fa-sms"></i>
                           </button>{% endif %}
                       {% endif %}
                       {% if tenant.whatsapp_pref %}
@@ -96,7 +95,7 @@
                                   onclick="shareOnWhatsApp(this, {{ entry.customer_id }},'{{ entry.customer__name }}', {{ entry.customer__contact }})"
                                   type="button"
                                   class="btn btn-info px-4 py-2">
-                            <i class="fa fa-whatsapp" aria-hidden="true"></i>
+                            <i class="fab fa-whatsapp"></i>
                           </button>
                         {% endif %}
                       {% endif %}
@@ -121,9 +120,11 @@
                 {% endif %}
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold">Total Due till date:
+                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                  Due till date:
                   Rs {{ due_total }} &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
-                  Total Due ({{ previous_month_name }}): {{ due_total_prev }}</td>
+                  <i class="fas fa-calculator text-info"></i> Total Due ({{ previous_month_name }}): {{ due_total_prev }}
+                </td>
               </tr>
               </tbody>
             </table>
@@ -164,7 +165,8 @@
                 </tr>
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold">Total Received:
+                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                  Received:
                   Rs {{ reveieved_total }}</td>
               </tr>
               </tbody>
@@ -205,7 +207,8 @@
                 </tr>
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold">Total Expenses:
+                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                  Expenses:
                   Rs {{ entry_expense_total|floatformat }}</td>
               </tr>
               </tbody>
@@ -248,7 +251,8 @@
                 </tr>
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold">Total Income:
+                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                  Income:
                   Rs {{ entry_income_total|floatformat }}</td>
               </tr>
               </tbody>
@@ -638,12 +642,12 @@
           document.getElementById("sendwabuttonmain" + customer_id).classList.add('btn-secondary');
           {#  Update in session to disable send button#}
           sessionStorage.setItem("wa_" + customer_id, 'sent');
-          this_button.innerHTML = '<i class="fa fa-whatsapp"></i>';
+          this_button.innerHTML = '<i class="fab fa-whatsapp"></i>';
         } else {
           // Error code here
           alert('Something went wrong...')
           this_button.disabled = false;
-          this_button.innerHTML = '<i class="fa fa-whatsapp"></i>';
+          this_button.innerHTML = '<i class="fab fa-whatsapp"></i>';
         }
         {#alert("Data: " + data + "\nStatus: " + status);#}
       });
