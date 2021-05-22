@@ -167,6 +167,8 @@ def addcustomer(request):
     }
     if request.method == "POST":
         customer_id = request.POST.get("id", None)
+        no_redirect = request.POST.get("redirect_url", False)
+        customer_contact, customer_email, customer_morning, customer_evening, customer_quantity = '', '', '', '', ''
         if customer_id:
             customer = Customer(id=customer_id)
             customer.name = customer.name
@@ -208,7 +210,16 @@ def addcustomer(request):
                                     email=email, morning=morning,
                                     evening=evening, quantity=quantity, status=1)
             customer.save()
-        return redirect('view_customers')
+        if no_redirect:
+            return JsonResponse({'status': 'success',
+                                 'contact': customer_contact,
+                                 'email': customer_email,
+                                 'schedule_morning': customer_morning,
+                                 'schedule_evening': customer_evening,
+                                 'quantity': customer_quantity,
+                                 })
+        else:
+            return redirect('view_customers')
     else:
         return render(request, template, context)
 
