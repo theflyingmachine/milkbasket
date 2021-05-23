@@ -912,7 +912,9 @@
               }
               $('#custQuantity').text(data.quantity);
               $('#custSchedule').text(custSchedule);
-              $('#editProfileModal').modal('hide');
+
+              {#  Show toast #}
+              show_toast('Customer Updated', 'Customer preferences has been successfully saved', 'success')
             } else {
               // Error code here
               alert('Something went wrong...')

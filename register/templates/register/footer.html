@@ -4,4 +4,11 @@
 </div>
 
 </body>
+<script>
+  {% if messages %}
+    {% for message in messages %}
+      show_toast('{{message.tags|capfirst}}', '{{message}}', '{{message.tags}}')
+    {% endfor %}
+  {% endif %}
+</script>
 </html>
