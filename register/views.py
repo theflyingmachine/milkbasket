@@ -6,6 +6,7 @@ from datetime import datetime
 from datetime import timedelta
 
 from dateutil.relativedelta import relativedelta
+from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
@@ -645,7 +646,11 @@ def accept_payment(request, year=None, month=None, return_url=None):
         customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
         payment_amount = float(payment_amount)
         new_payment = Payment(tenant_id=request.user.id, customer_id=c_id, amount=payment_amount)
-        new_payment.save()
+        try:
+            new_payment.save()
+            messages.add_message(request, messages.SUCCESS, 'Payment received successfully')
+        except:
+            messages.add_message(request, messages.ERROR, 'Could not process payment')
 
         # Send SMS notification
         if sms_notification:

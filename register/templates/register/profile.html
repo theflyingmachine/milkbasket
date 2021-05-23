@@ -774,6 +774,7 @@
               document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
               {#  Update in session to disable send button#}
               sessionStorage.setItem("sms_{{ customer.id }}", 'sent');
+              show_toast('SMS Sent', 'SMS has been successfully sent', 'success')
             } else {
               // Error code here
               document.getElementById("sendsmsbutton").disabled = false;
@@ -801,6 +802,7 @@
               document.getElementById("sendOnWAInit").classList.add('btn-secondary');
               {#  Update in session to disable send button#}
               sessionStorage.setItem("wa_{{ customer.id }}", 'sent');
+              show_toast('Shared on Whatsapp', 'Bill has been shared on Whatsapp', 'success')
             } else {
               // Error code here
               alert('Something went wrong...')
@@ -820,6 +822,7 @@
               document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
               {#  Update in session to disable send button#}
               sessionStorage.setItem("email_{{ customer.id }}", 'sent');
+              show_toast('Email Sent', 'Email has been successfully sent', 'success')
             } else {
               // Error code here
               alert('Something went wrong...')
