@@ -464,7 +464,7 @@
             </div>
 
             <div id='payment_notification' class="form-row">
-              <div class="form-group col-md-12">
+              <div class="form-group col-md-12 send-sms-checkbox">
                 <label for="name">Send SMS Notification </label>
                 <input type="checkbox" id="sms-notification" name="sms-notification" checked
                        value="1">
@@ -619,6 +619,9 @@
           document.getElementById(sendButtonId).classList.add('btn-secondary');
           {#  Update in session to disable send button#}
           sessionStorage.setItem("sms_" + $('#cust_id').val(), 'sent');
+          show_toast('SMS Sent', 'SMS notification successfully sent', 'success')
+          $(".modal-backdrop").remove();
+          $('#smsModal').modal('hide');
         } else {
           // Error code here
           document.getElementById("sendsmsbutton").innerText = 'Send SMS';
@@ -657,6 +660,8 @@
           {#  Update in session to disable send button#}
           sessionStorage.setItem("wa_" + customer_id, 'sent');
           this_button.innerHTML = '<i class="fab fa-whatsapp"></i>';
+          show_toast('WhatsApp Shared', 'Bill successfully shared on Whatsapp', 'success')
+
         } else {
           // Error code here
           alert('Something went wrong...')
@@ -678,6 +683,7 @@
           this_button.classList.add('btn-secondary');
           {#  Update in session to disable send button#}
           sessionStorage.setItem("email_" + customer_id, 'sent');
+          show_toast('Email Sent', 'Email successfully sent', 'success')
         } else {
           // Error code here
           alert('Something went wrong...')

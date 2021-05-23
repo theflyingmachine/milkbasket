@@ -211,6 +211,7 @@ def addcustomer(request):
                                     email=email, morning=morning,
                                     evening=evening, quantity=quantity, status=1)
             customer.save()
+        messages.add_message(request, messages.SUCCESS, 'Customer details updated successfully')
         if no_redirect:
             return JsonResponse({'status': 'success',
                                  'contact': customer_contact,
@@ -371,6 +372,7 @@ def autopilot(request, year=None, month=None):
             'return': True,
             'reload': True,
         }
+        messages.add_message(request, messages.SUCCESS, 'Autopilot completed successfully')
         return JsonResponse(response)
     # return invalid response if already not returned data
     response = {
@@ -582,6 +584,7 @@ def manage_expense(request, year=None, month=None):
     delete_id = request.POST.get("id", None)
     if delete_id:
         Expense.objects.filter(tenant_id=request.user.id, id=delete_id).delete()
+        messages.add_message(request, messages.WARNING, 'Expense entry has been deleted')
     add_expense = request.POST.get("month_year", None)
     if add_expense:
         cost = request.POST.get("cost_amount", None)
@@ -590,6 +593,7 @@ def manage_expense(request, year=None, month=None):
                               log_date=expense_date)
         try:
             new_expense.save()
+            messages.add_message(request, messages.SUCCESS, 'Expense entry added successfully')
         except ValidationError as e:
             template = 'register/errors/custom_error_page.html'
             context = {'page_title': 'Error - MilkBasket',
@@ -611,6 +615,7 @@ def manage_income(request, year=None, month=None):
     delete_id = request.POST.get("id", None)
     if delete_id:
         Income.objects.filter(tenant_id=request.user.id, id=delete_id).delete()
+        messages.add_message(request, messages.WARNING, 'Income entry has been deleted')
     add_income = request.POST.get("month_year", None)
     if add_income:
         amount = request.POST.get("income_amount", None)
@@ -619,6 +624,7 @@ def manage_income(request, year=None, month=None):
                             log_date=income_date)
         try:
             new_income.save()
+            messages.add_message(request, messages.SUCCESS, 'Income entry added successfully')
         except ValidationError as e:
             template = 'register/errors/custom_error_page.html'
             context = {'page_title': 'Error - MilkBasket',
@@ -899,6 +905,7 @@ def setting(request):
 
         request.session['alert_class'] = 'success'
         request.session['alert_message'] = 'Settings Saved'
+        messages.add_message(request, messages.SUCCESS, 'Settings updated successfully')
 
     try:
         tenant = Tenant.objects.get(tenant_id=request.user.id)
@@ -1047,6 +1054,7 @@ class GeneratePdf(View):
     def get(self, request, *args, **kwargs):
         cust_id = self.kwargs['id']
         no_download = True if 'file_download' in kwargs else False
+        # messages.add_message(request, messages.SUCCESS, 'PDF Bill has been sucessfully generated')
         if no_download:
             return generate_bill(request, cust_id, no_download=True)
         else:

@@ -176,12 +176,11 @@
           text-decoration: none;
       }
 
-      input[type="checkbox"] {
+      .edit-form input[type="checkbox"] {
           margin: 10px;
           width: 40px; /*Desired width*/
           height: 40px; /*Desired height*/
           cursor: pointer;
-
       }
 
       .schedule-label {
@@ -570,7 +569,7 @@
                 </div>
                 {% if customer.contact %}
                   <div class="form-row">
-                    <div class="form-group col-md-12">
+                    <div class="form-group col-md-12 send-sms-checkbox">
                       <label for="name">Send SMS Notification </label>
                       <input type="checkbox" id="sms-notification" name="sms-notification" checked
                              value="1">
@@ -685,7 +684,7 @@
                 <div class="form-row">
                   <div class="form-group col-md-12">
                     <label>Schedule</label>
-                    <div class="inbox mx-3">
+                    <div class="inbox mx-3 edit-form">
                       <div class="item">
                         <input type="checkbox" id="recipient_morning"
                                name="morning">
@@ -774,6 +773,8 @@
               document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
               {#  Update in session to disable send button#}
               sessionStorage.setItem("sms_{{ customer.id }}", 'sent');
+              $(".modal-backdrop").remove();
+              $('#smsModal').modal('hide');
               show_toast('SMS Sent', 'SMS has been successfully sent', 'success')
             } else {
               // Error code here
@@ -917,6 +918,8 @@
               $('#custSchedule').text(custSchedule);
 
               {#  Show toast #}
+              $(".modal-backdrop").remove();
+              $('#editProfileModal').modal('hide');
               show_toast('Customer Updated', 'Customer preferences has been successfully saved', 'success')
             } else {
               // Error code here
