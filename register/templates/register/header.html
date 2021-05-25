@@ -59,7 +59,7 @@
     function show_toast(title, message, message_type) {
       let message_id = makeid(5);
       $("#div_messages").append(`
-<div id='${message_id}' class='toast sticky mt-2 float-right mr-5' role='alert' aria-live='assertive' aria-atomic='true'>
+<div id='${message_id}' class='toast sticky mt-2 float-right mr-2' role='alert' aria-live='assertive' aria-atomic='true'>
   <div class='toast-header bg-${message_type}'>
 
     <strong class='mr-auto text-light'><i class="fa fa-grav"></i> ${title}</strong>
@@ -131,9 +131,9 @@
     }
 
     .toast-fixed {
-        max-width: 30rem;
+        max-width: 20rem;
         position: fixed;
-        right: 1.5rem;
+        right: 1rem;
         z-index: 120 !important;
         width: 100%;
     }
@@ -142,7 +142,10 @@
 
 
 <body>
+{#  Toast Element paceholder #}
+<div id="div_messages" class="position-fixed toast-fixed"></div>
 
+{# Navbar #}
 <nav class="navbar navbar-expand-lg navbar-dark top-nav-background">
   {#  <a class="navbar-brand mr-5" href="/register/">MilkBasket</a>#}
   <div class="topnav navbar-brand mr-5">
@@ -185,8 +188,5 @@
     <a class="nav-item nav-link mr-3 " href="/logout">{{ user.get_username|capfirst }} - Logout</a>
   </div>
 </nav>
-{#  Toast Element paceholder #}
-<div id="div_messages" class="position-fixed toast-fixed">
-</div>
 
 <div class="container-fluid">
