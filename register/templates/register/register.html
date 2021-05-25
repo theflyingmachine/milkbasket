@@ -596,16 +596,23 @@
               content: data.quantity,
               placement: 'bottom'
             })
-            show_toast('Entry Saved', 'Register entry successfully saved', 'success')
+            show_toast('Entry Saved', 'Register entry saved for ' + data.customer_name, 'success')
 
           } else {
             // Error code here
             if (data.showmessage === true) {
-              alert(data.message)
+              show_toast('Error', data.message, 'danger')
             } else {
-              alert('Something went wrong...')
+              show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
             }
           }
+          $('#autopilot').modal('hide');
+          $("#autoimg").hide();
+          $(".modal-backdrop").remove();
+          $(".progress").hide();
+          $(".modal-footer").show();
+          $("#autopilotform").show();
+
         }, 'json')
       })
     });

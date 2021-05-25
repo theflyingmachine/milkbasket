@@ -755,6 +755,7 @@
           if (sessionStorage.getItem("sms_{{ customer.id }}")) {
             document.getElementById("sendsmsbutton").innerText = 'SMS Sent Successfully';
             document.getElementById("sendsmsbutton").disabled = true;
+            show_toast('Warning', 'You have already sent SMS to ' + c_name, 'warning')
           } else {
             document.getElementById("sendsmsbutton").innerText = 'Send SMS';
             document.getElementById("sendsmsbutton").disabled = false;
@@ -775,12 +776,12 @@
               sessionStorage.setItem("sms_{{ customer.id }}", 'sent');
               $(".modal-backdrop").remove();
               $('#smsModal').modal('hide');
-              show_toast('SMS Sent', 'SMS has been successfully sent', 'success')
+              show_toast('SMS Sent', 'SMS has been successfully sent to {{ customer.name }}', 'success')
             } else {
               // Error code here
               document.getElementById("sendsmsbutton").disabled = false;
               document.getElementById("sendsmsbuttonmain").disabled = false;
-              alert('Something went wrong...')
+              show_toast('Error', 'Something went wrong, we could not send SMS', 'danger')
             }
           }, 'json')
         }
@@ -803,10 +804,10 @@
               document.getElementById("sendOnWAInit").classList.add('btn-secondary');
               {#  Update in session to disable send button#}
               sessionStorage.setItem("wa_{{ customer.id }}", 'sent');
-              show_toast('Shared on Whatsapp', 'Bill has been shared on Whatsapp', 'success')
+              show_toast('Shared on Whatsapp', 'Bill has been shared on Whatsapp to {{ customer.name }}', 'success')
             } else {
               // Error code here
-              alert('Something went wrong...')
+              show_toast('Warning', 'Something went wrong, we could not send bill on Whatsapp', 'danger')
             }
             {#alert("Data: " + data + "\nStatus: " + status);#}
 
@@ -823,10 +824,10 @@
               document.getElementById("sendOnEmailInit").classList.add('btn-secondary');
               {#  Update in session to disable send button#}
               sessionStorage.setItem("email_{{ customer.id }}", 'sent');
-              show_toast('Email Sent', 'Email has been successfully sent', 'success')
+              show_toast('Email Sent', 'Email has been successfully sent to {{ customer.name }}', 'success')
             } else {
               // Error code here
-              alert('Something went wrong...')
+              show_toast('Warning', 'Something went wrong, we could not send bill on email', 'danger')
               document.getElementById("sendOnEmailInit").innerText = 'Send Email';
             }
             {#alert("Data: " + data + "\nStatus: " + status);#}
@@ -920,10 +921,10 @@
               {#  Show toast #}
               $(".modal-backdrop").remove();
               $('#editProfileModal').modal('hide');
-              show_toast('Customer Updated', 'Customer preferences has been successfully saved', 'success')
+              show_toast('Customer Updated', 'Customer preferences has been successfully saved for {{ customer.name }}', 'success')
             } else {
               // Error code here
-              alert('Something went wrong...')
+              show_toast('Error', 'Something went wrong, we could not save customer preferences', 'danger')
             }
           }, 'json')
         });

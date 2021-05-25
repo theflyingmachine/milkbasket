@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from django.contrib import messages
 from django.urls import reverse_lazy
 
 from milkbasket.secret import EMAIL_PASSWORD
@@ -96,6 +97,11 @@ EMAIL_HOST_USER = 'milkbasket.inc@gmail.com'
 EMAIL_HOST_PASSWORD = EMAIL_PASSWORD
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = 'MilkBasket<milkbasket.inc@gmail.com>'
+
+# Alert / Toast messaging type override
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

@@ -172,7 +172,7 @@ def addcustomer(request):
         customer_contact, customer_email, customer_morning, customer_evening, customer_quantity = '', '', '', '', ''
         if customer_id:
             customer = Customer(id=customer_id)
-            customer.name = customer.name
+            customer_name = Customer.objects.filter(id=customer_id).first()
             customer_contact = request.POST.get("contact")
             customer_email = request.POST.get("email")
             customer_morning = True if request.POST.get("morning", False) else False
@@ -186,6 +186,8 @@ def addcustomer(request):
                     evening=customer_evening,
                     quantity=customer_quantity,
                     status=0)
+                messages.add_message(request, messages.WARNING,
+                                     f'You have deactivated {customer_name.name}')
             else:
                 Customer.objects.filter(tenant_id=request.user.id, id=customer_id).update(
                     contact=customer_contact,
@@ -194,6 +196,8 @@ def addcustomer(request):
                     evening=customer_evening,
                     quantity=customer_quantity,
                     status=1)
+                messages.add_message(request, messages.SUCCESS,
+                                     f'Customer details updated successfully for {customer_name.name}')
         else:
             form = CustomerForm(request.POST)
             name = form['name'].value()
@@ -206,12 +210,20 @@ def addcustomer(request):
                 customer = Customer(tenant_id=request.user.id, name=name, contact=contact,
                                     email=email, morning=morning,
                                     evening=evening, quantity=quantity, status=0)
+                messages.add_message(request, messages.WARNING,
+                                     f'New Customer {name} added successfully, but is inactive at the moment')
             else:
                 customer = Customer(tenant_id=request.user.id, name=name, contact=contact,
                                     email=email, morning=morning,
                                     evening=evening, quantity=quantity, status=1)
-            customer.save()
-        messages.add_message(request, messages.SUCCESS, 'Customer details updated successfully')
+                messages.add_message(request, messages.SUCCESS,
+                                     f'New Customer {name} added successfully')
+            try:
+                customer.save()
+            except:
+                list(messages.get_messages(request))
+                messages.add_message(request, messages.ERROR,
+                                     f'Something went wrong, we could not add customer')
         if no_redirect:
             return JsonResponse({'status': 'success',
                                  'contact': customer_contact,
@@ -339,7 +351,7 @@ def autopilot(request, year=None, month=None):
         if int(end_date) < int(start_date):
             response = {
                 'showmessage': True,
-                'message': f'you have selected {start_date} start and {end_date} end date. End date can not be before start date.',
+                'message': f'You have selected {start_date} start and {end_date} end date. End date can not be before start date.',
                 'status': False,
             }
             return JsonResponse(response)
@@ -372,7 +384,8 @@ def autopilot(request, year=None, month=None):
             'return': True,
             'reload': True,
         }
-        messages.add_message(request, messages.SUCCESS, 'Autopilot completed successfully')
+        messages.add_message(request, messages.SUCCESS,
+                             f'Autopilot completed from {start_date} to {end_date} {log_month}')
         return JsonResponse(response)
     # return invalid response if already not returned data
     response = {
@@ -593,7 +606,8 @@ def manage_expense(request, year=None, month=None):
                               log_date=expense_date)
         try:
             new_expense.save()
-            messages.add_message(request, messages.SUCCESS, 'Expense entry added successfully')
+            messages.add_message(request, messages.SUCCESS,
+                                 f'Expense entry of Rs. {cost} for {desc} added successfully')
         except ValidationError as e:
             template = 'register/errors/custom_error_page.html'
             context = {'page_title': 'Error - MilkBasket',
@@ -624,7 +638,8 @@ def manage_income(request, year=None, month=None):
                             log_date=income_date)
         try:
             new_income.save()
-            messages.add_message(request, messages.SUCCESS, 'Income entry added successfully')
+            messages.add_message(request, messages.SUCCESS,
+                                 f'Income entry of Rs. {amount} for {desc} added successfully')
         except ValidationError as e:
             template = 'register/errors/custom_error_page.html'
             context = {'page_title': 'Error - MilkBasket',
@@ -654,9 +669,11 @@ def accept_payment(request, year=None, month=None, return_url=None):
         new_payment = Payment(tenant_id=request.user.id, customer_id=c_id, amount=payment_amount)
         try:
             new_payment.save()
-            messages.add_message(request, messages.SUCCESS, 'Payment received successfully')
+            messages.add_message(request, messages.SUCCESS,
+                                 f'Payment of Rs. {payment_amount} received from {customer.name}')
         except:
-            messages.add_message(request, messages.ERROR, 'Could not process payment')
+            messages.add_message(request, messages.ERROR,
+                                 'Could not process payment of Rs. {payment_amount} from {customer.name}')
 
         # Send SMS notification
         if sms_notification:
@@ -695,6 +712,8 @@ def accept_payment(request, year=None, month=None, return_url=None):
                                              customer_id=c_id,
                                              defaults={"balance_amount": -payment_amount}
                                              )
+            messages.add_message(request, messages.INFO,
+                                 f'Rs. {payment_amount} is added as Balance')
 
     return redirect(formatted_url)
 
