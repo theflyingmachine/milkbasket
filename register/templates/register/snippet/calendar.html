@@ -1,0 +1,242 @@
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    table, td, th {
+        border: 1px solid black;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    ul {
+        list-style-type: none;
+    }
+
+    body {
+        font-family: Verdana, sans-serif;
+    }
+
+    .month {
+        padding: 70px 25px;
+        width: 100%;
+        background: #1abc9c;
+        text-align: center;
+    }
+
+    .month ul {
+        margin: 0;
+        padding: 0;
+    }
+
+    .month ul li {
+        color: white;
+        font-size: 20px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+    }
+
+    .weekdays {
+        margin: 0;
+        padding: 10px 0;
+        background-color: #ddd;
+    }
+
+    .weekdays li {
+        display: inline-block;
+        width: 14.27%;
+        color: #666;
+        text-align: center;
+    }
+
+    .weekdays-title li {
+        background-color: lightgray;
+        display: inline-block;
+        width: 13.6%;
+        color: #666;
+        text-align: center;
+    }
+
+    .days {
+        padding: 10px 0;
+        background: #eee;
+        margin: 0;
+    }
+
+    .days div {
+        list-style-type: none;
+        display: inline-block;
+        width: 14.27%;
+    {#height: 1.5%;#} text-align: center;
+        margin-bottom: 5px;
+        font-size: 12px;
+        color: #777;
+    }
+
+    .days div .active {
+        padding: 5px;
+        background: #1abc9c;
+        color: white !important
+    }
+
+    /* Add media queries for smaller screens */
+    @media screen and (max-width: 600px) {
+        .weekdays li, .days li {
+            width: 13.1%;
+        }
+
+        .weekdays-title li {
+            width: 13%
+        }
+
+        .days div {
+            font-size: 0.6rem;
+        }
+
+        h2 {
+            font-size: 1.5rem !important;
+        }
+    }
+
+    @media screen and (max-width: 420px) {
+        .weekdays li, .days li {
+            width: 12.7%;
+        }
+
+        .weekdays-title li {
+            width: 12.7%
+        }
+
+        h2 {
+            font-size: 1.5rem !important;
+        }
+    }
+
+    @media screen and (max-width: 290px) {
+        .weekdays li, .days li {
+            width: 12.2%;
+        }
+
+        .weekdays-title li {
+            width: 12.6%
+        }
+
+        .days div {
+            font-size: 0.4rem;
+        }
+
+        h2 {
+            font-size: 1.5rem !important;
+        }
+    }
+
+    .dash {
+        border: 1px dashed #425858;
+        border-collapse: collapse;
+        padding-bottom: 25px !important;
+        padding-top: 25px !important;
+    }
+
+    @media (min-width: 768px) {
+        .seven-cols .col-md-1 {
+            width: 100%;
+            *width: 100%;
+        }
+
+        .weekdays-title li {
+            width: 13.6%
+        }
+    }
+
+    @media (min-width: 992px) {
+        .seven-cols .col-sm-1 {
+            width: 14.285714285714285714285714285714%;
+            *width: 14.285714285714285714285714285714%;
+        }
+
+        .weekdays-title li {
+            width: 13.78%
+        }
+    }
+
+    /**
+     *  The following is not really needed in this case
+     *  Only to demonstrate the usage of @media for large screens
+     */
+    @media (min-width: 1200px) {
+        .seven-cols .col-sm-1 {
+            width: 14.285714285714285714285714285714%;
+            *width: 14.285714285714285714285714285714%;
+        }
+
+        .weekdays-title li {
+            width: 13.85%
+        }
+    }
+
+
+    .cal-border {
+        border-style: groove;
+        border-width: thin;
+    }
+</style>
+
+<!--  Calendar -->
+<div id="calendar-view">
+  <!--  Calendar -->
+  <div class="mt-4 col-12  p-0">
+    {% for month in calendar %}
+      <div class="month">
+        <ul>
+          <li>
+            {{ month.month }} {{ month.year }}
+          </li>
+        </ul>
+      </div>
+
+      <ul class="col-12 p-0 m-0 weekdays-title">
+        <li>Mon</li>
+        <li>Tue</li>
+        <li>Wed</li>
+        <li>Thu</li>
+        <li>Fri</li>
+        <li>Sat</li>
+        <li>Sun</li>
+      </ul>
+      <ul class="row  p-0 seven-cols days">
+        {% for day in month.week_start_day %}
+          <div></div>
+        {% endfor %}
+        {% for day in month.days_in_month %}
+          <div class="p-0 cal-border"><h2>{{ day.day }}</h2>
+            {% if day.data %}{% for entry in day.data %}
+              {% if entry.morning %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Morning {{ entry.quantity }} {% if entry.absent %}
+                <span class="p-0 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                {% if not entry.absent %}
+                  {% if entry.paid %}
+                    <span class="d-block bg-success text-white p-1"> PAID</span>
+                  {% else %}
+                    <span class="d-block bg-warning text-white p-1">DUE</span>
+                  {% endif %}{% endif %}
+              {% endif %}
+              {% if entry.evening %}<span class="d-block text-white bg-primary p-0 p-lg-2">
+            Evening {{ entry.quantity }} {% if entry.absent %}
+                <span class="p-1 bg-danger text-white"> ABSENT </span>{% endif %}</span>
+                {% if not entry.absent %}
+                  {% if entry.paid %}
+                    <span class="d-block bg-success text-white p-1"> PAID </span>
+                  {% else %}
+                    <span class="d-block bg-warning text-white p-1">DUE</span>
+                  {% endif %}{% endif %}
+              {% endif %}
+
+            {% endfor %}{% endif %}
+          </div>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+  </div>
+</div>
