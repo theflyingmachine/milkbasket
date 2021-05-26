@@ -6,6 +6,7 @@ from datetime import datetime
 from io import BytesIO
 
 import requests
+from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.db.models import Q
 from django.http import HttpResponse
@@ -343,6 +344,17 @@ def is_last_day_of_month():
     today = datetime.today().date()
     last_day = today.replace(day=monthrange(today.year, today.month)[1])
     return True if today == last_day else False
+
+
+def get_tenant_perf(request):
+    """Funtution used to fetch the tenant preference """
+    # Get Tenant Preference
+    try:
+        return Tenant.objects.get(tenant_id=request.user.id)
+    except Tenant.DoesNotExist:
+        messages.add_message(request, messages.WARNING,
+                             'You need to set milk price and update preferences.')
+        return None
 
 
 #  ===================== Custom Error Handler Views ==============================

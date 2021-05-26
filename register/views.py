@@ -42,6 +42,7 @@ from register.utils import get_customer_balance_amount
 from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
+from register.utils import get_tenant_perf
 from register.utils import is_last_day_of_month
 from register.utils import render_to_pdf
 from register.utils import send_email_api
@@ -51,9 +52,8 @@ from register.utils import send_sms_api
 @login_required
 def index(request, year=None, month=None):
     # Get Tenant Preference
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
+    tenant = get_tenant_perf(request)
+    if tenant is None:
         return redirect('setting')
     template = 'register/register.html'
     context = {
@@ -157,9 +157,8 @@ def index(request, year=None, month=None):
 @login_required
 def addcustomer(request):
     # Get Tenant Preference
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
+    tenant = get_tenant_perf(request)
+    if tenant is None:
         return redirect('setting')
     template = 'register/customer.html'
     context = {
@@ -241,9 +240,8 @@ def addcustomer(request):
 @login_required
 def addentry(request, year=None, month=None):
     # Get Tenant Preference
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
+    tenant = get_tenant_perf(request)
+    if tenant is None:
         return redirect('setting')
     if request.method == "POST":
 
@@ -326,9 +324,8 @@ def addentry(request, year=None, month=None):
 @transaction.atomic()
 def autopilot(request, year=None, month=None):
     # Get Tenant Preference
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
+    tenant = get_tenant_perf(request)
+    if tenant is None:
         return redirect('setting')
     if request.method == "POST":
         current_price = tenant.milk_price
@@ -399,9 +396,8 @@ def autopilot(request, year=None, month=None):
 @login_required
 def customers(request):
     # Get Tenant Preference
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
+    tenant = get_tenant_perf(request)
+    if tenant is None:
         return redirect('setting')
     template = 'register/customer.html'
     context = {
@@ -451,10 +447,8 @@ def customers(request):
 
 @login_required
 def account(request, year=None, month=None):
-    # Get Tenant Preference
-    try:
-        tenant = Tenant.objects.get(tenant_id=request.user.id)
-    except Tenant.DoesNotExist:
+    tenant = get_tenant_perf(request)
+    if tenant is None:
         return redirect('setting')
     template = 'register/account.html'
     custom_month = None
