@@ -651,7 +651,7 @@
           document.getElementById("sendwabuttonmain" + customer_id).disabled = true;
           {#document.getElementById("sendwabuttonmain"+customer_id).innerText = 'Shared';#}
           var share_text = 'Dear ' + customer_name + ', Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
-          {% if tenant.whatsapp_direct_pref and customer.contact %}
+          {% if tenant.whatsapp_direct_pref and contact_number %}
             var url = "https://api.whatsapp.com/send?phone=91" + contact_number + "&text=" + share_text;
           {% else %}
             var url = "https://api.whatsapp.com/send?text=" + share_text;
