@@ -347,7 +347,7 @@ def is_last_day_of_month():
 
 
 def get_tenant_perf(request):
-    """Funtution used to fetch the tenant preference """
+    """Function used to fetch the tenant preference """
     # Get Tenant Preference
     try:
         return Tenant.objects.get(tenant_id=request.user.id)
