@@ -584,6 +584,7 @@
               location.reload()
             }
             document.getElementById(data.cell).classList.add(data.classname);
+            document.getElementById(data.cell).classList.remove(data.classnameRemove);
             $(".modal-backdrop").remove();
             $(".progress").hide();
             $(".modal-footer").show();
@@ -596,7 +597,7 @@
               content: data.quantity,
               placement: 'bottom'
             })
-            show_toast('Entry Saved', 'Register entry saved for ' + data.customer_name, 'success')
+            show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success')
 
           } else {
             // Error code here

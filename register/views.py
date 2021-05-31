@@ -286,6 +286,8 @@ def addentry(request, year=None, month=None):
             check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
                                                    log_date=full_log_date,
                                                    schedule__startswith=schedule).first()
+            cust = Customer.objects.get(id=customer)
+            extended_data = {'customer_name': cust.name}
             if not check_record:
                 entry = Register(tenant_id=request.user.id, customer_id=customer,
                                  log_date=full_log_date,
@@ -298,14 +300,18 @@ def addentry(request, year=None, month=None):
                 check_record.quantity = quantity
                 check_record.save()
                 entry_status = True if check_record.id else False
+
             if full_schedule.endswith("-yes"):
-                cust = Customer.objects.get(id=customer)
-                extended_data = {'customer_name': cust.name,
-                                 'quantity': quantity, }
+                extended_data.update({'quantity': f'{quantity} ML'})
+            else:
+                extended_data.update({'quantity': 'Absent'})
+
         data = {
             'return': entry_status,
             'cell': f'{customer}_{full_log_date.day}',
             'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
+            'classnameRemove': 'cal-no' if 'yes' in yes_or_no else 'cal-yes',
+            'logDate': full_log_date.strftime('%d %b'),
             'reload': reload_status,
         }
         if extended_data:
