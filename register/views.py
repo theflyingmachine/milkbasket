@@ -134,9 +134,12 @@ def index(request, year=None, month=None):
     cal_days = range(1, days[1] + 1)
 
     # Get last entry date
-    last_entry_date = Register.objects.filter(tenant_id=request.user.id,
-                                              log_date__month=register_date.month).latest(
-        'log_date__day')
+    try:
+        last_entry_date = Register.objects.filter(tenant_id=request.user.id,
+                                                  log_date__month=register_date.month).latest(
+            'log_date__day')
+    except Register.DoesNotExist:
+        last_entry_date = 0
 
     context.update({
         'month_year': month_year,
