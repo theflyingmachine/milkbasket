@@ -252,7 +252,7 @@
                   <th class="p-0 p-lg-2 col-1" scope="row">{{ forloop.counter }}</th>
                   <td class="p-0 p-lg-2 col-2">{{ entry.display_log_date }}</td>
                   <td class="p-0 p-lg-2 col-2">{{ entry.display_schedule }}</td>
-                  <td class="p-0 p-lg-2 col-2">{{ entry.quantity }}</td>
+                  <td class="p-0 p-lg-2 col-2">{{ entry.quantity|floatformat }} ML</td>
                   <td class="p-0 p-lg-2 col-2">{{ entry.current_price }}</td>
                   <td class="p-0 p-lg-2 col-2">{{ entry.billed_amount }}</td>
                   <td
