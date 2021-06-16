@@ -13,6 +13,15 @@
           background-color: #f18973;
       }
 
+      #showQuantity {
+          height: 25px;
+          width: 25px;
+      }
+
+      .vertical-center {
+          vertical-align: middle !important;
+      }
+
       .cal-nodata {
           border: 1px solid grey;
       }
@@ -195,6 +204,9 @@
               data-target="#autopilot"
               data-whatever="@fat"><i class="fa fa-plane"></i> | Auto-Pilot Mode
       </button>
+      <input type="checkbox" class="ml-2 vertical-center" id="showQuantity" value="1">
+      <label for="showQuantity"> Show Quantity</label>
+
     </div>
     <div class="justify-content-end inline p-2 bd-highlight">
       <form name="view_selectrecord" action="{% url 'view_selectrecord' %}"
@@ -209,9 +221,9 @@
   </div>
   <h2 class="text-center">Register - {{ month_year }}</h2>
   <hr>
+  {% load entry_quantity %}
   <div class="row justify-content-center mb-5">
     <div class="col">
-
       {% if m_register %}
         <h5 class="pt-2 mt-2 text-center">Morning</h5>
         <div style="overflow-x:auto;">
@@ -219,25 +231,29 @@
             <tbody>
             {% for entry in m_register %}
               <tr>
-                <td class="sticky text-nowrap font-weight-bold "><a
+                <td class="sticky text-nowrap font-weight-bold vertical-center"><a
                  href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a>
                 </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     id="{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
-                    class="cal-yes " data-toggle="popover"
+                    class="cal-yes text-center" data-toggle="popover"
                     title="{{ entry.customer_name }}" data-trigger="hover"
                     data-placement="top" data-content="{{ single_entry.quantity|floatformat }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'morning-no' %}
-                    class="cal-no"
+                    class="cal-no text-center"
                     {% endif %}{% endfor %} >
                     <button type="button" class="btn register-button" data-toggle="modal"
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Morning" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
                             data-quantity="{{ entry.customer_quantity|floatformat }}"
-                            data-price="{{ entry.default_price }}">{{ day }}</button>
+                            data-price="{{ entry.default_price }}">{{ day }}
+                      <span id="quantity_{{ entry.customer_id }}_{{ day }}"
+                            class="milk-quantity text-secondary small">
+                         {% entry_quantity day entry.register_entry %}
+                      </span></button>
                   </td></td>
                 {% endfor %}
               </tr>
@@ -253,24 +269,28 @@
             <tbody>
             {% for entry in e_register %}
               <tr>
-                <td class="sticky text-nowrap font-weight-bold"><a
+                <td class="sticky text-nowrap font-weight-bold vertical-center"><a
                  href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a>
                 </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
                     id="{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
-                    class="cal-yes" data-toggle="popover"
+                    class="cal-yes text-center" data-toggle="popover"
                     title="{{ entry.customer_name }}" data-trigger="hover"
                     data-placement="top" data-content="{{ single_entry.quantity|floatformat }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'evening-no' %}
-                    class="cal-no"  {% endif %}{% endfor %} >
+                    class="cal-no text-center"  {% endif %}{% endfor %} >
                     <button type="button" class="btn register-button" data-toggle="modal"
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Evening" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
                             data-quantity="{{ entry.customer_quantity|floatformat }}"
-                            data-price="{{ entry.default_price }}">{{ day }}</button>
+                            data-price="{{ entry.default_price }}">{{ day }}
+                      <span id="quantity_{{ entry.customer_id }}_{{ day }}"
+                            class="milk-quantity text-secondary small">
+                         {% entry_quantity day entry.register_entry %}
+                      </span></button>
                   </td>
                 {% endfor %}
               </tr>
@@ -304,9 +324,9 @@
             <input type="hidden" class="form-control" name="log_date" id="date_log">
             <input type="hidden" class="form-control" name="schedule" id="recipient_schedule">
             <div class="form-group">
-              <label for="recipient-price" class="col-form-label">Price / L:</label>
+              <label for="recipient-price1" class="col-form-label">Price / L:</label>
               <input type="text" class="form-control" disabled name="selling_price"
-                     id="recipient-price">
+                     id="recipient-price1">
             </div>
             <div class="form-group">
               <label for="recipient-quantity" class="col-form-label">Quantity:</label>
@@ -376,7 +396,7 @@
 
             <div class="form-group">
               <label for="schedulepicker" class="col-form-label">Schedule:</label>
-              <select class="form-control" name='schedule' id="exampleFormControlSelect1">
+              <select class="form-control" name='schedule' id="exampleFormControlSelect">
                 <option value="morning-yes">Morning - YES</option>
                 <option value="evening-yes">Evening - YES</option>
                 <option value="morning-no">Morning - NO</option>
@@ -384,8 +404,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="myDate" class="col-form-label">Date:</label>
-              <input class="form-control" type="date" name="log_date" id="mydate"
+              <label for="myDate1" class="col-form-label">Date:</label>
+              <input class="form-control" type="date" name="log_date" id="mydate1"
                      min="{% now 'Y-m-01' %}" max="{{ max_date }}"
                      value="{% now 'Y-m-d' %}">
             </div>
@@ -556,6 +576,7 @@
       modal.find('.modal-title').text(recipient + ' - ' + date_log + ' - ' + recipient_schedule)
       modal.find('#recipient-quantity').val(recipient_quantity)
       modal.find('#recipient-price').val(recipient_price)
+      modal.find('#recipient-price1').val(recipient_price)
       modal.find('#recipient-id').val(recipient_id)
       modal.find('#date_log').val(date_log)
       modal.find('#recipient_schedule').val(recipient_schedule)
@@ -597,6 +618,11 @@
               content: data.quantity,
               placement: 'bottom'
             })
+            let qText = data.quantity;
+            if (qText !== 'Absent') {
+              qText = parseInt(qText);
+            }
+            $('#quantity_' + data.cell).text(qText);
             show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success')
 
           } else {
@@ -628,6 +654,30 @@
     $(function () {
       $('[data-toggle="popover"]').popover()
     })
+
+    {# Toogle show milk quantity #}
+    $('#showQuantity').change(
+      function () {
+        let divsToHide = document.getElementsByClassName("milk-quantity"); //divsToHide is an array
+        if ($(this).is(':checked')) {
+          for (let i = 0; i < divsToHide.length; i++) {
+            divsToHide[i].style.display = "block"; // depending on what you're doing
+            $(divsToHide[i]).parent().css({"padding": "0 !important"});
+          }
+        } else {
+          for (let i = 0; i < divsToHide.length; i++) {
+            divsToHide[i].style.display = "none"; // depending on what you're doing
+          }
+        }
+      });
+
+    $(document).ready(function () {
+      // Document ready  Hide milk quantity by default on page load
+      let divsToHide = document.getElementsByClassName("milk-quantity"); //divsToHide is an array
+      for (let i = 0; i < divsToHide.length; i++) {
+        divsToHide[i].style.display = "none"; // depending on what you're doing
+      }
+    });
   </script>
 {% endblock %}
 <!-- Footer -->
