@@ -161,29 +161,33 @@
           aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
+
   <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
     <div class="navbar-nav">
-      <a class="nav-item nav-link mr-3{% if menu_register %} active {% endif %}" href="/register/">Register </a>
-      <a class="nav-item nav-link mr-3 {% if menu_customer %} active {% endif %}"
-         href="/register/customers">Customers</a>
-      <a class="nav-item nav-link mr-3 {% if menu_account %} active {% endif %}"
-         href="/register/account">Accounts</a>
-      <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
-         href="/register/setting">Setting</a>
-      <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"
-         href="/register/report">Report</a>
-      {#      <a class="nav-item nav-link mr-3" target="_blank" href="/bill">Bills</a>#}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle {% if menu_bill %} active {% endif %}" href="#"
-           id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
-           aria-expanded="false">
-          Bills
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-          <a class="dropdown-item" target="_blank" href="/bill">Search Bill</a>
-          <a class="dropdown-item" href="/register/bill-views">Bill Views</a>
-        </div>
-      </li>
+      {% if not request.user.is_superuser %}
+        <a class="nav-item nav-link mr-3{% if menu_register %} active {% endif %}"
+           href="/register/">Register </a>
+        <a class="nav-item nav-link mr-3 {% if menu_customer %} active {% endif %}"
+           href="/register/customers">Customers</a>
+        <a class="nav-item nav-link mr-3 {% if menu_account %} active {% endif %}"
+           href="/register/account">Accounts</a>
+        <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
+           href="/register/setting">Setting</a>
+        <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"
+           href="/register/report">Report</a>
+        {#      <a class="nav-item nav-link mr-3" target="_blank" href="/bill">Bills</a>#}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if menu_bill %} active {% endif %}" href="#"
+             id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
+             aria-expanded="false">
+            Bills
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" target="_blank" href="/bill">Search Bill</a>
+            <a class="dropdown-item" href="/register/bill-views">Bill Views</a>
+          </div>
+        </li>
+      {% endif %}
     </div>
   </div>
   <div class="nav navbar-nav navbar-right">

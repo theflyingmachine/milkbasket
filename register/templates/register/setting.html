@@ -124,166 +124,185 @@
 
 {% block content %}
   <div class="container justify-content-center text-center">
-    {#    {% if alert_message %}#}
-    {#      <div class="alert alert-{{ alert_class }} m-1" role="alert">#}
-    {#        {{ alert_message }}#}
-    {#      </div>#}
-    {#    {% endif %}#}
-    <div class="row justify-content-center mb-5">
-      <div class="col">
-        <form name="setting" method="post" action="setting">{% csrf_token %}
-          <div class="form-group">
-            <span class="ex3">{{ tenant.milk_price }}</span><span
-           class="ex1"> INR / Liter</span><br>
-            <span class="">Milk Price per liter</span>
-            <p class="ex1">Updated: {{ tenant.date_effective }}</p>
-            <p>Current Time: {% now "jS F Y H:i" %}</p>
-            <br>
 
-            <label for="exampleInputEmail1">Current Milk Price: </label>
-            <div class="row text-center justify-content-center">
-              <div class="col-6">
-                <input type="number" step="0.01" class="form-control text-center" id="milkprice"
-                       name="milkprice" required
-                       aria-describedby="emailHelp" placeholder="Enter amount / L"
-                       value="{{ tenant.milk_price }}">
+    {% if request.user.is_superuser %}
+      <div class="row justify-content-center m-5">
+        <h2 class="text-center">Super User Settings</h2>
+      </div>
+      <div class="p-4 m-5">
+        {% if maintenance_mode %}
+          <h6 class="font-weight-bold p-3">Site Status: <span
+           class="text-warning">Maintenance</span></h6>
+          <form action="/maintenance-mode/off/" method="get">
+            <input class="bg-success text-white p-4" type="submit"
+                   value="Disable Maintenance Mode"/>
+          </form>
+        {% else %}
+          <h6 class="font-weight-bold p-3">Site Status: <span class="text-success">Active</span>
+          </h6>
+          <form action="/maintenance-mode/on/" method="get">
+            <input class="bg-danger text-white p-4" type="submit" value="Enable Maintenance Mode"/>
+          </form>
+        {% endif %}
+      </div>
+    {% else %}
+
+      <div class="row justify-content-center mb-5">
+        <div class="col">
+          <form name="setting" method="post" action="setting">{% csrf_token %}
+            <div class="form-group">
+              <span class="ex3">{{ tenant.milk_price }}</span><span
+             class="ex1"> INR / Liter</span><br>
+              <span class="">Milk Price per liter</span>
+              <p class="ex1">Updated: {{ tenant.date_effective }}</p>
+              <p>Current Time: {% now "jS F Y H:i" %}</p>
+              <br>
+
+              <label for="exampleInputEmail1">Current Milk Price: </label>
+              <div class="row text-center justify-content-center">
+                <div class="col-6">
+                  <input type="number" step="0.01" class="form-control text-center" id="milkprice"
+                         name="milkprice" required
+                         aria-describedby="emailHelp" placeholder="Enter amount / L"
+                         value="{{ tenant.milk_price }}">
+                </div>
+              </div>
+              <br>
+              <h4 class="text-center">Preferences</h4>
+
+              <table style="width:100%">
+                {# Contact Number #}
+                <tr>
+                  <td colspan="2" class="text-center text-secondary"><i
+                   class="fas fa-address-book"></i> Contacts
+                  </td>
+                </tr>
+                <tr>
+                  <td><i class="fas fa-sms"></i> Mobile Number and SMS</td>
+                  <td>
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch1" type="checkbox"
+                             name="sms_pref"
+                             {% if tenant.sms_pref %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch1">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+
+                {# WhatsApp Notification#}
+
+                <tr>
+                  <td><i class="fab fa-whatsapp"></i> WhatsApp Notification</td>
+                  <td>
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch2" type="checkbox"
+                             name="wa_pref"
+                             {% if tenant.whatsapp_pref %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch2">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><i class="fab fa-whatsapp"></i> <i class="fas fa-people-arrows"></i> WhatsApp
+                    Direct
+                  </td>
+                  <td>
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch3" type="checkbox"
+                             name="wa_direct_pref"
+                             {% if tenant.whatsapp_direct_pref %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch3">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+
+                {# Email Notification #}
+                <tr>
+                  <td><i class="fas fa-envelope-open-text"></i> Email ID</td>
+                  <td>
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch4" type="checkbox"
+                             name="email_pref"
+                             {% if tenant.email_pref %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch4">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+
+                {# Bill - PDF and Download #}
+                <tr>
+                  <td colspan="2" class="text-center text-secondary"><i
+                   class="fas fa-file-invoice-dollar"></i> Bills
+                  </td>
+                </tr>
+                <tr>
+                  <td><i class="fas fa-file-pdf"></i> PDF Bill Downloads</td>
+                  <td>
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch5" type="checkbox"
+                             name="download_pdf_pref"
+                             {% if tenant.download_pdf_pref %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch5">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+
+                {# Bills till date #}
+                <tr>
+                  <td><i class="fas fa-calendar-day"></i> Generate Bill Till Today</td>
+                  <td>
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch6" type="checkbox"
+                             name="bill_till_date"
+                             {% if tenant.bill_till_date %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch6">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+
+                {# Temproarly disable Bills #}
+                <tr>
+                  <td><i class="fas fa-eye"></i> Customers Bill Access</td>
+                  <td>
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch7" type="checkbox"
+                             name="customers_bill_access"
+                             {% if tenant.customers_bill_access %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch7">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+
+              </table>
+              <div class="p-3 text-center col-sm-12 ">
+                <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
               </div>
             </div>
-            <br>
-            <h4 class="text-center">Preferences</h4>
-
-            <table style="width:100%">
-              {# Contact Number #}
-              <tr>
-                <td colspan="2" class="text-center text-secondary"><i
-                 class="fas fa-address-book"></i> Contacts
-                </td>
-              </tr>
-              <tr>
-                <td><i class="fas fa-sms"></i> Mobile Number and SMS</td>
-                <td>
-                  <div class="onoffswitch">
-                    <input class="onoffswitch-checkbox" id="myonoffswitch1" type="checkbox"
-                           name="sms_pref"
-                           {% if tenant.sms_pref %}checked{% endif %} value="1">
-                    <label class="onoffswitch-label" for="myonoffswitch1">
-                      <span class="onoffswitch-inner"></span>
-                      <span class="onoffswitch-switch"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-
-              {# WhatsApp Notification#}
-
-              <tr>
-                <td><i class="fab fa-whatsapp"></i> WhatsApp Notification</td>
-                <td>
-                  <div class="onoffswitch">
-                    <input class="onoffswitch-checkbox" id="myonoffswitch2" type="checkbox"
-                           name="wa_pref"
-                           {% if tenant.whatsapp_pref %}checked{% endif %} value="1">
-                    <label class="onoffswitch-label" for="myonoffswitch2">
-                      <span class="onoffswitch-inner"></span>
-                      <span class="onoffswitch-switch"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><i class="fab fa-whatsapp"></i> <i class="fas fa-people-arrows"></i> WhatsApp
-                  Direct
-                </td>
-                <td>
-                  <div class="onoffswitch">
-                    <input class="onoffswitch-checkbox" id="myonoffswitch3" type="checkbox"
-                           name="wa_direct_pref"
-                           {% if tenant.whatsapp_direct_pref %}checked{% endif %} value="1">
-                    <label class="onoffswitch-label" for="myonoffswitch3">
-                      <span class="onoffswitch-inner"></span>
-                      <span class="onoffswitch-switch"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-
-              {# Email Notification #}
-              <tr>
-                <td><i class="fas fa-envelope-open-text"></i> Email ID</td>
-                <td>
-                  <div class="onoffswitch">
-                    <input class="onoffswitch-checkbox" id="myonoffswitch4" type="checkbox"
-                           name="email_pref"
-                           {% if tenant.email_pref %}checked{% endif %} value="1">
-                    <label class="onoffswitch-label" for="myonoffswitch4">
-                      <span class="onoffswitch-inner"></span>
-                      <span class="onoffswitch-switch"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-
-              {# Bill - PDF and Download #}
-              <tr>
-                <td colspan="2" class="text-center text-secondary"><i
-                 class="fas fa-file-invoice-dollar"></i> Bills
-                </td>
-              </tr>
-              <tr>
-                <td><i class="fas fa-file-pdf"></i> PDF Bill Downloads</td>
-                <td>
-                  <div class="onoffswitch">
-                    <input class="onoffswitch-checkbox" id="myonoffswitch5" type="checkbox"
-                           name="download_pdf_pref"
-                           {% if tenant.download_pdf_pref %}checked{% endif %} value="1">
-                    <label class="onoffswitch-label" for="myonoffswitch5">
-                      <span class="onoffswitch-inner"></span>
-                      <span class="onoffswitch-switch"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-
-              {# Bills till date #}
-              <tr>
-                <td><i class="fas fa-calendar-day"></i> Generate Bill Till Today</td>
-                <td>
-                  <div class="onoffswitch">
-                    <input class="onoffswitch-checkbox" id="myonoffswitch6" type="checkbox"
-                           name="bill_till_date"
-                           {% if tenant.bill_till_date %}checked{% endif %} value="1">
-                    <label class="onoffswitch-label" for="myonoffswitch6">
-                      <span class="onoffswitch-inner"></span>
-                      <span class="onoffswitch-switch"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-
-              {# Temproarly disable Bills #}
-              <tr>
-                <td><i class="fas fa-eye"></i> Customers Bill Access</td>
-                <td>
-                  <div class="onoffswitch">
-                    <input class="onoffswitch-checkbox" id="myonoffswitch7" type="checkbox"
-                           name="customers_bill_access"
-                           {% if tenant.customers_bill_access %}checked{% endif %} value="1">
-                    <label class="onoffswitch-label" for="myonoffswitch7">
-                      <span class="onoffswitch-inner"></span>
-                      <span class="onoffswitch-switch"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-
-            </table>
-            <div class="p-3 text-center col-sm-12 ">
-              <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
-            </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    {% endif %}
   </div>
 
 {% endblock %}
