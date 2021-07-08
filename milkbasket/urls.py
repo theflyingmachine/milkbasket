@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'', include('register.urls')),
     url(r'^bill/', include('bill.urls')),
     url(r'^register/', include('register.urls')),
+    url(r'^maintenance-mode/', include('maintenance_mode.urls')),
 
 ]
 # Custom Error Handlers

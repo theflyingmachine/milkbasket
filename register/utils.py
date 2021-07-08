@@ -352,8 +352,9 @@ def get_tenant_perf(request):
     try:
         return Tenant.objects.get(tenant_id=request.user.id)
     except Tenant.DoesNotExist:
-        messages.add_message(request, messages.WARNING,
-                             'You need to set milk price and update preferences.')
+        if not request.user.is_superuser:
+            messages.add_message(request, messages.WARNING,
+                                 'You need to set milk price and update preferences.')
         return None
 
 

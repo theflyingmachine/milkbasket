@@ -27,7 +27,7 @@ class Tenant(models.Model):
 class Customer(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
     name = models.CharField(max_length=50, unique=True)
-    contact = models.CharField(max_length=10, null=True, default=None)
+    contact = models.CharField(max_length=10, null=True, blank=True, default='')
     email = models.CharField(max_length=50, null=True, default=None)
     morning = models.BooleanField(default=True)
     evening = models.BooleanField(default=True)
