@@ -97,14 +97,6 @@
                                   class="btn btn-info px-3 py-2">
                             <i class="fab fa-whatsapp"></i>
                           </button>
-
-                          {# Announcment Button  #}
-                          <button id="sendwabuttonmain1{{ entry.customer_id }}"
-                                  onclick="messageOnWhatsApp(this, {{ entry.customer_id }},'{{ entry.customer__name }}', {{ entry.customer__contact }})"
-                                  type="button"
-                                  class="btn btn-info px-3 py-2">
-                            <i class="fa fa-bullhorn"></i>
-                          </button>
                         {% endif %}
                       {% endif %}
                       {% if tenant.email_pref %}
@@ -681,30 +673,6 @@
         }
         {#alert("Data: " + data + "\nStatus: " + status);#}
       });
-    }
-
-    // Announcement on Whatsapp
-    function messageOnWhatsApp(this_button, customer_id, customer_name, contact_number) {
-      {# Send WhatsApp #}
-      this_button.disabled = true;
-      this_button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-      document.getElementById("sendwabuttonmain" + customer_id).disabled = true;
-      {#document.getElementById("sendwabuttonmain"+customer_id).innerText = 'Shared';#}
-      var share_text = 'Dear ' + customer_name + ',\nMilk price will be *₹ 48.00*/Liter, effective *01 August 2021*, due to increased cattle feed expenses.\nThank you for your cooperation.\n\n[Milk Basket]';
-      var encodedURL = encodeURIComponent(share_text)
-      {% if tenant.whatsapp_direct_pref %}
-        var url = "https://api.whatsapp.com/send?phone=91" + contact_number + "&text=" + encodedURL;
-      {% else %}
-        var url = "https://api.whatsapp.com/send?text=" + share_text;
-      {% endif %}
-      var win = window.open(url, '_blank');
-      win.focus();
-      document.getElementById("sendwabuttonmain1" + customer_id).classList.remove('btn-info');
-      document.getElementById("sendwabuttonmain1" + customer_id).classList.add('btn-secondary');
-      {#  Update in session to disable send button#}
-      sessionStorage.setItem("wa_" + customer_id, 'sent');
-      this_button.innerHTML = '<i class="fa fa-bullhorn"></i>';
-      show_toast('WhatsApp Shared', 'Bill shared on Whatsapp to ' + customer_name, 'success')
     }
 
     function sendEmail(this_button, customer_id, customer_name) {
