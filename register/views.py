@@ -838,8 +838,11 @@ def report_data(request, poll_id=None):
         }
         chart_data.append(current_month)
 
-    #     Get mil k production over past 365 days
+    #     Get milk production over past 365 days
     chart_data_milk = []
+    all_register_entry = Register.objects.filter(tenant_id=request.user.id)
+    all_milk_production = [{'quantity': x.quantity, 'schedule': x.schedule, 'log_date': x.log_date}
+                           for x in all_register_entry]
     for i in range(-365, 1):
         percent += 0.123
         d1 = date.today()
@@ -847,18 +850,19 @@ def report_data(request, poll_id=None):
         request.session[poll_id] = f'Milk Production ({graph_day.strftime("%d-%B-%Y")})'
         request.session[f'{poll_id}_percent'] = percent
         request.session.save()
-        mp = Register.objects.filter(tenant_id=request.user.id, log_date__year=graph_day.year,
-                                     log_date__month=graph_day.month, log_date__day=graph_day.day)
-        milk_production = mp.aggregate(Sum('quantity'))['quantity__sum'] or 0
-        milk_production_morning = mp.filter(schedule='morning-yes').aggregate(Sum('quantity'))[
-                                      'quantity__sum'] or 0
-        milk_production_evening = mp.filter(schedule='evening-yes').aggregate(Sum('quantity'))[
-                                      'quantity__sum'] or 0
+        milk_production_morning = sum(item['quantity'] for item in all_milk_production if
+                                      item['schedule'] == 'morning-yes' and item[
+                                          'log_date'].date() == graph_day)
+        milk_production_evening = sum(item['quantity'] for item in all_milk_production if
+                                      item['schedule'] == 'evening-yes' and item[
+                                          'log_date'].date() == graph_day)
+
         current_day = {
             "dayName": graph_day.strftime('%d-%B-%Y'),
             'milkMorning': round(float(milk_production_morning / 1000), 2),
             'milkEvening': round(float(milk_production_evening / 1000), 2),
-            "milkQuantity": round(float(milk_production / 1000), 2),
+            "milkQuantity": round(float(milk_production_morning / 1000), 2) + round(
+                float(milk_production_evening / 1000), 2),
         }
         chart_data_milk.append(current_day)
 
