@@ -177,7 +177,7 @@
             {% for bill in bill_summary %}
               {% if forloop.last %}
                 <tr>
-                  <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}. {{ milk_price }}</span>
+                  <td class="p-2" colspan="2"><span style="color:dimgrey;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}. {{ milk_price }}</span>
                   </td>
                   <td colspan="1">
                     {% if bill.balance %}
@@ -251,26 +251,26 @@
             <table class="table table-striped">
               <thead>
               <tr class="d-flex bg-info text-white">
-                <th class="p-0 p-lg-2 col-1" scope="col">#</th>
-                <th class="p-0 p-lg-2 col-2" scope="col">Date</th>
-                <th class="p-0 p-lg-2 col-2" scope="col">Time</th>
-                <th class="p-0 p-lg-2 col-2" scope="col">Quota</th>
-                <th class="p-0 p-lg-2 col-2" scope="col">Price</th>
-                <th class="p-0 p-lg-2 col-2" scope="col">Billed</th>
-                <th class="p-0 p-lg-2 col-1" scope="col">Status</th>
+                <th class="p-1 p-lg-2 col-1" scope="col">#</th>
+                <th class="p-1 p-lg-2 col-3" scope="col">Date</th>
+                {#                <th class="p-1 p-lg-2 col-2" scope="col">Time</th>#}
+                <th class="p-1 p-lg-2 col-2" scope="col">Quota</th>
+                <th class="p-1 p-lg-2 col-2" scope="col">Price</th>
+                <th class="p-1 p-lg-2 col-2" scope="col">Billed</th>
+                <th class="p-1 p-lg-2 col-2" scope="col">Status</th>
               </tr>
               </thead>
               <tbody>
               {% for entry in due_transactions %}
                 <tr class="d-flex">
-                  <th class="p-0 p-lg-2 col-1" scope="row">{{ forloop.counter }}</th>
-                  <td class="p-0 p-lg-2 col-2">{{ entry.display_log_date }}</td>
-                  <td class="p-0 p-lg-2 col-2">{{ entry.display_schedule }}</td>
-                  <td class="p-0 p-lg-2 col-2">{{ entry.quantity|floatformat }} ML</td>
-                  <td class="p-0 p-lg-2 col-2">{{ entry.current_price }}</td>
-                  <td class="p-0 p-lg-2 col-2">{{ entry.billed_amount }}</td>
+                  <th class="p-1 p-lg-2 col-1" scope="row">{{ forloop.counter }}</th>
+                  <td class="p-1 p-lg-2 col-3">{{ entry.display_log_date }}</td>
+                  {#                  <td class="p-1 p-lg-2 col-2">{{ entry.display_schedule }}</td>#}
+                  <td class="p-1 p-lg-2 col-2">{{ entry.quantity|floatformat }} ML</td>
+                  <td class="p-1 p-lg-2 col-2">{{ entry.current_price }}</td>
+                  <td class="p-1 p-lg-2 col-2">{{ entry.billed_amount }}</td>
                   <td
-                   class="p-0 p-lg-2 col-1 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
+                   class="p-1 p-lg-2 col-2 font-weight-bold{% if entry.display_paid == 'Paid' %} text-success {% else %} text-danger {% endif %}">{{ entry.display_paid }}</td>
 
                   </td>
                 </tr>

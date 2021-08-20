@@ -985,7 +985,7 @@ def customer_profile(request, id=None):
             entry['display_paid'] = 'Paid' if entry['paid'] else 'Due'
             entry['display_schedule'] = 'Morning' if entry[
                                                          'schedule'] == 'morning-yes' else 'Evening'
-            entry['display_log_date'] = entry['log_date'].strftime('%d-%B-%Y')
+            entry['display_log_date'] = entry['log_date'].strftime('%d-%b-%Y')
 
         # Get due table
         due_cust = Register.objects.filter(tenant_id=request.user.id, customer_id=id, paid=0,
