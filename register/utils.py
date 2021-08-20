@@ -294,8 +294,8 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
                     for due_month in due_months]
     bill_summary.reverse()
     bill_sum_total = {
-        'last_updated': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
-        'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
+        'last_updated': customer_register_last_updated(cust_id).strftime("%d %B %Y"),
+        'today': datetime.now().strftime("%d %B %Y, %I:%M %p"),
         'sum_total': (
             sum([bill.get('desc')[-1]['total'] for bill in bill_summary if bill.get('desc')]))}
 
@@ -318,8 +318,8 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
     # Render PDF data
     data = {'barcode': barcode, 'bill_number': bill_number, 'page_title': bill_number,
             'customer_id': cust_id, 'customer_name': customer.name,
-            'bill_date': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
-            'last_update': customer_register_last_updated(cust_id).strftime("%d %B, %Y"),
+            'bill_date': datetime.now().strftime("%d %B %Y, %I:%M %p"),
+            'last_update': customer_register_last_updated(cust_id).strftime("%d %B %Y"),
             'bill_summary': bill_summary,
             'milk_price': get_milk_current_price(request.user.id, description=True).replace('₹',
                                                                                             'Rs.'),
