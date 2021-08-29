@@ -236,7 +236,7 @@
                 </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
-                    id="{{ entry.customer_id }}_{{ day }}"
+                    id="morning_{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
                     class="cal-yes text-center" data-toggle="popover"
                     title="{{ entry.customer_name }}" data-trigger="hover"
@@ -248,7 +248,7 @@
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Morning" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
-                            data-quantity="{{ entry.customer_quantity|floatformat }}"
+                            data-quantity="{{ entry.customer_m_quantity }}"
                             data-price="{{ entry.default_price }}">{{ day }}
                       <span id="quantity_{{ entry.customer_id }}_{{ day }}"
                             class="milk-quantity text-secondary small">
@@ -274,7 +274,7 @@
                 </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
-                    id="{{ entry.customer_id }}_{{ day }}"
+                    id="evening_{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
                     class="cal-yes text-center" data-toggle="popover"
                     title="{{ entry.customer_name }}" data-trigger="hover"
@@ -285,7 +285,7 @@
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Evening" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
-                            data-quantity="{{ entry.customer_quantity|floatformat }}"
+                            data-quantity="{{ entry.customer_e_quantity }}"
                             data-price="{{ entry.default_price }}">{{ day }}
                       <span id="quantity_{{ entry.customer_id }}_{{ day }}"
                             class="milk-quantity text-secondary small">
@@ -331,7 +331,7 @@
             <div class="form-group">
               <label for="recipient-quantity" class="col-form-label">Quantity:</label>
               <input type="number" class="form-control quantity-input font-weight-bold" step='0'
-                     name="quantity" id="recipient-quantity">
+                     name="quantity" id="recipient-quantity" required>
             </div>
             <div class="form-group">
               <label for="yn">Attendance:</label>
@@ -382,8 +382,10 @@
               <label for="exampleFormControlSelect1">Customer</label>
               <select class="form-control" name="customer" id="exampleFormControlSelect1">
                 {% for customer in active_customers %}
-                  <option value="{{ customer.id }}">{{ customer.name }} | {{ customer.quantity }}
-                    ML
+                  <option value="{{ customer.id }}">{{ customer.name }} |
+                    {% if  customer.m_quantity %}{{ customer.m_quantity }} ML(Morning). {% endif %}
+                    {% if  customer.e_quantity %}{{ customer.e_quantity }} ML
+                      (Evening). {% endif %}
                   </option>
                 {% endfor %}
               </select>
@@ -394,15 +396,6 @@
                      id="recipient-price" value="{{ default_price }}">
             </div>
 
-            <div class="form-group">
-              <label for="schedulepicker" class="col-form-label">Schedule:</label>
-              <select class="form-control" name='schedule' id="exampleFormControlSelect">
-                <option value="morning-yes">Morning - YES</option>
-                <option value="evening-yes">Evening - YES</option>
-                <option value="morning-no">Morning - NO</option>
-                <option value="evening-no">Evening - NO</option>
-              </select>
-            </div>
             <div class="form-group">
               <label for="myDate1" class="col-form-label">Date:</label>
               <input class="form-control" type="date" name="log_date" id="mydate1"
@@ -480,7 +473,7 @@
                     {% if entry.is_active %}
                       <label
                        class="container autopilot-modal-content-mobile">{{ entry.customer_name }}
-                        | {{ entry.customer_quantity }} ML
+                        | {{ entry.customer_m_quantity }} ML
                         <input name="{{ entry.customer_id }}-morning" type="checkbox"
                                checked="checked">
                         <span class="checkmark"></span>
@@ -492,7 +485,7 @@
                   {% for entry in autopilot_morning_register %}
                     <label
                      class="container autopilot-modal-content-mobile text-success">{{ entry.customer_name }}
-                      | {{ entry.customer_quantity }} ML
+                      | {{ entry.customer_m_quantity }} ML
                       <input name="{{ entry.customer_id }}-morning" type="checkbox"
                              checked="checked">
                       <span class="checkmark"></span>
@@ -507,7 +500,7 @@
                     {% if entry.is_active %}
                       <label
                        class="container autopilot-modal-content-mobile">{{ entry.customer_name }}
-                        | {{ entry.customer_quantity }} ML
+                        | {{ entry.customer_e_quantity }} ML
                         <input name="{{ entry.customer_id }}-evening" type="checkbox"
                                checked="checked">
                         <span class="checkmark"></span>
@@ -519,7 +512,7 @@
                   {% for entry in autopilot_evening_register %}
                     <label
                      class="container autopilot-modal-content-mobile text-success">{{ entry.customer_name }}
-                      | {{ entry.customer_quantity }} ML
+                      | {{ entry.customer_e_quantity }} ML
                       <input name="{{ entry.customer_id }}-evening" type="checkbox"
                              checked="checked">
                       <span class="checkmark"></span>
