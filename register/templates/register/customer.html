@@ -98,7 +98,8 @@
                       data-id="{{ customer.id }}"
                       data-contact="{{ customer.contact }}"
                       data-email="{{ customer.email }}"
-                      data-quantity="{{ customer.quantity|floatformat }}"
+                      data-m-quantity="{{ customer.m_quantity|floatformat }}"
+                      data-e-quantity="{{ customer.e_quantity|floatformat }}"
                       data-morning="{{ customer.morning }}"
                       data-evening="{{ customer.evening }}"
               >Edit
@@ -142,7 +143,8 @@
                       data-id="{{ customer.id }}"
                       data-contact="{{ customer.contact }}"
                       data-email="{{ customer.email }}"
-                      data-quantity="{{ customer.quantity|floatformat }}"
+                      data-m-quantity="{{ customer.m_quantity|floatformat }}"
+                      data-e-quantity="{{ customer.e_quantity|floatformat }}"
                       data-morning="{{ customer.morning }}"
                       data-evening="{{ customer.evening }}"
               >Edit
@@ -179,7 +181,7 @@
                 <label for="name">Name</label>
                 <input autofocus required type="text" class="form-control" id="recipient_name"
                        name="name"
-                       placeholder="Name">
+                       placeholder="Enter Name">
               </div>
             </div>
             {% if tenant.sms_pref %}
@@ -187,7 +189,7 @@
                 <div class="form-group col-md-12">
                   <label for="inputEmail4">Contact</label>
                   <input type="text" class="form-control" id="recipient_contact" name="contact"
-                         placeholder="Contact">
+                         placeholder="Enter Contact">
                 </div>
               </div>
             {% endif %}
@@ -196,7 +198,7 @@
                 <div class="form-group col-md-12">
                   <label for="inputEmail4">Email</label>
                   <input type="text" class="form-control" id="recipient_email" name="email"
-                         placeholder="Email">
+                         placeholder="Enter Email">
                 </div>
               </div>
             {% endif %}
@@ -218,11 +220,18 @@
                   </div>
                 </div>
 
-                <label for="recipient-quantity">Quantity</label>
+                <label id="recipient-quantity-m-label" for="recipient-quantity-m">Morning
+                  Quantity</label>
                 <input class="form-control quantity-input font-weight-bold" step="0" type="number"
-                       required id="recipient-quantity"
-                       name="quantity"
-                       placeholder="ML">
+                       id="recipient-quantity-m"
+                       name="m_quantity"
+                       placeholder="Enter ML (Morning)">
+                <label id="recipient-quantity-e-label" for="recipient-quantity-e">Evening
+                  Quantity</label>
+                <input class="form-control quantity-input font-weight-bold" step="0" type="number"
+                       id="recipient-quantity-e"
+                       name="e_quantity"
+                       placeholder="Enter ML (Evening)">
               </div>
             </div>
             <button type="submit" class="btn btn-primary justify-content-center col-12">Save
@@ -238,7 +247,8 @@
     $('#exampleModal').on('show.bs.modal', function (event) {
       let button = $(event.relatedTarget); // Button that triggered the modal
       let recipient_name = button.data('name'); // Extract info from data-* attributes
-      let recipient_quantity = button.data('quantity') // Extract info from data-* attributes
+      let recipient_quantity_m = button.data('m-quantity') // Extract info from data-* attributes
+      let recipient_quantity_e = button.data('e-quantity') // Extract info from data-* attributes
       let recipient_email = button.data('email') // Extract info from data-* attributesc
       let recipient_contact = button.data('contact') // Extract info from data-* attributesc
       let recipient_id = button.data('id') // Extract info from data-* attributesc
@@ -255,20 +265,30 @@
         modal.find('#recipient_name').val('');
       }
       modal.find('#recipient_id').val(recipient_id)
-      modal.find('#recipient-quantity').val(recipient_quantity)
+      modal.find('#recipient-quantity-m').val(recipient_quantity_m)
+      modal.find('#recipient-quantity-e').val(recipient_quantity_e)
       modal.find('#recipient_email').val(recipient_id)
       if (recipient_morning !== 'None')
         modal.find('#recipient_email').val(recipient_email)
       modal.find('#recipient_contact').val(recipient_contact)
-      if (recipient_morning === 'True')
+      if (recipient_morning === 'True') {
         $('#recipient_morning').prop('checked', true);
-      else
+        $('#recipient-quantity-m').show();
+        $('#recipient-quantity-m-label').show();
+      } else {
         $('#recipient_morning').prop('checked', false);
-
-      if (recipient_evening === 'True')
+        $('#recipient-quantity-m').hide();
+        $('#recipient-quantity-m-label').hide();
+      }
+      if (recipient_evening === 'True') {
         $('#recipient_evening').prop('checked', true);
-      else
+        $('#recipient-quantity-e').show();
+        $('#recipient-quantity-e-label').show();
+      } else {
         $('#recipient_evening').prop('checked', false);
+        $('#recipient-quantity-e').hide();
+        $('#recipient-quantity-e-label').hide();
+      }
     })
 
     {# Search Field #}
@@ -289,6 +309,28 @@
         }
       }
     }
+
+    {# Show / Hide quantity textbox based on the checkbox #}
+    $(function () {
+      $("#recipient_morning").click(function () {
+        if ($(this).is(":checked")) {
+          $("#recipient-quantity-m-label").show();
+          $("#recipient-quantity-m").show().prop('required', true);
+        } else {
+          $("#recipient-quantity-m-label").hide();
+          $("#recipient-quantity-m").hide().prop('required', false);
+        }
+      });
+      $("#recipient_evening").click(function () {
+        if ($(this).is(":checked")) {
+          $("#recipient-quantity-e-label").show();
+          $("#recipient-quantity-e").show().prop('required', true);
+        } else {
+          $("#recipient-quantity-e-label").hide();
+          $("#recipient-quantity-e").hide().prop('required', false);
+        }
+      });
+    });
   </script>
 
 {% endblock %}

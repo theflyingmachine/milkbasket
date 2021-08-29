@@ -31,7 +31,8 @@ class Customer(models.Model):
     email = models.CharField(max_length=50, null=True, default=None)
     morning = models.BooleanField(default=True)
     evening = models.BooleanField(default=True)
-    quantity = models.FloatField(null=False, blank=False, default=None)
+    m_quantity = models.IntegerField(null=True, blank=False, default=None)
+    e_quantity = models.IntegerField(null=True, blank=False, default=None)
     status = models.BooleanField(default=True)
     member_since = models.DateTimeField(auto_now_add=True, null=True)
 

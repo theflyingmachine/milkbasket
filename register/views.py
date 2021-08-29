@@ -71,14 +71,16 @@ def index(request, year=None, month=None):
     # Get morning register for given month
     register = Register.objects.filter(tenant_id=request.user.id,
                                        log_date__month=register_date.month,
+                                       log_date__year=register_date.year,
                                        schedule__in=['morning-yes', 'morning-no',
                                                      'e-morning']).values('customer_id',
                                                                           'customer__name',
-                                                                          'customer__quantity').distinct()
+                                                                          'customer__m_quantity').distinct()
 
     for customer in register:
         register_entry = Register.objects.filter(tenant_id=request.user.id,
                                                  log_date__month=register_date.month,
+                                                 log_date__year=register_date.year,
                                                  customer=customer['customer_id'],
                                                  schedule__in=['morning-yes', 'morning-no',
                                                                'e-morning'])
@@ -86,21 +88,23 @@ def index(request, year=None, month=None):
             'customer_name': customer['customer__name'],
             'customer_id': customer['customer_id'],
             'register_entry': register_entry,
-            'customer_quantity': customer['customer__quantity'],
+            'customer_m_quantity': customer['customer__m_quantity'],
             'default_price': tenant.milk_price,
             'is_active': check_customer_is_active(customer['customer_id']),
         })
     # Get evening register for given month
     register = Register.objects.filter(tenant_id=request.user.id,
                                        log_date__month=register_date.month,
+                                       log_date__year=register_date.year,
                                        schedule__in=['evening-yes', 'evening-no',
                                                      'e-evening']).values('customer_id',
                                                                           'customer__name',
-                                                                          'customer__quantity').distinct()
+                                                                          'customer__e_quantity').distinct()
 
     for customer in register:
         register_entry = Register.objects.filter(tenant_id=request.user.id,
                                                  log_date__month=register_date.month,
+                                                 log_date__year=register_date.year,
                                                  customer=customer['customer_id'],
                                                  schedule__in=['evening-yes', 'evening-no',
                                                                'e-evening'])
@@ -108,7 +112,7 @@ def index(request, year=None, month=None):
             'customer_name': customer['customer__name'],
             'customer_id': customer['customer_id'],
             'register_entry': register_entry,
-            'customer_quantity': customer['customer__quantity'],
+            'customer_e_quantity': customer['customer__e_quantity'],
             'default_price': tenant.milk_price,
             'is_active': check_customer_is_active(customer['customer_id']),
         })
@@ -120,12 +124,12 @@ def index(request, year=None, month=None):
         autopilot_morning_register = [{
             'customer_name': customer.name,
             'customer_id': customer.id,
-            'customer_quantity': customer.quantity,
+            'customer_m_quantity': customer.m_quantity,
         } for customer in all_customers if customer.morning]
         autopilot_evening_register = [{
             'customer_name': customer.name,
             'customer_id': customer.id,
-            'customer_quantity': customer.quantity,
+            'customer_e_quantity': customer.e_quantity,
         } for customer in all_customers if customer.evening]
 
     # plot calendar days
@@ -172,22 +176,23 @@ def addcustomer(request):
     if request.method == "POST":
         customer_id = request.POST.get("id", None)
         no_redirect = request.POST.get("redirect_url", False)
-        customer_contact, customer_email, customer_morning, customer_evening, customer_quantity = '', '', '', '', ''
+        customer_contact, customer_email, customer_morning, customer_evening, m_quantity, e_quantity = '', '', '', '', '', ''
         if customer_id:
-            customer = Customer(id=customer_id)
             customer_name = Customer.objects.filter(id=customer_id).first()
             customer_contact = request.POST.get("contact")
             customer_email = request.POST.get("email")
             customer_morning = True if request.POST.get("morning", False) else False
             customer_evening = True if request.POST.get("evening", False) else False
-            customer_quantity = request.POST.get("quantity", None)
+            m_quantity = request.POST.get("m_quantity", None) if customer_morning else None
+            e_quantity = request.POST.get("e_quantity", None) if customer_evening else None
             if not customer_morning and not customer_evening:
                 Customer.objects.filter(tenant_id=request.user.id, id=customer_id).update(
                     contact=customer_contact,
                     email=customer_email,
                     morning=customer_morning,
                     evening=customer_evening,
-                    quantity=customer_quantity,
+                    m_quantity=m_quantity,
+                    e_quantity=e_quantity,
                     status=0)
                 messages.add_message(request, messages.WARNING,
                                      f'You have deactivated {customer_name.name}')
@@ -197,7 +202,8 @@ def addcustomer(request):
                     email=customer_email,
                     morning=customer_morning,
                     evening=customer_evening,
-                    quantity=customer_quantity,
+                    m_quantity=m_quantity,
+                    e_quantity=e_quantity,
                     status=1)
                 messages.add_message(request, messages.SUCCESS,
                                      f'Customer details updated successfully for {customer_name.name}')
@@ -208,32 +214,39 @@ def addcustomer(request):
             email = form['email'].value()
             morning = form['morning'].value() or False
             evening = form['evening'].value() or False
-            quantity = form['quantity'].value()
+            m_quantity = form['m_quantity'].value() or None
+            e_quantity = form['e_quantity'].value() or None
             if not morning and not evening:
                 customer = Customer(tenant_id=request.user.id, name=name, contact=contact,
                                     email=email, morning=morning,
-                                    evening=evening, quantity=quantity, status=0)
+                                    evening=evening, m_quantity=m_quantity, e_quantity=e_quantity,
+                                    status=0)
                 messages.add_message(request, messages.WARNING,
                                      f'New Customer {name} added successfully, but is inactive at the moment')
             else:
                 customer = Customer(tenant_id=request.user.id, name=name, contact=contact,
                                     email=email, morning=morning,
-                                    evening=evening, quantity=quantity, status=1)
+                                    evening=evening, m_quantity=m_quantity, e_quantity=e_quantity,
+                                    status=1)
                 messages.add_message(request, messages.SUCCESS,
                                      f'New Customer {name} added successfully')
             try:
                 customer.save()
-            except:
+            except Exception as E:
                 list(messages.get_messages(request))
                 messages.add_message(request, messages.ERROR,
                                      f'Something went wrong, we could not add customer')
         if no_redirect:
+            m_quantity_text = f'{m_quantity} ML (Morning).' if m_quantity else ''
+            e_quantity_text = f'{e_quantity} ML (Evening).' if e_quantity else ''
             return JsonResponse({'status': 'success',
                                  'contact': customer_contact,
                                  'email': customer_email,
                                  'schedule_morning': customer_morning,
                                  'schedule_evening': customer_evening,
-                                 'quantity': customer_quantity,
+                                 'm_quantity': m_quantity,
+                                 'e_quantity': e_quantity,
+                                 'quantity': m_quantity_text + e_quantity_text,
                                  })
         else:
             return redirect('view_customers')
@@ -250,29 +263,44 @@ def addentry(request, year=None, month=None):
     if request.method == "POST":
 
         yes_or_no = ''
-        entry_status = False
         reload_status = False
         extended_data = None
+        schedule = None
         if request.POST.get("add-new-entry", None):
             customer = request.POST.get("customer", None)
             customer_info = Customer.objects.filter(tenant_id=request.user.id, id=customer,
                                                     status=1).first()
-            schedule = request.POST.get("schedule", None)
             log_date = request.POST.get("log_date", None)
             full_log_date = datetime.strptime(log_date, '%Y-%m-%d')
             current_price = tenant.milk_price
             # check if entry exists for give day and schedule
-            check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
-                                                   log_date=full_log_date,
-                                                   schedule__startswith=schedule).first()
-            if not check_record:
-                entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
-                                 log_date=full_log_date,
-                                 schedule=schedule,
-                                 quantity=customer_info.quantity, current_price=current_price)
-                entry.save()
-                entry_status = True if entry.id else False
-                reload_status = True
+            entry = None
+            if customer_info.morning:
+                check_record = Register.objects.filter(tenant_id=request.user.id,
+                                                       customer_id=customer,
+                                                       log_date=full_log_date,
+                                                       schedule__startswith='morning-yes').first()
+                if not check_record:
+                    entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
+                                     log_date=full_log_date,
+                                     schedule='morning-yes',
+                                     quantity=customer_info.m_quantity,
+                                     current_price=current_price)
+                    entry.save()
+            if customer_info.evening:
+                check_record = Register.objects.filter(tenant_id=request.user.id,
+                                                       customer_id=customer,
+                                                       log_date=full_log_date,
+                                                       schedule__startswith='evening-yes').first()
+                if not check_record:
+                    entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
+                                     log_date=full_log_date,
+                                     schedule='evening-yes',
+                                     quantity=customer_info.e_quantity,
+                                     current_price=current_price)
+                    entry.save()
+            entry_status = True if entry is not None else False
+            reload_status = True
         else:
             form = RegisterForm(request.POST)
             customer = request.POST.get("id", None)
@@ -312,7 +340,7 @@ def addentry(request, year=None, month=None):
 
         data = {
             'return': entry_status,
-            'cell': f'{customer}_{full_log_date.day}',
+            'cell': f'{schedule}_{customer}_{full_log_date.day}',
             'classname': 'cal-yes' if 'yes' in yes_or_no else 'cal-no',
             'classnameRemove': 'cal-no' if 'yes' in yes_or_no else 'cal-yes',
             'logDate': full_log_date.strftime('%d %b'),
@@ -375,12 +403,15 @@ def autopilot(request, year=None, month=None):
                                                        log_date=full_log_date,
                                                        schedule__startswith=cust[
                                                            'schedule']).first()
-                if not check_record:
+                add_quantity = customer.m_quantity if cust[
+                                                          "schedule"] == 'morning' else customer.e_quantity
+                if not check_record and add_quantity:
                     full_schedule = f'{cust["schedule"]}-yes'
                     entry = Register(tenant_id=request.user.id, customer_id=customer.id,
                                      log_date=full_log_date,
                                      schedule=full_schedule,
-                                     quantity=customer.quantity, current_price=current_price)
+                                     quantity=add_quantity,
+                                     current_price=current_price)
                     entry.save()
                 else:
                     print('Skipping: ', customer.name, 'Day: ', day)
@@ -435,6 +466,9 @@ def customers(request):
             customer.schedule = 'Evening'
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
+
+        # Add total Milk Quantity
+        customer.quantity = (customer.m_quantity or 0) + (customer.e_quantity or 0)
 
     inactive_customers = Customer.objects.filter(tenant_id=request.user.id, status=0)
     for customer in inactive_customers:
@@ -1130,8 +1164,8 @@ def bill_views(request):
                            'views': 1, 'transaction_ids': 1, 'bill_summary': 1})
     bill_list = []
     for bill in bills:
-        string_date = bill['bill_date']  # 09 January, 2021, 09:32 AM
-        bill['bill_date_obj'] = datetime.strptime(string_date, '%d %B, %Y, %H:%M %p')
+        string_date = bill['bill_date']  # 09 January 2021, 09:32 AM
+        bill['bill_date_obj'] = datetime.strptime(string_date, '%d %B %Y, %I:%M %p')
         bill['bill_date'] = bill['bill_date_obj'].strftime("%Y/%m/%d %I:%M %p")
         if not 'views' in bill: bill['views'] = 'Not Viewed'
         bill['payment_status'] = False if Register.objects.filter(id__in=bill['transaction_ids'],
