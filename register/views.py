@@ -140,7 +140,8 @@ def index(request, year=None, month=None):
     # Get last entry date
     try:
         last_entry_date = Register.objects.filter(tenant_id=request.user.id,
-                                                  log_date__month=register_date.month).latest(
+                                                  log_date__month=register_date.month,
+                                                  log_date__year=register_date.year).latest(
             'log_date__day')
         last_entry_date = int(last_entry_date.log_date.strftime("%d")) + 1
     except Register.DoesNotExist:
@@ -505,7 +506,7 @@ def account(request, year=None, month=None):
 
     # Get expenses
     total_expense = 0
-    expenses = Expense.objects.filter(tenant_id=request.user.id,
+    expenses = Expense.objects.filter(tenant_id=request.user.id, log_date__year=register_date.year,
                                       log_date__month=register_date.month)
     for exp in expenses:
         exp.log_date = exp.log_date.strftime("%b %d")
@@ -534,7 +535,7 @@ def account(request, year=None, month=None):
         due_prev_month = Register.objects.filter(tenant_id=request.user.id,
                                                  customer_id=customer['customer_id'],
                                                  schedule__endswith='yes', paid=0).exclude(
-            log_date__month=current_date.month)
+            log_date__month=current_date.month, log_date__year=current_date.year)
         due_prev_month_amount = 0
         for due in due_prev_month:
             due_prev_month_amount += (
@@ -571,13 +572,15 @@ def account(request, year=None, month=None):
                                               'balance_amount') if balance_amount else 0
         paid_amount = Payment.objects.filter(tenant_id=request.user.id,
                                              customer_id=customer['customer_id'],
-                                             log_date__month=register_date.month).aggregate(
+                                             log_date__month=register_date.month,
+                                             log_date__year=register_date.year).aggregate(
             Sum('amount'))
         customer['payment_done'] = accepted_amount
         customer['total_paid'] = paid_amount['amount__sum']
 
     # Get extra income
-    income = Income.objects.filter(tenant_id=request.user.id, log_date__month=register_date.month)
+    income = Income.objects.filter(tenant_id=request.user.id, log_date__year=register_date.year,
+                                   log_date__month=register_date.month)
     for inc in income:
         inc.log_date = inc.log_date.strftime("%b %d")
 
@@ -1033,7 +1036,7 @@ def customer_profile(request, id=None):
             balance_amount = get_customer_balance_amount(id)
             # Check till last month
             due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(
-                log_date__month=current_date.month)
+                log_date__month=current_date.month, log_date__year=current_date.year)
             for due in due_cust_prev_month:
                 payment_due_amount_prev_month += (
                     due.current_price / 1000 * decimal.Decimal(float(due.quantity)))

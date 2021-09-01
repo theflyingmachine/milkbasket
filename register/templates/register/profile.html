@@ -417,7 +417,10 @@
                 <div class="form-row">
                   <div class="form-group col-md-12">
                     <label for="name">Contact</label>
-                    <input type="text" class="form-control" id="c_contact" name="c_contact"
+                    <input type="number" step="1" min="6000000000" max="9999999999"
+                           onKeyPress="if(this.value.length==10) return false;"
+                           class="form-control"
+                           id="c_contact" name="c_contact"
                            placeholder="Mobile Number">
                   </div>
                 </div>
@@ -469,7 +472,9 @@
                   <div class="form-row">
                     <div class="form-group col-md-12">
                       <label for="inputEmail4">Contact</label>
-                      <input type="text" class="form-control" id="recipient_contact" name="contact"
+                      <input type="number" step="1" min="6000000000" max="9999999999"
+                             onKeyPress="if(this.value.length==10) return false;"
+                             class="form-control" id="recipient_contact" name="contact"
                              placeholder="Enter Contact">
                     </div>
                   </div>
