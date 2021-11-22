@@ -1,6 +1,37 @@
 </div>
-<div class="text-center footer text-white" style="margin-bottom:0">
-  <p class="p-3">Copyrights &copy; {% now 'Y' %} | Milk Basket (Beta)</p>
+<div
+ class="text-center footer text-white {% if not request.user.is_superuser and user.is_authenticated and request.user_agent.is_mobile %}footer-link-bg {% endif %}"
+ style="margin-bottom:0">
+
+  {% if not request.user.is_superuser and user.is_authenticated and request.user_agent.is_mobile %}
+    <table width="100%" class="text-center text-light footer-links mt-0">
+      <th>
+      <td><a class="nav-item nav-link"
+             href="/register/"><i
+       class="fa fa-book {% if menu_register %} text-warning {% else %} text-light{% endif %}"></i></a>
+      </td>
+      <td><a class="nav-item nav-link"
+             href="/register/customers"><i
+       class="fa fa-users {% if menu_customer %} text-warning {% else %} text-light{% endif %}"></i></a>
+      </td>
+      <td><a class="nav-item nav-link"
+             href="/register/account"><i
+       class="fas fa-rupee-sign {% if menu_account %} text-warning {% else %} text-light{% endif %}"></i></a>
+      </td>
+      <td><a class="nav-item nav-link"
+             href="/register/report"><i
+       class="fas fa-chart-bar{% if menu_report %} text-warning {% else %} text-light{% endif %}"></i></a>
+      </td>
+      <td><a class="nav-item nav-link"
+             href="/register/setting"><i
+       class="fa fa-cog {% if menu_setting %} text-warning {% else %} text-light{% endif %}"></i></a>
+      </td>
+
+      </th>
+    </table>
+  {% else %}
+    <p class="p-3">Copyrights &copy; {% now 'Y' %} | Milk Basket (Beta)</p>
+  {% endif %}
 </div>
 
 </body>

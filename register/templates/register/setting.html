@@ -111,7 +111,7 @@
         right: 0px;
     }
 
-    table, th, td {
+    .setting-table, .setting-th, .setting-td {
         border: 1px solid rgba(220, 220, 220);
         border-collapse: collapse;
     }
@@ -170,16 +170,16 @@
               <br>
               <h4 class="text-center">Preferences</h4>
 
-              <table style="width:100%">
+              <table class="setting-table" style="width:100%">
                 {# Contact Number #}
                 <tr>
-                  <td colspan="2" class="text-center text-secondary"><i
+                  <td colspan="2" class="setting-td text-center text-secondary"><i
                    class="fas fa-address-book"></i> Contacts
                   </td>
                 </tr>
                 <tr>
-                  <td><i class="fas fa-sms"></i> Mobile Number and SMS</td>
-                  <td>
+                  <td class="setting-td"><i class="fas fa-sms"></i> Mobile Number and SMS</td>
+                  <td class="setting-td">
                     <div class="onoffswitch">
                       <input class="onoffswitch-checkbox" id="myonoffswitch1" type="checkbox"
                              name="sms_pref"
@@ -195,8 +195,8 @@
                 {# WhatsApp Notification#}
 
                 <tr>
-                  <td><i class="fab fa-whatsapp"></i> WhatsApp Notification</td>
-                  <td>
+                  <td class="setting-td"><i class="fab fa-whatsapp"></i> WhatsApp Notification</td>
+                  <td class="setting-td">
                     <div class="onoffswitch">
                       <input class="onoffswitch-checkbox" id="myonoffswitch2" type="checkbox"
                              name="wa_pref"
@@ -209,10 +209,11 @@
                   </td>
                 </tr>
                 <tr>
-                  <td><i class="fab fa-whatsapp"></i> <i class="fas fa-people-arrows"></i> WhatsApp
+                  <td class="setting-td"><i class="fab fa-whatsapp"></i> <i
+                   class="fas fa-people-arrows"></i> WhatsApp
                     Direct
                   </td>
-                  <td>
+                  <td class="setting-td">
                     <div class="onoffswitch">
                       <input class="onoffswitch-checkbox" id="myonoffswitch3" type="checkbox"
                              name="wa_direct_pref"
@@ -227,8 +228,8 @@
 
                 {# Email Notification #}
                 <tr>
-                  <td><i class="fas fa-envelope-open-text"></i> Email ID</td>
-                  <td>
+                  <td class="setting-td"><i class="fas fa-envelope-open-text"></i> Email ID</td>
+                  <td class="setting-td">
                     <div class="onoffswitch">
                       <input class="onoffswitch-checkbox" id="myonoffswitch4" type="checkbox"
                              name="email_pref"
@@ -243,13 +244,13 @@
 
                 {# Bill - PDF and Download #}
                 <tr>
-                  <td colspan="2" class="text-center text-secondary"><i
+                  <td colspan="2" class="setting-td text-center text-secondary"><i
                    class="fas fa-file-invoice-dollar"></i> Bills
                   </td>
                 </tr>
                 <tr>
-                  <td><i class="fas fa-file-pdf"></i> PDF Bill Downloads</td>
-                  <td>
+                  <td class="setting-td"><i class="fas fa-file-pdf"></i> PDF Bill Downloads</td>
+                  <td class="setting-td">
                     <div class="onoffswitch">
                       <input class="onoffswitch-checkbox" id="myonoffswitch5" type="checkbox"
                              name="download_pdf_pref"
@@ -264,8 +265,10 @@
 
                 {# Bills till date #}
                 <tr>
-                  <td><i class="fas fa-calendar-day"></i> Generate Bill Till Today</td>
-                  <td>
+                  <td class="setting-td"><i class="fas fa-calendar-day"></i> Generate Bill Till
+                    Today
+                  </td>
+                  <td class="setting-td">
                     <div class="onoffswitch">
                       <input class="onoffswitch-checkbox" id="myonoffswitch6" type="checkbox"
                              name="bill_till_date"
@@ -280,8 +283,8 @@
 
                 {# Temproarly disable Bills #}
                 <tr>
-                  <td><i class="fas fa-eye"></i> Customers Bill Access</td>
-                  <td>
+                  <td class="setting-td"><i class="fas fa-eye"></i> Customers Bill Access</td>
+                  <td class="setting-td">
                     <div class="onoffswitch">
                       <input class="onoffswitch-checkbox" id="myonoffswitch7" type="checkbox"
                              name="customers_bill_access"

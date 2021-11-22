@@ -129,7 +129,7 @@
     }
 
     .top-nav-background {
-        background-color: #0C4F8A;
+        background-color: #0C4F8A !important;
     }
 
     .toast-fixed {
@@ -138,6 +138,14 @@
         right: 1rem;
         z-index: 120 !important;
         width: 100%;
+    }
+
+    .footer-links {
+        font-size: 30px;
+    }
+
+    .footer-link-bg {
+        background-color: #0C4F8A;
     }
 
 </style>
@@ -171,10 +179,10 @@
            href="/register/customers">Customers</a>
         <a class="nav-item nav-link mr-3 {% if menu_account %} active {% endif %}"
            href="/register/account">Accounts</a>
-        <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
-           href="/register/setting">Setting</a>
         <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"
            href="/register/report">Report</a>
+        <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
+           href="/register/setting">Setting</a>
         {#      <a class="nav-item nav-link mr-3" target="_blank" href="/bill">Bills</a>#}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if menu_bill %} active {% endif %}" href="#"
