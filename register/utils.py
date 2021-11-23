@@ -1,5 +1,6 @@
 import base64
 import random
+import re
 import string
 from calendar import monthrange
 from datetime import datetime
@@ -356,6 +357,15 @@ def get_tenant_perf(request):
             messages.add_message(request, messages.WARNING,
                                  'You need to set milk price and update preferences.')
         return None
+
+
+def is_mobile(request):
+    """Return True if the request comes from a mobile device."""
+    MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
+    if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+        return True
+    else:
+        return False
 
 
 #  ===================== Custom Error Handler Views ==============================

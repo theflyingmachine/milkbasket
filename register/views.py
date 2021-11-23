@@ -33,7 +33,7 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import check_customer_is_active
+from register.utils import check_customer_is_active, is_mobile
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
@@ -59,6 +59,7 @@ def index(request, year=None, month=None):
     context = {
         'page_title': 'Milk Basket - Register',
         'menu_register': True,
+        'is_mobile': is_mobile(request),
     }
     custom_month = None
     active_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
@@ -173,6 +174,7 @@ def addcustomer(request):
     context = {
         'page_title': 'Milk Basket - Add new customer',
         'menu_customer': True,
+        'is_mobile': is_mobile(request),
     }
     if request.method == "POST":
         customer_id = request.POST.get("id", None)
@@ -445,6 +447,7 @@ def customers(request):
     context = {
         'page_title': 'Milk Basket - View customers',
         'menu_customer': True,
+        'is_mobile': is_mobile(request),
     }
     customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
     for customer in customers:
@@ -586,6 +589,7 @@ def account(request, year=None, month=None):
 
     context = {
         'page_title': 'Milk Basket - Accounts',
+        'is_mobile': is_mobile(request),
         'month_year': month_year,
         'menu_account': True,
         'expenses': expenses,
@@ -763,6 +767,7 @@ def landing(request):
     template = 'register/landing.html'
     context = {
         'page_title': 'Milk Basket - View customers',
+        'is_mobile': is_mobile(request),
     }
     if request.method == "POST":
         username = request.POST.get("username")
@@ -977,6 +982,7 @@ def setting(request):
         tenant = None
     context = {
         'page_title': 'Milk Basket - Setting',
+        'is_mobile': is_mobile(request),
         'menu_setting': True,
         'tenant': tenant,
         'alert_class': request.session.get('alert_class', None),
@@ -1180,6 +1186,7 @@ def bill_views(request):
     template = 'register/bill_views.html'
     context = {
         'page_title': 'Milk Basket - Bill Views',
+        'is_mobile': is_mobile(request),
         'all_bills': bill_list,
         'menu_bill': True
     }

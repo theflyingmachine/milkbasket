@@ -1,9 +1,9 @@
 </div>
 <div
- class="text-center footer text-white {% if not request.user.is_superuser and user.is_authenticated and request.user_agent.is_mobile %}footer-link-bg {% endif %}"
+ class="text-center footer text-white {% if not request.user.is_superuser and user.is_authenticated and is_mobile %}footer-link-bg {% endif %}"
  style="margin-bottom:0">
 
-  {% if not request.user.is_superuser and user.is_authenticated and request.user_agent.is_mobile %}
+  {% if not request.user.is_superuser and user.is_authenticated and is_mobile %}
     <table width="100%" class="text-center text-light footer-links mt-0">
       <th>
       <td><a class="nav-item nav-link"
