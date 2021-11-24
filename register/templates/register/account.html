@@ -32,7 +32,7 @@
   <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
   <hr>
   {% load mathfilters %}
-  <div class="container p-0 mb-5">
+  <div class="p-0 mb-5">
     <div class="row justify-content-center">
       {% if expenses or due_customer or paid_customer or income %}
         <!--    Payment Table-->
@@ -41,29 +41,29 @@
           {#    Payment due#}
           {% if due_customer %}
             <h3 class="pt-2 mt-2 text-center">Payment Due</h3>
-            <table class="table mb-5 table-striped">
+            <table class="table mb-5 table-sm table-striped">
               <thead>
-              <tr class="d-flex bg-info text-white">
-                <th class="p-2 col-1" scope="col">#</th>
-                <th class="p-2 col-3" scope="col">Name</th>
-                <th class="p-2 col-2" scope="col">Total Due</th>
-                <th class="p-2 col-2" scope="col">Due (till {{ previous_month_name }})</th>
-                <th class="p-2 col-4" scope="col">Action</th>
+              <tr class="bg-info text-white">
+                <th class="p-1 col-1" scope="col">#</th>
+                <th class="p-1 col-3" scope="col">Name</th>
+                <th class="p-1 col-2" scope="col">Total Due</th>
+                <th class="p-1 col-2" scope="col">Due (till {{ previous_month_name }})</th>
+                <th class="p-1 col-4" scope="col">Action</th>
               </tr>
               </thead>
               <tbody>
               {% for entry in due_customer %}
                 {% if entry.payment_due > 0 %}
-                  <tr class="d-flex">
-                    <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                    <th class="p-2 col-3" scope="row"><a
+                  <tr class="">
+                    <th class="py-2 col-1" scope="row">{{ forloop.counter }}</th>
+                    <th class="py-2 col-3" scope="row"><a
                      href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
                     </th>
-                    <td class="p-2 col-2">{{ entry.payment_due }}</td>
-                    <td class="p-2 col-2">{% if entry.payment_due_prev %}
+                    <td class="py-2 col-2">{{ entry.payment_due }}</td>
+                    <td class="py-2 col-2">{% if entry.payment_due_prev %}
                       <span class="font-weight-bold">{{ entry.payment_due_prev }}</span>
                       <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
-                    <td class="col-4">
+                    <td class="py-2 col-4">
                       <button type="button" class="btn-sm btn-primary my-1"
                               data-toggle="modal"
                               data-target="#exampleModal2"
@@ -135,7 +135,8 @@
                 {% endif %}
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                <td colspan="5" class="py-2 font-weight-bold"><i
+                 class="fas fa-calculator text-info"></i> Total
                   Due till date:
                   Rs {{ due_total }} &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
                   <i class="fas fa-calculator text-info"></i> Total Due ({{ previous_month_name }}): {{ due_total_prev }}
@@ -152,19 +153,19 @@
             <h3 class="pt-2 mt-2 text-center">Paid Customers</h3>
             <table class="table mb-5 table-sm table-striped">
               <thead>
-              <tr class="d-flex bg-info text-white">
-                <th class="p-2 col-1" scope="col">#</th>
-                <th class="p-2 col-5" scope="col">Name</th>
-                <th class="p-2 col-3" scope="col">Adjusted Amount</th>
+              <tr class="bg-info text-white">
+                <th class="p-1 col-1" scope="col">#</th>
+                <th class="p-1 col-5" scope="col">Name</th>
+                <th class="p-1 col-3" scope="col">Adjusted Amount</th>
                 {#                <th class="p-2 col-2" scope="col">Accepted Amount</th>#}
-                <th class="p-2 col-3" scope="col">Paid Amount</th>
+                <th class="p-1 col-3" scope="col">Paid Amount</th>
               </tr>
               </thead>
               <tbody>
               {% for entry in paid_customer %}
-                <tr class="d-flex">
-                  <th class=" col-1" scope="row">{{ forloop.counter }}</th>
-                  <th class="p-2 col-5" scope="row"><a
+                <tr class="">
+                  <th class="py-2  col-1" scope="row">{{ forloop.counter }}</th>
+                  <th class="py-2  col-5" scope="row"><a
                    href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
                   </th>
                   {% if entry.adjusted_amount < 0 %}
@@ -173,14 +174,15 @@
                       (Adv)
                     </td>
                   {% else %}
-                    <td class=" col-3">{{ entry.adjusted_amount }}</td>
+                    <td class="py-2  col-3">{{ entry.adjusted_amount }}</td>
                   {% endif %}
                   {#                  <td class="p-2 col-2">{{ entry.payment_done }}</td>#}
-                  <td class=" col-3"><b>{{ entry.total_paid }}</b></td>
+                  <td class="py-2  col-3"><b>{{ entry.total_paid }}</b></td>
                 </tr>
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                <td colspan="4" class="py-2 font-weight-bold"><i
+                 class="fas fa-calculator text-info"></i> Total
                   Received:
                   Rs {{ reveieved_total }}</td>
               </tr>
@@ -193,7 +195,7 @@
             <caption><h3 class="pt-2 mt-2 text-center">Expenses</h3></caption>
             <table class="table mb-5 table-sm table-striped">
               <thead>
-              <tr class="d-flex bg-info text-white">
+              <tr class=" bg-info text-white">
                 <th class="p-1 col-1" scope="col">#</th>
                 <th class="p-1 col-5" scope="col">Description</th>
                 <th class="p-1 col-2" scope="col">Cost</th>
@@ -203,7 +205,7 @@
               </thead>
               <tbody>
               {% for entry in expenses %}
-                <tr class="d-flex">
+                <tr class="">
                   <th class="py-2 col-1" scope="row">{{ forloop.counter }}</th>
                   <td class="py-2 col-5">{{ entry.description }}</td>
                   <td class="py-2 col-2">{{ entry.cost|floatformat }}</td>
@@ -222,7 +224,8 @@
                 </tr>
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                <td colspan="5" class="py-2 font-weight-bold"><i
+                 class="fas fa-calculator text-info"></i> Total
                   Expenses:
                   Rs {{ entry_expense_total|floatformat }}</td>
               </tr>
@@ -237,7 +240,7 @@
             <caption><h3 class="pt-2 mt-2 text-center">Income</h3></caption>
             <table class="table mb-5 table-sm table-striped">
               <thead>
-              <tr class="d-flex bg-info text-white">
+              <tr class=" bg-info text-white">
                 <th class="p-1 col-1" scope="col">#</th>
                 <th class="p-1 col-5" scope="col">Description</th>
                 <th class="p-1 col-2" scope="col">Amount</th>
@@ -247,7 +250,7 @@
               </thead>
               <tbody>
               {% for entry in income %}
-                <tr class="d-flex">
+                <tr class="">
                   <th class="py-2 col-1" scope="row">{{ forloop.counter }}</th>
                   <td class="py-2 col-5">{{ entry.description }}</td>
                   <td class="py-2 col-2">{{ entry.amount|floatformat }}</td>
@@ -266,7 +269,8 @@
                 </tr>
               {% endfor %}
               <tr class="info-row">
-                <td class="py-2 font-weight-bold"><i class="fas fa-calculator text-info"></i> Total
+                <td colspan="5" class="py-2 font-weight-bold"><i
+                 class="fas fa-calculator text-info"></i> Total
                   Income:
                   Rs {{ entry_income_total|floatformat }}</td>
               </tr>

@@ -789,6 +789,7 @@ def report_initial(request):
     template = 'register/report_react_new.html'
     context = {'loading': True,
                'page_title': 'Milk Basket - Report',
+               'is_mobile': is_mobile(request),
                'menu_report': True,
                'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http'
                }
@@ -1005,6 +1006,10 @@ def logout_request(request):
 @login_required
 def customer_profile(request, id=None):
     template = 'register/profile.html'
+    context = {
+        'is_mobile': is_mobile(request),
+        'page_title': 'Milk Basket - Profile',
+    }
     current_date = date.today()
     if id:
         customer = Customer.objects.filter(tenant_id=request.user.id, id=id).first()
@@ -1100,12 +1105,10 @@ def customer_profile(request, id=None):
             tenant = Tenant.objects.get(tenant_id=request.user.id)
         except Tenant.DoesNotExist:
             return redirect('setting')
-
-        context = {
+        context.update({
             'calendar': calendar,
             'milk_price': get_milk_current_price(request.user.id, description=True),
             'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
-            'page_title': 'Milk Basket - Profile',
             'menu_customer': True,
             'customer': customer,
             'sms_text': sms_text,
@@ -1115,7 +1118,7 @@ def customer_profile(request, id=None):
             'payment_due_amount_till_date': due_till_current_month,
             'previous_month_name': prev_month_name,
             'tenant': tenant,
-        }
+        })
         return render(request, template, context)
     return redirect('view_customers')
 
