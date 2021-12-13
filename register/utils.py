@@ -293,6 +293,7 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
                      'desc': get_bill_summary(cust_id, month=due_month.month,
                                               year=due_month.year)}
                     for due_month in due_months]
+    bill_month = bill_summary[0]['month_year']
     bill_summary.reverse()
     bill_sum_total = {
         'last_updated': customer_register_last_updated(cust_id).strftime("%d %B %Y"),
@@ -331,6 +332,7 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
         return JsonResponse(
             {'status': 'success', 'amount': bill_sum_total['sum_total'],
              'mongo': str(mongo_id), 'bill_number': data['bill_number'],
+             'month_year': bill_month,
              })
     elif raw_data:
         return (
@@ -361,7 +363,7 @@ def get_tenant_perf(request):
 
 def is_mobile(request):
     """Return True if the request comes from a mobile device."""
-    MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
+    MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
     if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
         return True
     else:

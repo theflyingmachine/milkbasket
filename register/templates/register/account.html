@@ -654,7 +654,7 @@
         if (data.status === 'success') {
           document.getElementById("sendwabuttonmain" + customer_id).disabled = true;
           {#document.getElementById("sendwabuttonmain"+customer_id).innerText = 'Shared';#}
-          var share_text = 'Dear ' + customer_name + ', Your bill of *₹ ' + data.amount + '* with reference number \'' + data.bill_number + '\' has been generated. You can view the bill at https://milk.cyberboy.in/bill/' + data.bill_number;
+          var share_text = encodeURIComponent('Dear ' + customer_name + ', your bill of *₹ ' + data.amount + '* for the month of ' + data.month_year + ' has been generated.\nYou can view the bill at 🧾👉 https://milk.cyberboy.in/bill/' + data.bill_number +'\n\n[Milk Basket]');
           {% if tenant.whatsapp_direct_pref %}
             var url = "https://api.whatsapp.com/send?phone=91" + contact_number + "&text=" + share_text;
           {% else %}
