@@ -13,6 +13,11 @@
           background-color: #f18973;
       }
 
+      .cel-tab {
+          padding: 0.4rem !important;
+          vertical-align: inherit !important;
+      }
+
       #showQuantity {
           height: 25px;
           width: 25px;
@@ -187,7 +192,7 @@
       }
 
       .register-button {
-          background-color: #EDEDED !important;
+      {#background-color: #EDEDED !important;#}
           border-color: #FFE6B9;
           border-width: medium;
       }
@@ -204,8 +209,11 @@
               data-target="#autopilot"
               data-whatever="@fat"><i class="fa fa-plane"></i> | Auto-Pilot Mode
       </button>
-      <input type="checkbox" class="ml-2 vertical-center" id="showQuantity" value="1">
-      <label for="showQuantity"> Show Quantity</label>
+      <select class="inline mt-2 ml-2 bd-highlight" id="effect-selector" onchange="leaveChange()">
+        <option value="none">No Effect</option>
+        <option value="quantity">Show Quantity</option>
+        <option value="difference">Show Difference</option>
+      </select>
 
     </div>
     <div class="justify-content-end inline p-2 bd-highlight">
@@ -238,13 +246,15 @@
                   <td{% for single_entry in entry.register_entry %}
                     id="morning_{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'morning-yes' %}
-                    class="cal-yes text-center" data-toggle="popover"
+                    class="cal-yes text-center cel-tab" data-toggle="popover"
                     title="{{ entry.customer_name }}" data-trigger="hover"
                     data-placement="top" data-content="{{ single_entry.quantity|floatformat }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'morning-no' %}
-                    class="cal-no text-center"
+                    class="cal-no text-center cel-tab"
                     {% endif %}{% endfor %} >
-                    <button type="button" class="btn register-button" data-toggle="modal"
+                    <button type="button"
+                            class="btn register-button q-{% entry_quantity day entry.register_entry %}"
+                            data-toggle="modal"
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Morning" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
@@ -276,12 +286,14 @@
                   <td{% for single_entry in entry.register_entry %}
                     id="evening_{{ entry.customer_id }}_{{ day }}"
                     {% if single_entry.log_date.day == day and single_entry.schedule == 'evening-yes' %}
-                    class="cal-yes text-center" data-toggle="popover"
+                    class="cal-yes text-center cel-tab" data-toggle="popover"
                     title="{{ entry.customer_name }}" data-trigger="hover"
                     data-placement="top" data-content="{{ single_entry.quantity|floatformat }} ML"
                     {% elif single_entry.log_date.day == day and single_entry.schedule == 'evening-no' %}
-                    class="cal-no text-center"  {% endif %}{% endfor %} >
-                    <button type="button" class="btn register-button" data-toggle="modal"
+                    class="cal-no text-center cel-tab"  {% endif %}{% endfor %} >
+                    <button type="button"
+                            class="btn register-button q-{% entry_quantity day entry.register_entry %}"
+                            data-toggle="modal"
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Evening" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
@@ -648,21 +660,51 @@
       $('[data-toggle="popover"]').popover()
     })
 
-    {# Toogle show milk quantity #}
-    $('#showQuantity').change(
-      function () {
-        let divsToHide = document.getElementsByClassName("milk-quantity"); //divsToHide is an array
-        if ($(this).is(':checked')) {
-          for (let i = 0; i < divsToHide.length; i++) {
-            divsToHide[i].style.display = "block"; // depending on what you're doing
-            $(divsToHide[i]).parent().css({"padding": "0 !important"});
-          }
-        } else {
-          for (let i = 0; i < divsToHide.length; i++) {
-            divsToHide[i].style.display = "none"; // depending on what you're doing
+
+    function leaveChange() {
+      let colorCode = {
+        'q-Absent': '',
+        'q-250': '#F9F871',
+        'q-500': '#FFC75F',
+        'q-750': '#FF9671',
+        'q-1000': '#ff93ab',
+        'q-1250': '#d57bb5',
+        'q-1500': '#c9b5ef',
+        'q-1750': '#AFA060',
+        'q-2000': '#00FFFF',
+
+      }
+      let divsToHide = document.getElementsByClassName("milk-quantity");
+      var elements;
+      if (document.getElementById("effect-selector").value === "none") {
+        for (let i = 0; i < divsToHide.length; i++) {
+          divsToHide[i].style.display = "none";
+        }
+      } else if (document.getElementById("effect-selector").value === "quantity") {
+        for (let i = 0; i < divsToHide.length; i++) {
+          divsToHide[i].style.display = "block";
+          $(divsToHide[i]).parent().css({"padding": "0 !important"});
+        }
+        for (let key of Object.keys(colorCode)) {
+          elements = document.getElementsByClassName(key);
+          for (let i = 0; i < elements.length; i++) {
+            elements[i].style.backgroundColor = 'white';
           }
         }
-      });
+      } else if (document.getElementById("effect-selector").value === "difference") {
+
+        for (let i = 0; i < divsToHide.length; i++) {
+          divsToHide[i].style.display = "block";
+        }
+        for (let key of Object.keys(colorCode)) {
+          elements = document.getElementsByClassName(key);
+          for (let i = 0; i < elements.length; i++) {
+            elements[i].style.backgroundColor = colorCode[key];
+          }
+        }
+      }
+    }
+
 
     $(document).ready(function () {
       // Document ready  Hide milk quantity by default on page load
