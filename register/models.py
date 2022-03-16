@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 
 # Create your models here.
@@ -28,20 +29,26 @@ class Customer(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
     name = models.CharField(max_length=50, unique=True)
     contact = models.CharField(max_length=10, null=True, blank=True, default='')
-    email = models.CharField(max_length=50, null=True, default=None)
+    email = models.CharField(max_length=50, null=True, default=None, blank=True)
     morning = models.BooleanField(default=True)
     evening = models.BooleanField(default=True)
-    m_quantity = models.IntegerField(null=True, blank=False, default=None)
-    e_quantity = models.IntegerField(null=True, blank=False, default=None)
+    m_quantity = models.IntegerField(null=True, blank=True, default=None)
+    e_quantity = models.IntegerField(null=True, blank=True, default=None)
     status = models.BooleanField(default=True)
     member_since = models.DateTimeField(auto_now_add=True, null=True)
 
 
 class Register(models.Model):
+    SCHEDULE_OPTIONS = [
+        ('morning-yes', _('Morning Present')),
+        ('morning-no', _('Morning Absent')),
+        ('evening-yes', _('Evening Present')),
+        ('evening-yes', _('Evening Absent'))
+    ]
     tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
     customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
     log_date = models.DateTimeField()
-    schedule = models.CharField(max_length=15, null=True, default=None)
+    schedule = models.CharField(max_length=15, choices=SCHEDULE_OPTIONS, null=True, default=None)
     quantity = models.FloatField(null=False, blank=False, default=None)
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None)
     paid = models.BooleanField(default=False)
