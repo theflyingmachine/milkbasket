@@ -17,7 +17,6 @@ class RegisterAdmin(admin.ModelAdmin):
         'quantity',
         'paid',
     )
-
     fieldsets = (
         ('Register Entry', {'fields': (
         'get_customer', 'log_date', 'schedule', 'quantity', 'current_price', 'paid')}),
@@ -31,7 +30,7 @@ class RegisterAdmin(admin.ModelAdmin):
 
 
 @admin.register(Customer)
-class RegisterAdmin(admin.ModelAdmin):
+class CustomerAdmin(admin.ModelAdmin):
     readonly_fields = ['member_since']  # Read Only Fields
     ordering = ('name',)
     search_fields = ('name',)
@@ -47,15 +46,8 @@ class RegisterAdmin(admin.ModelAdmin):
         'status',
         'member_since',
     )
-
     fieldsets = (
         ('Customer Details', {'fields': ('name', 'contact', 'email')}),
         ('Schedule', {'fields': ('morning', 'evening', 'm_quantity', 'e_quantity')}),
         ('Status Details', {'fields': ('status', 'member_since')}),
     )
-
-    def get_customer(self, obj):
-        return obj.customer.name
-
-    get_customer.short_description = 'customer'
-    get_customer.admin_order_field = 'customer__name'
