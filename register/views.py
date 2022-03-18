@@ -775,7 +775,7 @@ def landing(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('index')
+            return redirect('view_register')
         else:
             context.update({
                 'message': 'Invalid username or password',
