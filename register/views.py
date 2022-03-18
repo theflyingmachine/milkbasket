@@ -149,6 +149,14 @@ def index(request, year=None, month=None):
     except Register.DoesNotExist:
         last_entry_date = 1
 
+    # Get only active cutomers not added on register
+    customer_in_register = Register.objects.filter(tenant_id=request.user.id,
+                                                   log_date__month=register_date.month,
+                                                   log_date__year=register_date.year,
+                                                   ).values_list('customer_id', flat=True)
+    active_customers_not_in_register = [cust for cust in active_customers if
+                                        cust.id not in customer_in_register]
+
     context.update({
         'month_year': month_year,
         'm_register': m_register,
@@ -161,6 +169,7 @@ def index(request, year=None, month=None):
         'default_price': tenant.milk_price,
         'autopilot_morning_register': autopilot_morning_register,
         'autopilot_evening_register': autopilot_evening_register,
+        'active_customers_not_in_register': active_customers_not_in_register,
     })
     return render(request, template, context)
 

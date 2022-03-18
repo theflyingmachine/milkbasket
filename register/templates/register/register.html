@@ -192,8 +192,7 @@
       }
 
       .register-button {
-      {#background-color: #EDEDED !important;#}
-          border-color: #FFE6B9;
+      {#background-color: #EDEDED !important;#} border-color: #FFE6B9;
           border-width: medium;
       }
 
@@ -201,10 +200,12 @@
   {% load mathfilters %}
   <div class="row bd-highlight mb-3">
     <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
-      <button type="button" class="btn mt-2 ml-2 btn-primary" data-toggle="modal"
-              data-target="#exampleModal1"
-              data-whatever="@fat"><i class="far fa-address-book"></i> | Add New Entry
-      </button>
+      {% if active_customers_not_in_register %}
+        <button type="button" class="btn mt-2 ml-2 btn-primary" data-toggle="modal"
+                data-target="#exampleModal1"
+                data-whatever="@fat"><i class="far fa-address-book"></i> | Add New Entry
+        </button>
+      {% endif %}
       <button type="button" class="btn mt-2 ml-2 btn-primary" data-toggle="modal"
               data-target="#autopilot"
               data-whatever="@fat"><i class="fa fa-plane"></i> | Auto-Pilot Mode
@@ -318,7 +319,7 @@
     </div>
   </div>
 
-  {#  Modal #}
+  {#  Atendance Modal #}
   <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
        aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -375,13 +376,13 @@
   </div>
 
 
-  {#  Modal #}
+  {# Add new Register Modal #}
   <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog"
        aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Add Entry</h5>
+          <h5 class="modal-title" id="exampleModalLabel">Add new Register Entry</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -393,9 +394,10 @@
             <div class="form-group">
               <label for="exampleFormControlSelect1">Customer</label>
               <select class="form-control" name="customer" id="exampleFormControlSelect1">
-                {% for customer in active_customers %}
+                {% for customer in active_customers_not_in_register %}
                   <option value="{{ customer.id }}">{{ customer.name }} |
-                    {% if  customer.m_quantity %}{{ customer.m_quantity }} ML(Morning). {% endif %}
+                    {% if  customer.m_quantity %}{{ customer.m_quantity }} ML
+                      (Morning). {% endif %}
                     {% if  customer.e_quantity %}{{ customer.e_quantity }} ML
                       (Evening). {% endif %}
                   </option>
