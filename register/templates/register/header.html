@@ -178,15 +178,15 @@
     <div class="navbar-nav">
       {% if not request.user.is_superuser %}
         <a class="nav-item nav-link mr-3{% if menu_register %} active {% endif %}"
-           href="/register/">Register </a>
+           href="{% url 'view_register' %}">Register </a>
         <a class="nav-item nav-link mr-3 {% if menu_customer %} active {% endif %}"
-           href="/register/customers">Customers</a>
+           href={% url 'view_customers' %}>Customers</a>
         <a class="nav-item nav-link mr-3 {% if menu_account %} active {% endif %}"
-           href="/register/account">Accounts</a>
+           href="{% url 'view_account' %}">Accounts</a>
         <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"
-           href="/register/report">Report</a>
+           href="{% url 'view_report' %}">Report</a>
         <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
-           href="/register/setting">Setting</a>
+           href="{% url 'setting' %}">Setting</a>
         {#      <a class="nav-item nav-link mr-3" target="_blank" href="/bill">Bills</a>#}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if menu_bill %} active {% endif %}" href="#"
@@ -195,15 +195,15 @@
             Bills
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" target="_blank" href="/bill">Search Bill</a>
-            <a class="dropdown-item" href="/register/bill-views">Bill Views</a>
+            <a class="dropdown-item" target="_blank" href="{% url 'bill_search' %}">Search Bill</a>
+            <a class="dropdown-item" href="{% url 'bill_views' %}">Bill Views</a>
           </div>
         </li>
       {% endif %}
     </div>
   </div>
   <div class="nav navbar-nav navbar-right">
-    <a class="nav-item nav-link mr-3 " href="/logout">{{ user.get_username|capfirst }} - Logout</a>
+    <a class="nav-item nav-link mr-3 " href="{% url 'logout' %}">{{ user.get_username|capfirst }} - Logout</a>
   </div>
 </nav>
 

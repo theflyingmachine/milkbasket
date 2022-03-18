@@ -49,7 +49,7 @@
             <td><a target="_blank" href="/bill/{{ bill.bill_number }}">{{ bill.bill_number }}</a>
             </td>
             <td>{{ bill.bill_date }}</td>
-            <td><a href="/register/profile/{{ bill.customer_id }}">{{ bill.customer_name }}</a>
+            <td><a href="{% url 'customer_profile' bill.customer_id %}">{{ bill.customer_name }}</a>
             </td>
             <td class="font-weight-bold">{{ bill.views }}</td>
             <td>{{ bill.bill_amount }}</td>

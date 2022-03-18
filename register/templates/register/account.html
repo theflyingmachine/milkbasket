@@ -57,7 +57,7 @@
                   <tr class="">
                     <th class="py-2 col-1" scope="row">{{ forloop.counter }}</th>
                     <th class="py-2 col-3" scope="row"><a
-                     href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
+                     href="{% url 'customer_profile'  entry.customer_id %}">{{ entry.customer__name }}</a>
                     </th>
                     <td class="py-2 col-2">{{ entry.payment_due }}</td>
                     <td class="py-2 col-2">{% if entry.payment_due_prev %}
@@ -166,7 +166,7 @@
                 <tr class="">
                   <th class="py-2  col-1" scope="row">{{ forloop.counter }}</th>
                   <th class="py-2  col-5" scope="row"><a
-                   href="/register/profile/{{ entry.customer_id }}">{{ entry.customer__name }}</a>
+                   href="{% url 'customer_profile'  entry.customer_id %}">{{ entry.customer__name }}</a>
                   </th>
                   {% if entry.adjusted_amount < 0 %}
                     <td
@@ -654,7 +654,7 @@
         if (data.status === 'success') {
           document.getElementById("sendwabuttonmain" + customer_id).disabled = true;
           {#document.getElementById("sendwabuttonmain"+customer_id).innerText = 'Shared';#}
-          var share_text = encodeURIComponent('Dear ' + customer_name + ', your bill of *₹ ' + data.amount + '* for the month of ' + data.month_year + ' has been generated.\nYou can view the bill at 🧾👉 https://milk.cyberboy.in/bill/' + data.bill_number +'\n\n[Milk Basket]');
+          var share_text = encodeURIComponent('Dear ' + customer_name + ', your bill of *₹ ' + data.amount + '* for the month of ' + data.month_year + ' has been generated.\nYou can view the bill at 🧾👉 https://milk.cyberboy.in/bill/' + data.bill_number + '\n\n[Milk Basket]');
           {% if tenant.whatsapp_direct_pref %}
             var url = "https://api.whatsapp.com/send?phone=91" + contact_number + "&text=" + share_text;
           {% else %}

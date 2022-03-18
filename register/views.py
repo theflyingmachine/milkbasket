@@ -18,6 +18,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
@@ -619,26 +620,26 @@ def daterange(date1, date2):
 
 @login_required
 def selectrecord(request):
-    formatted_url = ''
+    formatted_url = '#'
     full_register_date = request.POST.get("register_month", None)
     register_month = str(full_register_date).split("-")[1]
     register_year = str(full_register_date).split("-")[0]
     nav_url = request.POST.get("nav-type", None)
     if nav_url == 'register':
-        formatted_url = f'/register/{register_year}/{register_month}/'
+        formatted_url = reverse('view_register_month', args=[register_year, register_month])
     elif nav_url == 'account':
-        formatted_url = f'/register/account/{register_year}/{register_month}/'
+        formatted_url = reverse('account_month', args=[register_year, register_month])
     return redirect(formatted_url)
 
 
 @login_required
 def manage_expense(request, year=None, month=None):
     expense_date = datetime.now()
-    formatted_url = '/register/account'
+    formatted_url = reverse('view_account')
     if year and month:
         date_time_str = f'25/{month}/{year} 01:01:01'
         expense_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
-        formatted_url = f'/register/account/{year}/{month}/'
+        formatted_url = reverse('account_month', args=[year, month])
     delete_id = request.POST.get("id", None)
     if delete_id:
         Expense.objects.filter(tenant_id=request.user.id, id=delete_id).delete()
@@ -666,11 +667,11 @@ def manage_expense(request, year=None, month=None):
 @login_required
 def manage_income(request, year=None, month=None):
     income_date = datetime.now()
-    formatted_url = '/register/account'
+    formatted_url = reverse('view_account')
     if year and month:
         date_time_str = f'25/{month}/{year} 01:01:01'
         income_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
-        formatted_url = f'/register/account/{year}/{month}/'
+        formatted_url = reverse('account_month', args=[year, month])
     delete_id = request.POST.get("id", None)
     if delete_id:
         Income.objects.filter(tenant_id=request.user.id, id=delete_id).delete()
@@ -698,11 +699,10 @@ def manage_income(request, year=None, month=None):
 @transaction.atomic
 def accept_payment(request, year=None, month=None, return_url=None):
     # Update Payment Table
-    payment_date = date.today()
     return_url = request.POST.get("return_url", None)
-    formatted_url = '/register/account' if not return_url else f'/register/{return_url}'
+    formatted_url = reverse('view_account') if not return_url else f'/register/{return_url}'
     if year and month:
-        formatted_url = f'/register/account/{year}/{month}/'
+        formatted_url = reverse('account_month', args=[year, month])
         date_time_str = f'25/{month}/{year} 01:01:01'
         payment_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     c_id = request.POST.get("c_id", None)

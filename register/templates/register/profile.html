@@ -156,7 +156,7 @@
         <div class="text-center">
           {% if tenant.download_pdf_pref %}
             <a target="_blank"
-               href="/register/print_bill/{{ customer.id }}"
+               href="{% url 'print_bill' customer.id %}"
                class="btn btn-primary mb-1"><i
              class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
           {% endif %}

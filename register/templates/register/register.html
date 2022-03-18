@@ -240,7 +240,7 @@
             {% for entry in m_register %}
               <tr>
                 <td class="sticky text-nowrap font-weight-bold vertical-center"><a
-                 href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a>
+                 href="{% url 'customer_profile' entry.customer_id %}">{{ entry.customer_name }}</a>
                 </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
@@ -280,7 +280,7 @@
             {% for entry in e_register %}
               <tr>
                 <td class="sticky text-nowrap font-weight-bold vertical-center"><a
-                 href="/register/profile/{{ entry.customer_id }}">{{ entry.customer_name }}</a>
+                 href="{% url 'customer_profile' entry.customer_id %}">{{ entry.customer_name }}</a>
                 </td>
                 {% for day in days %}
                   <td{% for single_entry in entry.register_entry %}
@@ -425,7 +425,7 @@
             {% if active_customers %}
               <button type="submit" class="btn btn-primary" autofocus>Add Entry</button>
             {% else %}
-              <h5 class="text-danger text-center"> Please <a href="/register/customers">add
+              <h5 class="text-danger text-center"> Please <a href="{% url 'view_customers' %}">add
                 Customers</a> before you can add to register</h5>
             {% endif %}
           </div>
@@ -538,7 +538,7 @@
                 Entry
               </button>
             {% else %}
-              <h4 class="text-danger text-center"> Please <a href="/register/customers">add
+              <h4 class="text-danger text-center"> Please <a href="{% url 'view_customers' %}">add
                 Customers</a> before you can add to register</h4>
             {% endif %}
 

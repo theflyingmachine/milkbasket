@@ -3,12 +3,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.index, name='view_register'),
     path('login', views.landing, name='landing'),
     path('logout', views.logout_request, name='logout'),
     path('setting', views.setting, name='setting'),
     path('bill-views', views.bill_views, name='bill_views'),
-    path('<int:year>/<int:month>/', views.index, name='index_month'),
+    path('<int:year>/<int:month>/', views.index, name='view_register_month'),
     path('profile/<int:id>/', views.customer_profile, name='customer_profile'),
     path('print_bill/<int:id>/', views.GeneratePdf.as_view(), name='print_bill'),
     path('print_bill/<int:id>/<str:file_download>/', views.GeneratePdf.as_view(),
