@@ -265,19 +265,17 @@
           <table class="table table-sm table-striped">
             <thead>
             <tr class="d-flex bg-info text-white">
-              <th class="p-2 col-1" scope="col">#</th>
-              <th class="p-2 col-2" scope="col">T_ID</th>
+              <th class="p-2 col-2" scope="col">#Tnx</th>
               <th class="p-2 col-6" scope="col">Transaction Date</th>
-              <th class="p-2 col-3" scope="col">Amount</th>
+              <th class="p-2 col-4" scope="col">Amount</th>
             </tr>
             </thead>
             <tbody>
             {% for entry in transaction %}
               <tr class="d-flex">
-                <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
-                <td class="p-2 col-2">{{ entry.id }}</td>
+                <td class="p-2 col-2">#{{ entry.id }}</td>
                 <td class="p-2 col-6">{{ entry.log_date }}</td>
-                <td class="p-2 col-3">{{ entry.amount }}
+                <td class="p-2 col-4">{{ entry.amount }}
                   {% if forloop.last and is_revertible %}
                     <button id="reverttransactionbuttonmain" type="button"
                             class="btn btn-danger mb-1"
@@ -476,8 +474,7 @@
               <div class="p-4">
                 <div class="form-row d-flex justify-content-center">
                   {#                  <input type="text" id="t_id_val" disabled value="">#}
-                  <p> Are you sure you want to revert <span class="text-danger font-weight-bold"
-                                                            id="t_id_val"></span> transaction?</p>
+                  <p> Are you sure you want to revert transaction?</p>
                   <p class="text-secondary text-center p-2" id="trans-details"></p>
                 </div>
                 <button id="reverttransactionbutton" type="submit"

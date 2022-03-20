@@ -30,7 +30,7 @@ SECRET_KEY = '06^)^*-!6m9pp_21aq)(j#a5yv^#7y5&c8o+l#4hmgy+s!eekk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENV_DEBUG
 
-ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1']
+ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1', 'e26d-103-80-118-21.ngrok.io']
 
 LOGIN_URL = reverse_lazy('landing')
 

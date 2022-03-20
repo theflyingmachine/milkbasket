@@ -78,16 +78,18 @@
       {% for customer in customers %}
         {% if forloop.first %}
           <div class="row">{% endif %}
-      <div class="col-md-4 p-3 col-sm-12">
+      <div class="col-md-4 p-2 col-sm-12">
         <div class="card text-white bg-info">
           {#          <img class="card-img-top" src="{{ customer.img }}" alt="Card image cap">#}
-          <div class="card-body">
-            <span class="card-title h4"><b>{{ customer.name }}</b></span><br>
-            {% if customer.contact %}<span class="card-text">{{ customer.contact }}</span>
-              <br>{% endif %}
-            {% if customer.email %}<span class="card-text">{{ customer.email }}</span>
-              <br>{% endif %}
-            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity|floatformat }} ML</span><br>
+          <div class="card-body p-2">
+            <span class="card-title h4"><b>{{ customer.name }}</b></span>
+            {% if customer.contact %}
+              <span class="card-text float-right">{{ customer.contact }}</span>
+            {% endif %}
+            {% if customer.email %}<br><span class="card-text">{{ customer.email }}</span>
+            {% endif %}
+            <br><span
+           class="card-text">{{ customer.schedule }} | {{ customer.quantity|floatformat }} ML</span><br>
             <div class="row justify-content-center">
               {#              <button type="button" class="btn btn-secondary col-5 m-2">History</button>#}
               <a href="{% url 'customer_profile' customer.id %}"
@@ -109,9 +111,9 @@
           </div>
         </div>
       </div>
-      {% if forloop.counter|divisibleby:3 %}</div>
-        <hr>
-        <div class="row">{% endif %}
+      {#      {% if forloop.counter|divisibleby:3 %}</div>#}
+      {#        <hr>#}
+      {#        <div class="row">{% endif %}#}
       {% if forloop.last %}</div>{% endif %}
       {% endfor %}
     {% else %}
@@ -126,19 +128,19 @@
       {% for customer in inactive_customers %}
         {% if forloop.first %}
           <div class="row">{% endif %}
-      <div class="col-md-4 p-3 col-sm-12">
+      <div class="col-md-4 p-2 col-sm-12">
         <div class="card text-white bg-secondary">
-          <div class="card-body">
-            <span class="card-title h4"><b>{{ customer.name }}</b></span><br>
-            {% if customer.contact %}<span class="card-text">{{ customer.contact }}</span>
+          <div class="card-body p-2">
+            <span class="card-title h4"><b>{{ customer.name }}</b></span>
+            {% if customer.contact %}
+              <span class="card-text float-right">{{ customer.contact }}</span>
+            {% endif %}
+            {% if customer.email %}<br><span class="card-text">{{ customer.email }}</span>
               <br>{% endif %}
-            {% if customer.email %}<span class="card-text">{{ customer.email }}</span>
-              <br>{% endif %}
-            {#            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>#}
             <div class="row justify-content-center">
               <a href="{% url 'customer_profile' customer.id %}"
-                 class="btn btn-secondary col-5 m-2">History</a>
-              <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
+                 class="btn btn-secondary bg-dark col-5 m-2">History</a>
+              <button type="button" class="btn bg-dark btn-secondary col-5 m-2" data-toggle="modal"
                       data-target="#exampleModal"
                       data-name="{{ customer.name }}"
                       data-id="{{ customer.id }}"
@@ -154,9 +156,6 @@
           </div>
         </div>
       </div>
-      {% if forloop.counter|divisibleby:3 %}</div>
-        <hr>
-        <div class="row">{% endif %}
       {% if forloop.last %}</div>{% endif %}
       {% endfor %}
     {% endif %}
@@ -179,7 +178,7 @@
           <div class="p-4">
             <div class="form-row">
               <div class="form-group col-md-12">
-                <label for="name">Name</label>
+                <label for="recipient_name">Name</label>
                 <input autofocus required type="text" class="form-control" id="recipient_name"
                        name="name"
                        placeholder="Enter Name">
@@ -188,7 +187,7 @@
             {% if tenant.sms_pref %}
               <div class="form-row">
                 <div class="form-group col-md-12">
-                  <label for="inputEmail4">Contact</label>
+                  <label for="recipient_contact">Contact</label>
                   <input type="number" step="1" min="6000000000" max="9999999999"
                          onKeyPress="if(this.value.length==10) return false;" class="form-control"
                          id="recipient_contact" name="contact"
