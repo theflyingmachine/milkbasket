@@ -152,7 +152,7 @@
 
       <div class="row justify-content-center mb-5">
         <div class="col">
-          <form name="setting" method="post" action="setting">{% csrf_token %}
+          <form name="setting" method="post" action="{% url 'setting' %}">{% csrf_token %}
             <div class="form-group">
               <span class="ex3">{{ tenant.milk_price }}</span><span
              class="ex1"> INR / Liter</span><br>

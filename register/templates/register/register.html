@@ -330,7 +330,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addnewentry" action="addentry" method="post">{% csrf_token %}
+        <form name="addnewentry" action="{% url 'view_add_entry' %}" method="post">{% csrf_token %}
           <div class="modal-body">
 
             <input type="hidden" class="form-control" name="id" id="recipient-id">
@@ -387,7 +387,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addnewentry" action="addentry" method="post">{% csrf_token %}
+        <form name="addnewentry" action="{% url 'view_add_entry' %}" method="post">{% csrf_token %}
           <div class="modal-body">
             <input type="hidden" value='True' class="form-control" name="add-new-entry"
                    id="add-new">
@@ -450,7 +450,7 @@
 
         <!-- Modal body -->
 
-        <form id="autopilotform" action="autopilot" method="post">{% csrf_token %}
+        <form id="autopilotform" action="{% url 'view_autopilot' %}" method="post">{% csrf_token %}
           <div class="modal-body">
             <input type="hidden" class="form-control" name="log_month" id="log_month"
                    value="{{ month_year }}">

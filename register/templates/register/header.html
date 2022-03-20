@@ -161,7 +161,6 @@
 
 {# Navbar #}
 <nav class="navbar navbar-expand-lg navbar-dark top-nav-background">
-  {#  <a class="navbar-brand mr-5" href="/register/">MilkBasket</a>#}
   <div class="topnav navbar-brand mr-5">
     <a class="navbrand mr-5" href="./"> <strong
      class="intro">MilkBasket</strong><sub>(Beta)</sub><br>
@@ -180,7 +179,7 @@
         <a class="nav-item nav-link mr-3{% if menu_register %} active {% endif %}"
            href="{% url 'view_register' %}">Register </a>
         <a class="nav-item nav-link mr-3 {% if menu_customer %} active {% endif %}"
-           href={% url 'view_customers' %}>Customers</a>
+           href="{% url 'view_customers' %}">Customers</a>
         <a class="nav-item nav-link mr-3 {% if menu_account %} active {% endif %}"
            href="{% url 'view_account' %}">Accounts</a>
         <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"

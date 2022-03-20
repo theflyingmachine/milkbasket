@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from register.models import Register, Customer
+from register.models import Register, Customer, Payment
 
 
 @admin.register(Register)
@@ -51,3 +51,23 @@ class CustomerAdmin(admin.ModelAdmin):
         ('Schedule', {'fields': ('morning', 'evening', 'm_quantity', 'e_quantity')}),
         ('Status Details', {'fields': ('status', 'member_since')}),
     )
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    readonly_fields = ['get_customer', 'amount', 'log_date']  # Read Only Fields
+    ordering = ('-log_date',)
+    search_fields = ('get_customer', 'id')
+    list_filter = ('tenant__tenant', 'customer__name', 'log_date',)
+    list_display = (
+        'id',
+        'get_customer',
+        'amount',
+        'log_date'
+    )
+
+    def get_customer(self, obj):
+        return obj.customer.name
+
+    get_customer.short_description = 'customer'
+    get_customer.admin_order_field = 'customer__name'

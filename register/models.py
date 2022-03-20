@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 class Tenant(models.Model):
     tenant = models.OneToOneField(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         primary_key=True, default=1,
     )
     download_pdf_pref = models.BooleanField(default=True)
@@ -26,7 +26,7 @@ class Tenant(models.Model):
 
 
 class Customer(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
+    tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     name = models.CharField(max_length=50, unique=True)
     contact = models.CharField(max_length=10, null=True, blank=True, default='')
     email = models.CharField(max_length=50, null=True, default=None, blank=True)
@@ -38,6 +38,13 @@ class Customer(models.Model):
     member_since = models.DateTimeField(auto_now_add=True, null=True)
 
 
+class Payment(models.Model):
+    tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    log_date = models.DateTimeField(auto_now_add=True, null=True)
+
+
 class Register(models.Model):
     SCHEDULE_OPTIONS = [
         ('morning-yes', _('Morning Present')),
@@ -45,48 +52,45 @@ class Register(models.Model):
         ('evening-yes', _('Evening Present')),
         ('evening-yes', _('Evening Absent'))
     ]
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
-    customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
+    tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     log_date = models.DateTimeField()
     schedule = models.CharField(max_length=15, choices=SCHEDULE_OPTIONS, null=True, default=None)
-    quantity = models.FloatField(null=False, blank=False, default=None)
+    quantity = models.IntegerField(null=False, blank=False, default=None)
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=None)
     paid = models.BooleanField(default=False)
+    transaction_number = models.ForeignKey(Payment, default=None, null=True, blank=True,
+                                           on_delete=models.PROTECT)
 
 
 class Expense(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
+    tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
     log_date = models.DateTimeField(null=False, default=datetime.now)
 
 
-class Payment(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
-    customer = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    log_date = models.DateTimeField(auto_now_add=True, null=True)
-
-
 class Balance(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
+    tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     customer = models.OneToOneField(
         Customer,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         primary_key=True,
     )
     balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    last_balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=None,
+                                              null=True, blank=True)
 
 
 class Income(models.Model):
-    tenant = models.ForeignKey(Tenant, on_delete=models.DO_NOTHING, )
+    tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
     log_date = models.DateTimeField(null=False, default=datetime.now)
 
 
 class Bill(models.Model):
-    customer_id = models.ForeignKey(Customer, on_delete=models.DO_NOTHING)
+    customer_id = models.ForeignKey(Customer, on_delete=models.PROTECT)
     bill_number = models.CharField(max_length=25, null=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     bill_last_data_date = models.DateTimeField(null=False)

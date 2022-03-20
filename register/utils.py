@@ -20,7 +20,7 @@ from xhtml2pdf import pisa
 from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
-from register.models import Balance
+from register.models import Balance, Payment
 from register.models import Bill
 from register.models import Customer
 from register.models import Register
@@ -293,7 +293,7 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
                      'desc': get_bill_summary(cust_id, month=due_month.month,
                                               year=due_month.year)}
                     for due_month in due_months]
-    bill_month = bill_summary[0]['month_year']
+    bill_month = bill_summary[0]['month_year'] if bill_summary else ''
     bill_summary.reverse()
     bill_sum_total = {
         'last_updated': customer_register_last_updated(cust_id).strftime("%d %B %Y"),
@@ -359,6 +359,20 @@ def get_tenant_perf(request):
             messages.add_message(request, messages.WARNING,
                                  'You need to set milk price and update preferences.')
         return None
+
+
+def get_last_transaction(request, customer):
+    """ Function to get last transaction of a customer"""
+    try:
+        return Payment.objects.filter(tenant_id=request.user.id, customer=customer).latest('id')
+    except Payment.DoesNotExist:
+        return None
+
+
+def is_transaction_revertible(request, customer):
+    """ Function to check if last is revertible"""
+    return True if Balance.objects.filter(tenant_id=request.user.id, customer=customer).exclude(
+        last_balance_amount=None) else False
 
 
 def is_mobile(request):

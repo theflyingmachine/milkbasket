@@ -297,7 +297,7 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form name="deleteExp" action="manageexpenses" method="post">{% csrf_token %}
+          <form name="deleteExp" action="{% url 'manage_expense' %}" method="post">{% csrf_token %}
             <input type="hidden" class="form-control" id="modal_id" name="id">
             <div class="p-4">
               <div class="form-row">
@@ -327,7 +327,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="deleteExp" action="manageincomes" method="post">{% csrf_token %}
+        <form name="deleteExp" action="{% url 'manage_income' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="modal_id" name="id">
           <div class="p-4">
             <div class="form-row">
@@ -357,7 +357,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addexp" action="manageexpenses" method="post">{% csrf_token %}
+        <form name="addexp" action="{% url 'manage_expense' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="modal_id" name="month_year"
                  value="{{ month_year }}">
 
@@ -400,7 +400,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addexp" action="manageincomes" method="post">{% csrf_token %}
+        <form name="addexp" action="{% url 'manage_income' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="modal_id" name="month_year"
                  value="{{ month_year }}">
           <div class="p-4">
@@ -442,7 +442,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addexp" action="acceptpayment" method="post">{% csrf_token %}
+        <form name="addexp" action="{% url 'accept_payment' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="c_id" name="c_id">
           <div class="p-4">
             <div class="form-row">
@@ -462,7 +462,8 @@
             <div class="form-row">
               <div class="form-group col-md-12">
                 <label for="name">Payment Amount (<span id="prevmonthdue">Till date</span>)</label>
-                <input type="number" step="0.01" class="form-control" id="c_payment"
+                <input type="number" step="0.01" class="form-control font-weight-bold"
+                       id="c_payment"
                        name="c_payment"
                        placeholder="Amount">
               </div>
@@ -498,7 +499,8 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form id="sendsmsform" name="sendsms" action="/sendsms" method="post">{% csrf_token %}
+        <form id="sendsmsform" name="sendsms" action="{% url 'send_sms' %}"
+              method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="cust_id" name="cust_id"
                  value="">
           <div class="p-4">
@@ -650,7 +652,7 @@
       {# Send WhatsApp #}
       this_button.disabled = true;
       this_button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-      $.get("/print_bill/" + customer_id + "/no-download/", function (data, status) {
+      $.get("/print-bill/" + customer_id + "/no-download/", function (data, status) {
         if (data.status === 'success') {
           document.getElementById("sendwabuttonmain" + customer_id).disabled = true;
           {#document.getElementById("sendwabuttonmain"+customer_id).innerText = 'Shared';#}
@@ -683,7 +685,7 @@
       {# Send Email #}
       this_button.disabled = true;
       this_button.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-      $.get("/sendemail/" + customer_id, function (data, status) {
+      $.get("/send-email/" + customer_id, function (data, status) {
         if (data.status === 'success') {
           this_button.innerHTML = '<i class="fa fa-envelope-open-text"></i>';
           this_button.classList.remove('btn-info');
