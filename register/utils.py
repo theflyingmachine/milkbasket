@@ -363,7 +363,10 @@ def get_tenant_perf(request):
 
 def get_last_transaction(request, customer):
     """ Function to get last transaction of a customer"""
-    return Payment.objects.filter(tenant_id=request.user.id, customer=customer).latest('id')
+    try:
+        return Payment.objects.filter(tenant_id=request.user.id, customer=customer).latest('id')
+    except Payment.DoesNotExist:
+        return None
 
 
 def is_transaction_revertible(request, customer):

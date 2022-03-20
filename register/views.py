@@ -361,7 +361,7 @@ def addentry(request, year=None, month=None):
 
     if year and month:
         month = month if len(str(month)) > 1 else f'0{month}'
-        return redirect(f'/register/{year}/{month}/')
+        return redirect(f'/milkbasket/{year}/{month}/')
     else:
         return redirect('index')
 
@@ -704,10 +704,11 @@ def manage_income(request, year=None, month=None):
 def accept_payment(request, year=None, month=None, return_url=None):
     # Update Payment Table
     return_url = request.POST.get("return_url", None)
-    formatted_url = reverse('view_account') if not return_url else f'/register/{return_url}'
+    c_id = request.POST.get("c_id", None)
+    formatted_url = reverse('view_account') if not return_url else f'/milkbasket/{return_url}'
     if year and month:
         formatted_url = reverse('account_month', args=[year, month])
-    c_id = request.POST.get("c_id", None)
+
     payment_amount = request.POST.get("c_payment", None)
     sms_notification = request.POST.get("sms-notification", None)
     if c_id and payment_amount:
@@ -722,9 +723,8 @@ def accept_payment(request, year=None, month=None, return_url=None):
             messages.add_message(request, messages.ERROR,
                                  'Could not process payment of Rs. {payment_amount} from {customer.name}')
             return redirect(formatted_url)
-
-        balance_amount = Balance.objects.filter(tenant_id=request.user.id,
-                                                customer_id=c_id).first()
+        balance_amount, _ = Balance.objects.get_or_create(tenant_id=request.user.id,
+                                                          customer_id=c_id)
         adjust_amount = float(getattr(balance_amount, 'balance_amount')) if balance_amount else 0
         # Set advance to old bal
         balance_amount.balance_amount = 0

@@ -9,7 +9,7 @@
         <div class="col-2 p-0">
           <a
            class="nav-item nav-link text-center p-0 {% if menu_register %} text-warning {% else %} text-light{% endif %}"
-           href="/register/" onclick="showFooterSpinnerFn(this);"><i
+           href="{% url 'view_register' %}" onclick="showFooterSpinnerFn(this);"><i
            class="fa fa-book"></i></br>
             <span class="footer-link-text">Register</span> </a>
         </div>
@@ -17,7 +17,7 @@
 
           <a
            class="nav-item nav-link text-center p-0 {% if menu_customer %} text-warning {% else %} text-light{% endif %}"
-           href="/register/customers" onclick="showFooterSpinnerFn(this);"><i
+           href="{% url 'view_customers' %}" onclick="showFooterSpinnerFn(this);"><i
            class="fa fa-users"></i></br>
             <span class="footer-link-text">Customers</span> </a>
         </div>
@@ -25,7 +25,7 @@
 
           <a
            class="nav-item nav-link text-center p-0 {% if menu_account %} text-warning {% else %} text-light{% endif %}"
-           href="/register/account" onclick="showFooterSpinnerFn(this);"><i
+           href="{% url 'view_account' %}" onclick="showFooterSpinnerFn(this);"><i
            class="fas fa-rupee-sign"></i></br>
             <span class="footer-link-text">Accounts</span> </a>
         </div>
@@ -33,7 +33,7 @@
 
           <a
            class="nav-item nav-link text-center p-0 {% if menu_report %} text-warning {% else %} text-light{% endif %}"
-           href="/register/report" onclick="showFooterSpinnerFn(this);"><i
+           href="{% url 'view_report' %}" onclick="showFooterSpinnerFn(this);"><i
            class="fas fa-chart-bar"></i></br>
             <span class="footer-link-text">Reports</span> </a>
         </div>
@@ -41,7 +41,7 @@
 
           <a
            class="nav-item nav-link text-center p-0 {% if menu_setting %} text-warning {% else %} text-light{% endif %}"
-           href="/register/setting" onclick="showFooterSpinnerFn(this);"><i
+           href="{% url 'setting' %}" onclick="showFooterSpinnerFn(this);"><i
            class="fa fa-cog"></i></br>
             <span class="footer-link-text">Setting</span> </a>
         </div>

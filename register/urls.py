@@ -32,9 +32,9 @@ urlpatterns = [
     # path('report', views.report, name='view_report'),  # Old Report Page
     path('report', views.report_initial, name='view_report'),  # Report initial page load
     # Report AJAX call endpoint
-    path('report-data/<str:poll_id>', views.report_data, name='view_report'),
+    path('report-data/<str:poll_id>', views.report_data, name='view_report_data'),
     # Report AJAX call status endpoint
-    path('report-data-status/<str:poll_id>', views.report_data_status, name='view_report'),
+    path('report-data-status/<str:poll_id>', views.report_data_status, name='view_report_data'),
 
     path('accept-payment', views.accept_payment, name='accept_payment'),
     path('account/<int:year>/<int:month>/accept-payment', views.accept_payment,
