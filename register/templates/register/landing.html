@@ -315,7 +315,7 @@
 <div class="bg-text">
 
   <!-- Login Form -->
-  <form name="login" method="post" action="login">{% csrf_token %}
+  <form name="login" method="post" action="{% url 'landing' %}">{% csrf_token %}
     <h2 class="text-primary intro">Milk Basket</h2>
     {% if message %}
       <h5 class="text-danger">{{ message }}</h5>

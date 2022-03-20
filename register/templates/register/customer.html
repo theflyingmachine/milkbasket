@@ -90,7 +90,8 @@
             <span class="card-text">{{ customer.schedule }} | {{ customer.quantity|floatformat }} ML</span><br>
             <div class="row justify-content-center">
               {#              <button type="button" class="btn btn-secondary col-5 m-2">History</button>#}
-              <a href="{% url 'customer_profile' customer.id %}" class="btn btn-secondary col-5 m-2">History</a>
+              <a href="{% url 'customer_profile' customer.id %}"
+                 class="btn btn-secondary col-5 m-2">History</a>
               <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
                       data-target="#exampleModal"
                       data-name="{{ customer.name }}"
@@ -135,7 +136,8 @@
               <br>{% endif %}
             {#            <span class="card-text">{{ customer.schedule }} | {{ customer.quantity }} ML</span><br>#}
             <div class="row justify-content-center">
-              <a href="{% url 'customer_profile' customer.id %}" class="btn btn-secondary col-5 m-2">History</a>
+              <a href="{% url 'customer_profile' customer.id %}"
+                 class="btn btn-secondary col-5 m-2">History</a>
               <button type="button" class="btn btn-secondary col-5 m-2" data-toggle="modal"
                       data-target="#exampleModal"
                       data-name="{{ customer.name }}"
@@ -172,7 +174,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addnew" action="addcustomer" method="post">{% csrf_token %}
+        <form name="addnew" action="{% url 'add_customer' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="recipient_id" name="id">
           <div class="p-4">
             <div class="form-row">
@@ -235,8 +237,8 @@
                        placeholder="Enter ML (Evening)">
               </div>
             </div>
-            <button type="submit" class="btn btn-primary justify-content-center col-12">Save
-              Customer
+            <button type="submit" onclick="saveNewCustomer(this);"
+                    class="btn btn-primary justify-content-center col-12">Save Customer
             </button>
           </div>
         </form>
@@ -332,6 +334,13 @@
         }
       });
     });
+
+    function saveNewCustomer(saveForm) {
+      //Showing please wait spinner while saving customer
+      saveForm.disabled = true;
+      saveForm.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
+      saveForm.form.submit();
+    }
   </script>
 
 {% endblock %}

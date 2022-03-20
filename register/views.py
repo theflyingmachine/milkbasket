@@ -240,9 +240,6 @@ def addcustomer(request):
 
             try:
                 customer.save()
-                Balance.objects.create(tenant_id=request.user.id,
-                                       customer=customer,
-                                       balance_amount=0, old_balance_amount=None)
             except Exception as E:
                 list(messages.get_messages(request))
                 messages.add_message(request, messages.ERROR,

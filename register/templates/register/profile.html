@@ -352,7 +352,7 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <form name="addexp" action="/acceptpayment" method="post">{% csrf_token %}
+            <form name="addexp" action="{% url 'accept_payment' %}" method="post">{% csrf_token %}
               <input type="hidden" class="form-control" id="return_url" name="return_url"
                      value="profile/{{ customer.id }}">
               <input type="hidden" class="form-control" id="c_id" name="c_id">
@@ -414,7 +414,8 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <form id="sendsmsform" name="sendsms" action="/sendsms" method="post">{% csrf_token %}
+            <form id="sendsmsform" name="sendsms" action="{% url 'send_sms' %}"
+                  method="post">{% csrf_token %}
               <input type="hidden" class="form-control" id="return_url" name="return_url"
                      value="profile/{{ customer.id }}">
               <input type="hidden" class="form-control" id="c_id" name="c_id">
@@ -501,7 +502,7 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <form id="updateCustomerForm" name="edit-customer" action="/addcustomer"
+            <form id="updateCustomerForm" name="edit-customer" action="{% url 'add_customer' %}"
                   method="post">{% csrf_token %}
               <input type="hidden" class="form-control" id="recipient_id" name="id">
               <input type="hidden" class="form-control" id="redirect_url" name="redirect_url"
@@ -684,7 +685,7 @@
 
         function shareOnWhatsApp() {
           document.getElementById("sendOnWAInit").innerText = 'Please Wait...';
-          $.get("/print_bill/{{ customer.id }}/no-download/", function (data, status) {
+          $.get("/print-bill/{{ customer.id }}/no-download/", function (data, status) {
             if (data.status === 'success') {
               document.getElementById("sendOnWAInit").disabled = true;
               document.getElementById("sendOnWAInit").innerText = 'Shared';
@@ -712,7 +713,7 @@
 
         function sendEmail() {
           document.getElementById("sendOnEmailInit").innerText = 'Please Wait...';
-          $.get("/sendemail/{{ customer.id }}", function (data, status) {
+          $.get("/send-email/{{ customer.id }}", function (data, status) {
             if (data.status === 'success') {
               document.getElementById("sendOnEmailInit").disabled = true;
               document.getElementById("sendOnEmailInit").innerText = 'Email Sent';
