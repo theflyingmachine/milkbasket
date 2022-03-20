@@ -297,7 +297,7 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form name="deleteExp" action="manageexpenses" method="post">{% csrf_token %}
+          <form name="deleteExp" action="{% url 'manage_expense' %}" method="post">{% csrf_token %}
             <input type="hidden" class="form-control" id="modal_id" name="id">
             <div class="p-4">
               <div class="form-row">
@@ -327,7 +327,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="deleteExp" action="manageincomes" method="post">{% csrf_token %}
+        <form name="deleteExp" action="{% url 'manage_income' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="modal_id" name="id">
           <div class="p-4">
             <div class="form-row">
@@ -357,7 +357,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addexp" action="manageexpenses" method="post">{% csrf_token %}
+        <form name="addexp" action="{% url 'manage_expense' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="modal_id" name="month_year"
                  value="{{ month_year }}">
 
@@ -400,7 +400,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addexp" action="manageincomes" method="post">{% csrf_token %}
+        <form name="addexp" action="{% url 'manage_income' %}" method="post">{% csrf_token %}
           <input type="hidden" class="form-control" id="modal_id" name="month_year"
                  value="{{ month_year }}">
           <div class="p-4">
@@ -462,7 +462,8 @@
             <div class="form-row">
               <div class="form-group col-md-12">
                 <label for="name">Payment Amount (<span id="prevmonthdue">Till date</span>)</label>
-                <input type="number" step="0.01" class="form-control" id="c_payment"
+                <input type="number" step="0.01" class="form-control font-weight-bold"
+                       id="c_payment"
                        name="c_payment"
                        placeholder="Amount">
               </div>

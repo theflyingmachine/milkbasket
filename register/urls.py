@@ -22,12 +22,12 @@ urlpatterns = [
     path('<int:year>/<int:month>/autopilot', views.autopilot, name='view_autopilot'),
     path('autopilot', views.autopilot, name='view_autopilot'),
     path('selectrecord', views.selectrecord, name='view_selectrecord'),
-    path('manageexpenses', views.manage_expense, name='manage_expense'),
-    path('account/<int:year>/<int:month>/manageexpenses', views.manage_expense,
+    path('manage-expenses', views.manage_expense, name='manage_expense'),
+    path('account/<int:year>/<int:month>/manage-expenses', views.manage_expense,
          name='manage_expense'),
-    path('manageincomes', views.manage_income, name='manage_income'),
-    path('account/<int:year>/<int:month>/manageincomes', views.manage_income,
-         name='manage_expense'),
+    path('manage-incomes', views.manage_income, name='manage_income'),
+    path('account/<int:year>/<int:month>/manage-incomes', views.manage_income,
+         name='manage_income'),
     # path('report', views.report, name='view_report'),  # Old Report Page
     path('report', views.report_initial, name='view_report'),  # Report initial page load
     # Report AJAX call endpoint
@@ -36,6 +36,7 @@ urlpatterns = [
     path('report_data_status/<str:poll_id>', views.report_data_status, name='view_report'),
 
     path('acceptpayment', views.accept_payment, name='accept_payment'),
+    path('revert-transaction', views.revert_transaction, name='revert_transaction'),
     path('account/<int:year>/<int:month>/acceptpayment', views.accept_payment,
          name='accept_payment'),
     path('sendsms', views.send_SMS, name='send_sms'),

@@ -154,14 +154,14 @@
         <!--    Bill Summary -->
 
         <div class="text-center">
-          {% if tenant.download_pdf_pref %}
+          {% if tenant.download_pdf_pref and payment_due_amount_till_date > 0 %}
             <a target="_blank"
                href="{% url 'print_bill' customer.id %}"
                class="btn btn-primary mb-1"><i
              class="fa fa-print" aria-hidden="true"></i> Print / Download</a>
           {% endif %}
           {% if tenant.sms_pref %}
-            {% if customer.contact %}
+            {% if customer.contact and payment_due_amount_till_date > 0 %}
               <button id="sendsmsbuttonmain" type="button" class="btn btn-primary mb-1"
                       data-toggle="modal"
                       data-target="#smsModal"
@@ -171,13 +171,13 @@
               ><i class="fas fa-sms"></i> Send SMS
               </button>{% endif %}
           {% endif %}
-          {% if tenant.whatsapp_pref %}
+          {% if tenant.whatsapp_pref and payment_due_amount_till_date > 0 %}
             <button id="sendOnWAInit" onclick="shareOnWhatsApp()" type="button"
                     class="btn btn-primary mb-1">
               <i class="fab fa-whatsapp"></i> Share on WhatsApp
             </button>
           {% endif %}
-          {% if tenant.email_pref %}
+          {% if tenant.email_pref and payment_due_amount_till_date > 0 %}
             {% if customer.email %}
               <button id="sendOnEmailInit" onclick="sendEmail()" type="button"
                       class="btn btn-primary mb-1">
@@ -277,7 +277,18 @@
                 <th class="p-2 col-1" scope="row">{{ forloop.counter }}</th>
                 <td class="p-2 col-2">{{ entry.id }}</td>
                 <td class="p-2 col-6">{{ entry.log_date }}</td>
-                <td class="p-2 col-3">{{ entry.amount }}</td>
+                <td class="p-2 col-3">{{ entry.amount }}
+                  {% if forloop.last and is_revertible %}
+                    <button id="reverttransactionbuttonmain" type="button"
+                            class="btn btn-danger mb-1"
+                            data-toggle="modal"
+                            data-target="#revertTransactionModal"
+                            data-trans_id="{{ entry.id }}"
+                            data-trans-amount="{{ entry.amount }}"
+                            data-trans-date="{{ entry.log_date }}"
+                    ><i class="fas fa-undo"></i> Revert Transaction
+                    </button>{% endif %}
+                </td>
 
                 </td>
               </tr>
@@ -364,7 +375,8 @@
                   <div class="form-group col-md-12">
                     <label for="name">Payment Amount (<span
                      id="prevmonthdue">Till date</span>)</label>
-                    <input type="number" step="0.01" class="form-control" id="c_payment"
+                    <input type="number" step="0.01" class="form-control font-weight-bold"
+                           id="c_payment"
                            name="c_payment"
                            placeholder="Amount">
                   </div>
@@ -441,6 +453,41 @@
           </div>
         </div>
       </div>
+
+
+      {# Confirm Transaction Revert Model #}
+      <div class="modal fade" id="revertTransactionModal" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel2">Revert Transaction <span
+               class="text-danger font-weight-bold" id="t_id_val_head"></span></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form id="revert-trans-form" name="revert-trans"
+                  action="{% url 'revert_transaction' %}" method="post">{% csrf_token %}
+
+              <input type="hidden" class="form-control" id="c_id" name="c_id"
+                     value="{{ customer.id }}">
+              <div class="p-4">
+                <div class="form-row d-flex justify-content-center">
+                  {#                  <input type="text" id="t_id_val" disabled value="">#}
+                  <p> Are you sure you want to revert <span class="text-danger font-weight-bold"
+                                                            id="t_id_val"></span> transaction?</p>
+                  <p class="text-secondary text-center p-2" id="trans-details"></p>
+                </div>
+                <button id="reverttransactionbutton" type="submit"
+                        class="btn btn-danger justify-content-center col-12">Revert Transacion
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
 
       {#  Edit Profile Modal #}
       <div class="modal fade" id="editProfileModal" tabindex="-1" role="dialog"
@@ -577,7 +624,41 @@
           }
         })
 
-        {#    Ajax for Send SMS  #}
+        {# revert Transaction model   #}
+        $('#revertTransactionModal').on('show.bs.modal', function (event) {
+          var button = $(event.relatedTarget) // Button that triggered the modal
+          var t_id = '#' + button.data('trans_id') // Extract info from data-* attribute
+          var t_amount = button.data('trans-amount') // Extract info from data-* attribute
+          var t_date = button.data('trans-date') // Extract info from data-* attribute
+          var modal = $(this)
+          modal.find('#t_id_val_head').text(t_id);
+          modal.find('#t_id_val').text(t_id);
+          modal.find('#trans-details').text('₹ ' + t_amount + ' on ' + t_date);
+        })
+
+        {#  Ajax for Revert Transactoin  #}
+        document.getElementById("revert-trans-form").addEventListener("submit", revertTransFunction);
+
+        function revertTransFunction() {
+          document.getElementById("reverttransactionbutton").innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
+          document.getElementById("reverttransactionbutton").disabled = true;
+          event.preventDefault()
+          $.post($(this).attr('action'), $(this).serialize(), function (data) {
+            if (data.status === 'success') {
+              document.getElementById("reverttransactionbuttonmain").disabled = true;
+              document.getElementById("reverttransactionbutton").innerText = 'Reverted';
+              {#show_toast('Transaction reverted successfully', 'success');#}
+              location.reload();
+            } else {
+              // Error code here
+              document.getElementById("reverttransactionbuttonmain").disabled = false;
+              document.getElementById("reverttransactionbutton").disabled = false;
+              {#show_toast('Error', 'Something went wrong, could not revert transaction', 'danger');#}
+            }
+          }, 'json')
+        }
+
+        {#  Ajax for Send SMS  #}
         document.getElementById("sendsmsform").addEventListener("submit", sendSMSFunction);
 
         function sendSMSFunction() {
@@ -607,7 +688,7 @@
             if (data.status === 'success') {
               document.getElementById("sendOnWAInit").disabled = true;
               document.getElementById("sendOnWAInit").innerText = 'Shared';
-              var share_text = encodeURIComponent('Dear {{ customer.name }}, your bill of *₹ ' + data.amount + '* for the month of ' + data.month_year + ' has been generated.\nYou can view the bill at 🧾👉 https://milk.cyberboy.in/bill/' + data.bill_number +'\n\n[Milk Basket]');
+              var share_text = encodeURIComponent('Dear {{ customer.name }}, your bill of *₹ ' + data.amount + '* for the month of ' + data.month_year + ' has been generated.\nYou can view the bill at 🧾👉 https://milk.cyberboy.in/bill/' + data.bill_number + '\n\n[Milk Basket]');
               {% if tenant.whatsapp_direct_pref and customer.contact %}
                 var url = "https://api.whatsapp.com/send?phone=91{{ customer.contact }}&text=" + share_text;
               {% else %}

@@ -66,7 +66,7 @@
         <p>
           Search Bill</p></header>
       <form class="main-form text-center" id="bill-search-form" name="bill-search" method="post"
-            action="check-bill">{% csrf_token %}
+            action="{% url 'validate_bill' %}">{% csrf_token %}
 
 
         <div class="form-group my-2">

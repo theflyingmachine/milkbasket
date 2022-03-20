@@ -34,17 +34,19 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import check_customer_is_active, is_mobile
+from register.utils import check_customer_is_active, is_transaction_revertible
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
+from register.utils import get_last_transaction
 from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
 from register.utils import get_tenant_perf
 from register.utils import is_last_day_of_month
+from register.utils import is_mobile
 from register.utils import render_to_pdf
 from register.utils import send_email_api
 from register.utils import send_sms_api
@@ -81,10 +83,11 @@ def index(request, year=None, month=None):
                                              log_date__year=register_date.year,
                                              schedule__in=['morning-yes', 'morning-no',
                                                            'e-morning'])
-    m_register=[{
+    m_register = [{
         'customer_name': customer['customer__name'],
         'customer_id': customer['customer_id'],
-        'register_entry': [re for re in register_entry if re.customer_id == customer['customer_id']],
+        'register_entry': [re for re in register_entry if
+                           re.customer_id == customer['customer_id']],
         'customer_m_quantity': customer['customer__m_quantity'],
         'default_price': tenant.milk_price,
         'is_active': check_customer_is_active(customer['customer_id']),
@@ -102,14 +105,15 @@ def index(request, year=None, month=None):
                                              log_date__year=register_date.year,
                                              schedule__in=['evening-yes', 'evening-no',
                                                            'e-evening'])
-    e_register=[{
+    e_register = [{
         'customer_name': customer['customer__name'],
         'customer_id': customer['customer_id'],
-        'register_entry': [re for re in register_entry if re.customer_id == customer['customer_id']],
+        'register_entry': [re for re in register_entry if
+                           re.customer_id == customer['customer_id']],
         'customer_e_quantity': customer['customer__e_quantity'],
         'default_price': tenant.milk_price,
         'is_active': check_customer_is_active(customer['customer_id']),
-    }for customer in register]
+    } for customer in register]
 
     # Get All customers if no entry is added - will be used in autopilot mode
     autopilot_morning_register, autopilot_evening_register = [], []
@@ -233,8 +237,12 @@ def addcustomer(request):
                                     status=1)
                 messages.add_message(request, messages.SUCCESS,
                                      f'New Customer {name} added successfully')
+
             try:
                 customer.save()
+                Balance.objects.create(tenant_id=request.user.id,
+                                       customer=customer,
+                                       balance_amount=0, old_balance_amount=None)
             except Exception as E:
                 list(messages.get_messages(request))
                 messages.add_message(request, messages.ERROR,
@@ -702,8 +710,6 @@ def accept_payment(request, year=None, month=None, return_url=None):
     formatted_url = reverse('view_account') if not return_url else f'/register/{return_url}'
     if year and month:
         formatted_url = reverse('account_month', args=[year, month])
-        date_time_str = f'25/{month}/{year} 01:01:01'
-        payment_date = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     c_id = request.POST.get("c_id", None)
     payment_amount = request.POST.get("c_payment", None)
     sms_notification = request.POST.get("sms-notification", None)
@@ -718,21 +724,18 @@ def accept_payment(request, year=None, month=None, return_url=None):
         except:
             messages.add_message(request, messages.ERROR,
                                  'Could not process payment of Rs. {payment_amount} from {customer.name}')
+            return redirect(formatted_url)
 
-        # Send SMS notification
-        if sms_notification:
-            transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
-            sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
-            send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
-
-        # Update Register
         balance_amount = Balance.objects.filter(tenant_id=request.user.id,
                                                 customer_id=c_id).first()
         adjust_amount = float(getattr(balance_amount, 'balance_amount')) if balance_amount else 0
-        Balance.objects.update_or_create(tenant_id=request.user.id,
-                                         customer_id=c_id, defaults={"balance_amount": 0}
-                                         )
+        # Set advance to old bal
+        balance_amount.balance_amount = 0
+        balance_amount.last_balance_amount = adjust_amount
+        balance_amount.save()
+        # Get total amount in hand
         payment_amount = payment_amount + abs(adjust_amount)
+        # Update Register
         accepting_payment = Register.objects.filter(tenant_id=request.user.id, customer_id=c_id,
                                                     schedule__endswith='yes',
                                                     paid=0).order_by('log_date')
@@ -742,7 +745,7 @@ def accept_payment(request, year=None, month=None, return_url=None):
                     entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
                 if payment_amount - entry_cost >= 0:
                     Register.objects.filter(tenant_id=request.user.id, id=entry.id).update(
-                        paid=True)
+                        paid=True, transaction_number=new_payment)
                     payment_amount = payment_amount - entry_cost
                 elif payment_amount != 0:
                     Balance.objects.update_or_create(tenant_id=request.user.id,
@@ -759,7 +762,46 @@ def accept_payment(request, year=None, month=None, return_url=None):
             messages.add_message(request, messages.INFO,
                                  f'Rs. {payment_amount} is added as Balance')
 
+        # Send SMS notification
+        if sms_notification:
+            transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
+            sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
+            send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
+
     return redirect(formatted_url)
+
+
+@login_required
+@transaction.atomic
+def revert_transaction(request):
+    c_id = request.POST.get("c_id")
+    customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
+    bal = Balance.objects.filter(customer=customer).exclude(last_balance_amount=None).first()
+    status = {'status': 'failed', 'error': 'Transaction is not revertible'}
+    if bal:
+        try:
+            # assign old bal to current bal and set old bal null
+            Balance.objects.filter(customer=customer).update(
+                balance_amount=bal.last_balance_amount, last_balance_amount=None)
+            # get last transaction number
+            transaction_number = get_last_transaction(request, customer)
+            # Update Register - set transaction null and paid false
+            Register.objects.filter(customer=customer,
+                                    transaction_number=transaction_number).update(
+                transaction_number=None, paid=False)
+            # Delete Payment
+            Payment.objects.filter(id=transaction_number.id).delete()
+            status = {'status': 'success',
+                      'error': f'Transaction #{transaction_number.id} was reverted successfully'}
+            messages.add_message(request, messages.WARNING,
+                                 f'Transaction #{transaction_number.id} was reverted successfully')
+        except Exception as e:
+            status = {'status': 'failed',
+                      'error': f'Error occurred while reverting transactions {e}'}
+            messages.add_message(request, messages.ERROR,
+                                 f'Error occurred while reverting transactions {e}')
+
+    return JsonResponse(status)
 
 
 def landing(request):
@@ -1099,6 +1141,9 @@ def customer_profile(request, id=None):
             f'{current_month_name} is Rs {due_till_current_month}')
         sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
 
+        # Check if last transaction is older that 30 days
+        last_trans = get_last_transaction(request, customer)
+        is_30_days_old = (datetime.now() - last_trans.log_date).days > 30 if last_trans else False
         # Get Tenant Preference
         try:
             tenant = Tenant.objects.get(tenant_id=request.user.id)
@@ -1112,6 +1157,7 @@ def customer_profile(request, id=None):
             'customer': customer,
             'sms_text': sms_text,
             'transaction': transaction,
+            'is_revertible': is_transaction_revertible(request, customer) and not is_30_days_old,
             'register': register,
             'payment_due_amount_prev_month': due_till_prev_month,
             'payment_due_amount_till_date': due_till_current_month,
