@@ -191,8 +191,9 @@ def alexa_get_last_autopilot(request):
 
 
 def alexa_run_autopilot(request):
-    if request.method == "POST":
-        access_key = request.POST.get("key")
+    if request.method == "GET":
+        access_key = request.GET.get("key")
+        print(access_key)
         if access_key != 'd0be2dc421be4fcd0172e5afceea3970e2f3d940':
             response = {
                 'status': 'Unauthorised',
