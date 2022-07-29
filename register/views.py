@@ -168,6 +168,52 @@ def index(request, year=None, month=None):
     return render(request, template, context)
 
 
+# --- Experimental
+def get_last_autopilot():
+    # Get last entry date
+    today = datetime.today()
+    try:
+        last_entry_date = Register.objects.filter(tenant_id=2,
+                                                  log_date__month=today.month,
+                                                  log_date__year=today.year).latest(
+            'log_date__day')
+        last_entry_date = int(last_entry_date.log_date.strftime("%d")) + 1
+    except Register.DoesNotExist:
+        last_entry_date = 1
+    return last_entry_date
+
+
+def alexa_get_last_autopilot(request):
+    today = datetime.today()
+    return JsonResponse({'status': 'success',
+                         'last_date': f'{today.strftime("%B")} {get_last_autopilot()}',
+                         })
+
+
+def alexa_run_autopilot(request):
+    if request.method == "POST":
+        access_key = request.POST.get("key")
+        if access_key != 'd0be2dc421be4fcd0172e5afceea3970e2f3d940':
+            response = {
+                'status': 'Unauthorised',
+            }
+            return JsonResponse(response)
+        today = datetime.today()
+        current_quantity = Register.objects.filter(customer=1, log_date__day=5,
+                                                   log_date__month=today.month,
+                                                   log_date__year=today.year).values(
+            'quantity').first()
+        t = Register.objects.filter(customer=1, log_date__day=5, log_date__month=today.month,
+                                    log_date__year=today.year).first()
+        t.quantity = current_quantity['quantity'] + 100  # change field
+        t.save()  # this will update only
+        response = {
+            'status': 'Success',
+            'message': t.quantity,
+        }
+        return JsonResponse(response)
+
+
 @login_required
 def addcustomer(request):
     # Get Tenant Preference
