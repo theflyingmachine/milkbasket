@@ -42,6 +42,10 @@ urlpatterns = [
     path('revert-transaction', views.revert_transaction, name='revert_transaction'),
     path('send-sms', views.send_SMS, name='send_sms'),
     path('send-email/<int:id>', views.send_EMAIL, name='send_email'),
+
+    #     API Alexa
+    path('getlastautopilot', views.alexa_get_last_autopilot, name='get_last_autopilot'),
+    path('alexarunautopilot', views.alexa_run_autopilot, name='alexa_run_autopilot'),
 ]
 
 # handler403 = 'register.utils.error_403_view'
