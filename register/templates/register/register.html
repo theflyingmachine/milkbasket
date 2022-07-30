@@ -259,7 +259,7 @@
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Morning" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
-                            data-quantity="{{ entry.customer_m_quantity }}"
+                            data-quantity="{% entry_quantity day entry.register_entry entry.customer_m_quantity %}"
                             data-price="{{ entry.default_price }}">{{ day }}
                       <span id="quantity_{{ entry.customer_id }}_{{ day }}"
                             class="milk-quantity text-secondary small">
@@ -298,7 +298,7 @@
                             data-target="#exampleModal" data-id="{{ entry.customer_id }}"
                             data-schedule="Evening" data-whatever="{{ entry.customer_name }}"
                             data-date_log="{{ day }} {{ month_year }}"
-                            data-quantity="{{ entry.customer_e_quantity }}"
+                            data-quantity="{% entry_quantity day entry.register_entry entry.customer_e_quantity %}"
                             data-price="{{ entry.default_price }}">{{ day }}
                       <span id="quantity_{{ entry.customer_id }}_{{ day }}"
                             class="milk-quantity text-secondary small">
