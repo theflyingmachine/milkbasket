@@ -161,6 +161,18 @@ def get_customer_balance_amount(customer_id):
     return balance_amount
 
 
+def get_customer_due_amount(customer_id):
+    """ Returns DUE - Balance / advance paid amount of customer"""
+    register_due_qs = Register.objects.filter(customer=customer_id, paid=False,
+                                              schedule__in=('evening-yes', 'morning-yes'))
+    total_due = sum(
+        [float(entry.current_price / 1000) * entry.quantity for entry in register_due_qs])
+    adv = get_customer_balance_amount(customer_id)
+    if adv:
+        total_due = total_due - adv
+    return total_due
+
+
 def render_to_pdf(template_src, context_dict={}):
     """ Utility for Bill PDF generation """
     template = get_template(template_src)

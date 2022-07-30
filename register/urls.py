@@ -46,6 +46,8 @@ urlpatterns = [
     #     API Alexa
     path('getlastautopilot', views.alexa_get_last_autopilot, name='get_last_autopilot'),
     path('alexarunautopilot', views.alexa_run_autopilot, name='alexa_run_autopilot'),
+    path('customerlist', views.alexa_customer_list, name='alexa_customer_list'),
+    path('customerdue', views.alexa_customer_due, name='alexa_customer_due'),
 ]
 
 # handler403 = 'register.utils.error_403_view'

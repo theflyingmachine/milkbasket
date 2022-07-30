@@ -34,7 +34,8 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import check_customer_is_active, is_transaction_revertible
+from register.utils import check_customer_is_active, is_transaction_revertible, \
+    get_customer_due_amount
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
@@ -187,6 +188,27 @@ def alexa_get_last_autopilot(request):
     today = datetime.today()
     return JsonResponse({'status': 'success',
                          'last_date': f'{today.strftime("%B")} {get_last_autopilot()}',
+                         })
+
+
+def alexa_customer_list(request):
+    customers_qs = Customer.objects.filter(tenant=2)
+    all_customers = [{'id': c.id, 'name': c.name, 'is_active': any([c.m_quantity, c.e_quantity])}
+                     for c in customers_qs]
+    return JsonResponse({'status': 'success',
+                         'all_customers': all_customers
+                         })
+
+
+def alexa_customer_due(request):
+    if request.method == "GET":
+        if request.GET.get("cust_id", None):
+            due = get_customer_due_amount(request.GET.get("cust_id"))
+            return JsonResponse({'status': 'success',
+                                 'due_amount': due
+                                 })
+    return JsonResponse({'status': 'failed',
+                         'message': 'unable to find customer'
                          })
 
 
