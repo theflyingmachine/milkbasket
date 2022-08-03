@@ -34,13 +34,15 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import check_customer_is_active, is_transaction_revertible, \
-    get_customer_due_amount
+from register.utils import authenticate_alexa
+from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
+from register.utils import get_customer_due_amount
+from register.utils import get_last_autopilot
 from register.utils import get_last_transaction
 from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
@@ -48,6 +50,7 @@ from register.utils import get_register_day_entry
 from register.utils import get_tenant_perf
 from register.utils import is_last_day_of_month
 from register.utils import is_mobile
+from register.utils import is_transaction_revertible
 from register.utils import render_to_pdf
 from register.utils import send_email_api
 from register.utils import send_sms_api
@@ -169,29 +172,26 @@ def index(request, year=None, month=None):
     return render(request, template, context)
 
 
-# --- Experimental
-def get_last_autopilot():
-    # Get last entry date
-    today = datetime.today()
-    try:
-        last_entry_date = Register.objects.filter(tenant_id=2,
-                                                  log_date__month=today.month,
-                                                  log_date__year=today.year).latest(
-            'log_date__day')
-        last_entry_date = int(last_entry_date.log_date.strftime("%d")) + 1
-    except Register.DoesNotExist:
-        last_entry_date = 1
-    return last_entry_date
-
+# --- ************************** -----
+# --- Experimental Alexa Feature -----
+# --- ************************** -----
 
 def alexa_get_last_autopilot(request):
-    today = datetime.today()
+    unauthorised = authenticate_alexa(request)
+    if unauthorised:
+        return unauthorised
+    today = date.today()
+    last_date = today.replace(day=get_last_autopilot())
     return JsonResponse({'status': 'success',
-                         'last_date': f'{today.strftime("%B")} {get_last_autopilot()}',
+                         'last_date': last_date,
+                         'is_allowed': True if last_date < today else False,
                          })
 
 
 def alexa_customer_list(request):
+    unauthorised = authenticate_alexa(request)
+    if unauthorised:
+        return unauthorised
     customers_qs = Customer.objects.filter(tenant=2)
     all_customers = [{'id': c.id, 'name': c.name, 'is_active': any([c.m_quantity, c.e_quantity])}
                      for c in customers_qs]
@@ -201,44 +201,96 @@ def alexa_customer_list(request):
 
 
 def alexa_customer_due(request):
-    if request.method == "GET":
-        if request.GET.get("cust_id", None):
-            due = get_customer_due_amount(request.GET.get("cust_id"))
-            return JsonResponse({'status': 'success',
-                                 'due_amount': due
-                                 })
+    unauthorised = authenticate_alexa(request)
+    if unauthorised:
+        return unauthorised
+    customer = Customer.objects.filter(pk=request.GET.get("cust_id")).first()
+    if customer:
+        total_due, prev_month_due, adv = get_customer_due_amount(customer)
+        return JsonResponse({'status': 'success',
+                             'name': customer.name,
+                             'total_due': total_due,
+                             'prev_month_due': prev_month_due,
+                             'advance': adv
+                             })
     return JsonResponse({'status': 'failed',
                          'message': 'unable to find customer'
                          })
 
 
 def alexa_run_autopilot(request):
-    if request.method == "GET":
-        access_key = request.GET.get("key")
-        print(access_key)
-        if access_key != 'd0be2dc421be4fcd0172e5afceea3970e2f3d940':
-            response = {
-                'status': 'Unauthorised',
-            }
-            return JsonResponse(response)
-        today = datetime.today()
-        current_quantity = Register.objects.filter(customer=1, log_date__day=5,
-                                                   log_date__month=today.month,
-                                                   log_date__year=today.year).values(
-            'quantity').first()
-        t = Register.objects.filter(customer=1, log_date__day=5, log_date__month=today.month,
-                                    log_date__year=today.year).first()
-        t.quantity = current_quantity['quantity'] + 100  # change field
-        t.save()  # this will update only
-        response = {
-            'status': 'Success',
-            'message': t.quantity,
-        }
-        return JsonResponse(response)
+    unauthorised = authenticate_alexa(request)
+    if unauthorised:
+        return unauthorised
+    tenant_id = 2  # todo set for all tenants when auth is added
+    tenant = Tenant.objects.get(tenant_id=tenant_id)
+    today = datetime.today().replace(microsecond=0)
+
+    m_register = Register.objects.filter(tenant=tenant,
+                                         log_date__month=today.month,
+                                         log_date__year=today.year,
+                                         customer__status=1,
+                                         schedule__in=['morning-yes', 'morning-no',
+                                                       'e-morning']).values('customer_id',
+                                                                            'customer__m_quantity').distinct()
+    e_register = Register.objects.filter(tenant=tenant,
+                                         log_date__month=today.month,
+                                         log_date__year=today.year,
+                                         customer__status=1,
+                                         schedule__in=['evening-yes', 'evening-no',
+                                                       'e-evening']).values('customer_id',
+                                                                            'customer__e_quantity').distinct()
+    m_register = [{
+        'customer_id': customer['customer_id'],
+        'schedule': 'morning',
+        'quantity': customer['customer__m_quantity'],
+    } for customer in m_register]
+    e_register = [{
+        'customer_id': customer['customer_id'],
+        'schedule': 'evening',
+        'quantity': customer['customer__e_quantity'],
+    } for customer in e_register]
+    if not e_register or not m_register:
+        all_customers = Customer.objects.filter(tenant=tenant, status=1)
+        m_register = [{
+            'customer_id': customer.id,
+            'schedule': 'morning',
+            'quantity': customer.m_quantity,
+        } for customer in all_customers if customer.morning]
+        e_register = [{
+            'customer_id': customer.id,
+            'schedule': 'evening',
+            'quantity': customer.e_quantity,
+        } for customer in all_customers if customer.evening]
+
+    autopilot_data = m_register + e_register
+
+    start_date = today.replace(day=get_last_autopilot())
+    delta = today - start_date
+    for i in range(delta.days + 1):
+        day = start_date + timedelta(days=i)
+        for cust in autopilot_data:
+            full_log_date = datetime.strptime(str(day), '%Y-%m-%d %H:%M:%S')
+            record_exists = Register.objects.filter(tenant=tenant_id,
+                                                    customer_id=cust['customer_id'],
+                                                    log_date=full_log_date,
+                                                    schedule__startswith=cust['schedule']).first()
+            if not record_exists and cust['quantity']:
+                entry = Register(tenant=tenant, customer_id=cust['customer_id'],
+                                 log_date=full_log_date, schedule=f'{cust["schedule"]}-yes',
+                                 quantity=cust['quantity'], current_price=tenant.milk_price)
+                entry.save()
+
+    return JsonResponse({'status': 'success',
+                         'message': 'Autopilot completed'
+                         })
+
+
+# --- Experimental Alexa Feature -----^^^^^^
 
 
 @login_required
-def addcustomer(request):
+def add_customer(request):
     # Get Tenant Preference
     tenant = get_tenant_perf(request)
     if tenant is None:
