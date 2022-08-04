@@ -17,6 +17,7 @@ from django.template.loader import get_template
 from pymongo import MongoClient
 from xhtml2pdf import pisa
 
+from milkbasket.secret import ALEXA_KEY
 from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
@@ -163,14 +164,16 @@ def get_customer_balance_amount(customer_id):
 
 def get_customer_due_amount(customer_id):
     """ Returns DUE - Balance / advance paid amount of customer"""
+    today = datetime.today()
     register_due_qs = Register.objects.filter(customer=customer_id, paid=False,
                                               schedule__in=('evening-yes', 'morning-yes'))
     total_due = sum(
         [float(entry.current_price / 1000) * entry.quantity for entry in register_due_qs])
+    prv_month_qs = register_due_qs.exclude(log_date__year=today.year, log_date__month=today.month)
+    prev_month_due = sum(
+        [float(entry.current_price / 1000) * entry.quantity for entry in prv_month_qs])
     adv = get_customer_balance_amount(customer_id)
-    if adv:
-        total_due = total_due - adv
-    return total_due
+    return (total_due - adv), (prev_month_due - adv), adv
 
 
 def render_to_pdf(template_src, context_dict={}):
@@ -394,6 +397,28 @@ def is_mobile(request):
         return True
     else:
         return False
+
+
+def authenticate_alexa(request):
+    """ Authenticates the key for get request from Alexa """
+    if request.method == "GET" and request.GET.get("key") != ALEXA_KEY:
+        return JsonResponse({
+            'status': 'Unauthorised',
+        }, status=400)
+
+
+def get_last_autopilot(tenant_id=2):
+    """ Gets next day from which autopilot is possible. Last entry day + 1 """
+    today = datetime.today()
+    try:
+        last_entry_date = Register.objects.filter(tenant_id=tenant_id,
+                                                  log_date__month=today.month,
+                                                  log_date__year=today.year).latest(
+            'log_date__day')
+        last_entry_date = int(last_entry_date.log_date.strftime("%d")) + 1
+    except Register.DoesNotExist:
+        last_entry_date = 1
+    return last_entry_date
 
 
 #  ===================== Custom Error Handler Views ==============================

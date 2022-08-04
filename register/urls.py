@@ -15,7 +15,7 @@ urlpatterns = [
     path('print-bill/<int:id>/<str:file_download>/', views.GeneratePdf.as_view(),
          name='share_bill'),
     path('<int:year>/<int:month>/addentry', views.addentry, name='view_addentry_month'),
-    path('add-customer', views.addcustomer, name='add_customer'),
+    path('add-customer', views.add_customer, name='add_customer'),
     path('customers', views.customers, name='view_customers'),
     path('account', views.account, name='view_account'),
     path('account/<int:year>/<int:month>/', views.account, name='account_month'),
@@ -44,10 +44,10 @@ urlpatterns = [
     path('send-email/<int:id>', views.send_EMAIL, name='send_email'),
 
     #     API Alexa
-    path('getlastautopilot', views.alexa_get_last_autopilot, name='get_last_autopilot'),
-    path('alexarunautopilot', views.alexa_run_autopilot, name='alexa_run_autopilot'),
-    path('customerlist', views.alexa_customer_list, name='alexa_customer_list'),
-    path('customerdue', views.alexa_customer_due, name='alexa_customer_due'),
+    path('api/v1/register/last-entry', views.alexa_get_last_autopilot, name='get_last_autopilot'),
+    path('api/v1/register/run-autopilot', views.alexa_run_autopilot, name='alexa_run_autopilot'),
+    path('api/v1/customers', views.alexa_customer_list, name='alexa_customer_list'),
+    path('api/v1/customers/due-amount', views.alexa_customer_due, name='alexa_customer_due'),
 ]
 
 # handler403 = 'register.utils.error_403_view'
