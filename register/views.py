@@ -184,7 +184,7 @@ def alexa_get_last_autopilot(request):
     last_date = today.replace(day=get_last_autopilot())
     return JsonResponse({'status': 'success',
                          'last_date': last_date,
-                         'is_allowed': True if last_date < today else False,
+                         'is_allowed': True if last_date <= today else False,
                          })
 
 
