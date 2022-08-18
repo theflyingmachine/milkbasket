@@ -1,0 +1,53 @@
+<html>
+<head>
+  <title>MilkBasket Online Payment Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+        crossorigin="anonymous">
+</head>
+<body>
+<div class="container text-center">
+  <h4 class="text-primary text-center">Payment for Bill Number: {{ billNumber }}</h4>
+  <div class="shadow p-3 mb-5 bg-white rounded">
+    {% if verifySignature %}
+      {% if text_success and data.STATUS == 'TXN_SUCCESS' %}
+        <h4 class="text-success text-center">Transaction Successful</h4>
+      {% else %}
+        <h4 class="text-danger text-center">{{ data.RESPMSG }}</h4>
+      {% endif %}
+
+      {% if text_error %}
+        <h4 class="text-danger text-center">{{ text_error }}</h4>
+      {% endif %}
+      <p>Please do not refresh this page, you will be redirected in <span class="font-weight-bold"
+                                                                          id="countdown"></span>
+        seconds automatically</p>
+      <table class="table table-bordered">
+        {% for key, value in data.items %}
+          <tr>
+            <td>{{ key }}</td>
+            <td>{{ value }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <h4 class="text-danger text-center">We could not verify the Transaction Signature</h4>
+    {% endif %}
+  </div>
+</div>
+<script>
+  (function countdown(remaining) {
+    if (remaining === 0) {
+      window.location = "{% url 'view_bill' billNumber %}";
+    } else {
+      document.getElementById('countdown').innerHTML = remaining;
+      setTimeout(function () {
+        countdown(remaining - 1);
+      }, 1000);
+    }
+  })(10);
+</script>
+</body>
+</html>

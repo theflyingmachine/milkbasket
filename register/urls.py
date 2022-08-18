@@ -48,6 +48,16 @@ urlpatterns = [
     path('api/v1/register/run-autopilot', views.alexa_run_autopilot, name='alexa_run_autopilot'),
     path('api/v1/customers', views.alexa_customer_list, name='alexa_customer_list'),
     path('api/v1/customers/due-amount', views.alexa_customer_due, name='alexa_customer_due'),
+
+    # Compliance Docs
+    path('about-us', views.about_us, name='about_us'),
+    path('product', views.product, name='product'),
+    path('privacy', views.privacy_policy, name='privacy_policy'),
+    path('return-refund', views.return_refund, name='return_refund'),
+    path('terms-conditions', views.terms_conditions, name='terms_conditions'),
+
+    path('view_customer_profile', views.view_customer_profile, name='view_customer_profile'),
+
 ]
 
 # handler403 = 'register.utils.error_403_view'

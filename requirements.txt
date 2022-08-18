@@ -32,4 +32,4 @@ whitenoise==5.2.0
 xhtml2pdf==0.2.5
 fontawesome-free==5.15.3
 django-maintenance-mode==0.16.0
-
+paytmchecksum~=1.7.0

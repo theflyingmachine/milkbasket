@@ -4,7 +4,7 @@
  style="margin-bottom:0">
 
   {% if not request.user.is_superuser and user.is_authenticated and is_mobile %}
-    <div class="container p-1">
+    <div class="container p-1 footer">
       <div class="row d-flex justify-content-center flex-nowrap mt-1">
         <div class="col-2 p-0">
           <a
@@ -49,7 +49,41 @@
     </div>
 
   {% else %}
-    <p class="p-3">Copyrights &copy; {% now 'Y' %} | Milk Basket (Beta)</p>
+    <div class="footer_desktop">
+
+      <div class="footer-compliance p-2 m-0 text-center">
+        <a class="text-decoration-none text-light" href="{% url 'about_us' %}">About Us</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+        <a class="text-decoration-none text-light" href="{% url 'product' %}">Product</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+        <a class="text-decoration-none text-light" href="{% url 'privacy_policy' %}">Privacy
+          Policy</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+        <a class="text-decoration-none text-light" href="{% url 'return_refund' %}">Return &
+          Refund</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+        <a class="text-decoration-none text-light" href="{% url 'terms_conditions' %}">Terms of
+          Service</a>
+        {% if not user.is_authenticated and not is_mobile %}
+          {% if not request.session.customer_session %}
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <a class="text-decoration-none text-light" href="{% url 'customer_dashboard_login' %}">Login {{ request.session.customer_session }}</a>
+          {% endif %}
+        {% endif %}
+      </div>
+      <div class="copyright px-3 m-0">
+        <div class="row">
+          <div class="col-4 text-left py-4">
+            <span>Copyrights &copy; {% now 'Y' %} | Milk Basket</span>
+          </div>
+          <div class="col-4 text-center milkman pt-2">
+            <span>Bringing milkman online!</span>
+          </div>
+          <div class="col-4 text-right py-4">
+            <span>Proudly Handcrafted in Raxaul Bihar, India.</span>
+          </div>
+
+        </div>
+
+
+      </div>
+    </div>
   {% endif %}
 </div>
 
@@ -61,8 +95,8 @@
     {% endfor %}
   {% endif %}
 
-   function showFooterSpinnerFn(myLink) {
-      myLink.innerHTML = '<i style="font-size:8vw" class="fa fa-spinner fa-spin"></i>';
-    }
+  function showFooterSpinnerFn(myLink) {
+    myLink.innerHTML = '<i style="font-size:8vw" class="fa fa-spinner fa-spin"></i>';
+  }
 </script>
 </html>

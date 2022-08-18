@@ -83,17 +83,6 @@
 </head>
 
 <style>
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        height: 50px;
-        background-color: lightseagreen;
-        color: black;
-        text-align: center;
-    }
-
     .send-sms-checkbox input[type="checkbox"] {
         width: 30px; /*Desired width*/
         height: 30px; /*Desired height*/
@@ -140,6 +129,46 @@
         width: 100%;
     }
 
+        {#Footer CSS below#}
+        @font-face {
+        font-family: Caveat;
+        src: url("{% static "/src/Caveat.ttf"%}");
+
+    }
+        .milkman {
+        font-family: Caveat;
+        font-size: 35px;
+    }
+      .footer_mobile {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 50px;
+        background-color: lightseagreen;
+        color: black;
+        text-align: center;
+    }
+    .footer_desktop {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        {#height: 150px;#}
+        z-index: 2;
+    }
+    .copyright {
+        background-color: #2f2f2f;
+        color: #9d9d9d;
+        font-size: 15px;
+    }
+    .footer-compliance {
+        background-color: #041e34;
+        color: white;
+        text-align: center;
+        font-size: 12px;
+    }
+
     .footer-links {
         font-size: 20px;
     }
@@ -163,7 +192,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark top-nav-background">
   <div class="topnav navbar-brand mr-5">
     <a class="navbrand mr-5" href="./"> <strong
-     class="intro">MilkBasket</strong><sub>(Beta)</sub><br>
+     class="intro">MilkBasket</strong><br>
       <div class="poweredby">POWERED BY CYBERBOY.IN</div>
     </a>
   </div>
@@ -172,38 +201,37 @@
           aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-
-  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-    <div class="navbar-nav">
-      {% if not request.user.is_superuser %}
-        <a class="nav-item nav-link mr-3{% if menu_register %} active {% endif %}"
-           href="{% url 'view_register' %}">Register </a>
-        <a class="nav-item nav-link mr-3 {% if menu_customer %} active {% endif %}"
-           href="{% url 'view_customers' %}">Customers</a>
-        <a class="nav-item nav-link mr-3 {% if menu_account %} active {% endif %}"
-           href="{% url 'view_account' %}">Accounts</a>
-        <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"
-           href="{% url 'view_report' %}">Report</a>
-        <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
-           href="{% url 'setting' %}">Setting</a>
-        {#      <a class="nav-item nav-link mr-3" target="_blank" href="/bill">Bills</a>#}
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle {% if menu_bill %} active {% endif %}" href="#"
-             id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
-             aria-expanded="false">
-            Bills
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" target="_blank" href="{% url 'bill_search' %}">Search Bill</a>
-            <a class="dropdown-item" href="{% url 'bill_views' %}">Bill Views</a>
-          </div>
-        </li>
-      {% endif %}
+  {% if not request.user.is_superuser and user.is_authenticated %}
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+          <a class="nav-item nav-link mr-3{% if menu_register %} active {% endif %}"
+             href="{% url 'view_register' %}">Register </a>
+          <a class="nav-item nav-link mr-3 {% if menu_customer %} active {% endif %}"
+             href="{% url 'view_customers' %}">Customers</a>
+          <a class="nav-item nav-link mr-3 {% if menu_account %} active {% endif %}"
+             href="{% url 'view_account' %}">Accounts</a>
+          <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"
+             href="{% url 'view_report' %}">Report</a>
+          <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
+             href="{% url 'setting' %}">Setting</a>
+          {#      <a class="nav-item nav-link mr-3" target="_blank" href="/bill">Bills</a>#}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if menu_bill %} active {% endif %}" href="#"
+               id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
+               aria-expanded="false">
+              Bills
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <a class="dropdown-item" target="_blank" href="{% url 'bill_search' %}">Search Bill</a>
+              <a class="dropdown-item" href="{% url 'bill_views' %}">Bill Views</a>
+            </div>
+          </li>
+      </div>
     </div>
-  </div>
-  <div class="nav navbar-nav navbar-right">
-    <a class="nav-item nav-link mr-3 " href="{% url 'logout' %}">{{ user.get_username|capfirst }} - Logout</a>
-  </div>
+    <div class="nav navbar-nav navbar-right">
+      <a class="nav-item nav-link mr-3 " href="{% url 'logout' %}">{{ user.get_username|capfirst }} - Logout</a>
+    </div>
+  {% endif %}
 </nav>
 
 <div class="container-fluid">
