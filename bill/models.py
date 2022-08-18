@@ -18,3 +18,5 @@ class OnlinePayment(models.Model):
     order_id = models.CharField(max_length=255, null=False)
     online_transaction_id = models.CharField(max_length=255)
     raw_resp = JSONField(default=None)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

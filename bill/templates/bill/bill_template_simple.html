@@ -11,8 +11,10 @@
   <link rel="stylesheet" href="{% static "/css/bootstrap.css" %}"/>
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <script type="application/javascript" crossorigin="anonymous"
-          src="{{ env }}/merchantpgpui/checkoutjs/merchants/{{ mid }}.js"></script>
+  {% if mid %}
+    <script type="application/javascript" crossorigin="anonymous"
+            src="{{ env }}/merchantpgpui/checkoutjs/merchants/{{ mid }}.js"></script>
+  {% endif %}
   <script src="{% static "/bill/script_pay.js" %}"></script>
   <style>
 

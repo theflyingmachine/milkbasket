@@ -57,7 +57,8 @@ def index(request, bill_number=None):
                 amount_payable = 0
                 for entry in due_transactions:
                     entry.billed_amount = float(entry.current_price / 1000) * entry.quantity
-                    amount_payable += float(entry.current_price / 1000) * entry.quantity
+                    amount_payable += float(
+                        entry.current_price / 1000) * entry.quantity if not entry.paid else 0
                     entry.display_paid = 'Paid' if entry.paid else 'Due'
                     entry.display_schedule = 'Morning' if entry.schedule == 'morning-yes' else 'Evening'
                     entry.display_log_date = entry.log_date.strftime('%d-%b-%y')
@@ -72,18 +73,30 @@ def index(request, bill_number=None):
                 if amount_payable > 0:
                     token = config.getTransactionToken(amount_payable,
                                                        bill_metadata['customer_id'], bill_number)
-                    start_payment = OnlinePayment(customer_id=bill_metadata['customer_id'],
-                                                  bill_number=bill_number,
-                                                  amount=amount_payable,
-                                                  status='Init', token=token,
-                                                  order_id=bill_number)
-                    start_payment.save()
+                    if token:
+                        start_payment, _ = OnlinePayment.objects.update_or_create(
+                            customer_id=bill_metadata['customer_id'],
+                            bill_number=bill_number,
+                            order_id=bill_number,
+                            amount=amount_payable,
+                            status='Init',
+                            defaults={'token': token}
+                        )
+                    else:
+                        start_payment = OnlinePayment.objects.filter(
+                            customer_id=bill_metadata['customer_id'],
+                            bill_number=bill_number,
+                            order_id=bill_number,
+                            amount=amount_payable,
+                            status='Init').first()
                     # print(token)
                     context.update({
                         'tenant': tenant_pref,
                         'mid': config.PAYTM_MID, 'amount': amount_payable,
                         'orderid': bill_number,
-                        'env': config.PAYTM_ENVIRONMENT, 'token': token, 'billNumber': bill_number,
+                        'env': config.PAYTM_ENVIRONMENT,
+                        'token': start_payment.token if start_payment else None,
+                        'billNumber': bill_number,
                     })
             else:
                 context.update({'bill_access': False,
