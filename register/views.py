@@ -937,6 +937,12 @@ def landing(request):
             login(request, user)
             return redirect('view_register')
         else:
+            customer = Customer.objects.filter(contact=username).first()
+            if customer.name == password:
+                request.session['customer_session'] = True
+                request.session['customer'] = customer.id
+                request.session.save()
+                return redirect('customer_dashboard')
             context.update({
                 'message': 'Invalid username or password',
             })
@@ -1116,6 +1122,7 @@ def setting(request):
         email_pref = True if request.POST.get("email_pref") else False
         bill_till_date = True if request.POST.get("bill_till_date") else False
         customers_bill_access = True if request.POST.get("customers_bill_access") else False
+        accept_online_payment = True if request.POST.get("accept_online_payment") else False
         download_pdf_pref = True if request.POST.get("download_pdf_pref") else False
         now = datetime.now()
         tenant, created = Tenant.objects.update_or_create(tenant_id=request.user.id,
@@ -1125,6 +1132,7 @@ def setting(request):
                                                                     'email_pref': email_pref,
                                                                     'bill_till_date': bill_till_date,
                                                                     'customers_bill_access': customers_bill_access,
+                                                                    'accept_online_payment': accept_online_payment,
                                                                     'download_pdf_pref': download_pdf_pref},
                                                           )
         saved_milk_price = tenant.milk_price if tenant.milk_price else None
@@ -1357,3 +1365,42 @@ def bill_views(request):
         'menu_bill': True
     }
     return render(request, template, context)
+
+
+# Compliance Docs
+def privacy_policy(request):
+    template = 'register/snippet/privacy_policy.html'
+    context = {'page_title': 'Privacy Policy - Milk Basket', }
+    return render(request, template, context)
+
+
+def about_us(request):
+    template = 'register/snippet/about_us.html'
+    context = {'page_title': 'About Us - Milk Basket', }
+    return render(request, template, context)
+
+
+def return_refund(request):
+    template = 'register/snippet/return_refund.html'
+    context = {'page_title': 'Return, Refund, & Cancellation Policy - Milk Basket', }
+    return render(request, template, context)
+
+
+def terms_conditions(request):
+    template = 'register/snippet/terms_conditions.html'
+    context = {'page_title': 'Terms & Conditions - Milk Basket', }
+    return render(request, template, context)
+
+
+def product(request):
+    template = 'register/snippet/product.html'
+    context = {'page_title': 'Product - Milk Basket', }
+    return render(request, template, context)
+
+
+def view_customer_profile(request):
+    if request.session.get('customer_session'):
+        res = f"Welcome, {request.session.get('customer_id')}"
+    else:
+        res = 'You are not logged in'
+    return HttpResponse(res)

@@ -300,6 +300,23 @@
                   </td>
                 </tr>
 
+                {# Accept Online Payments #}
+                <tr>
+                  <td class="setting-td"><i class="fas fa-money-check"></i> Accept Online Payments
+                  </td>
+                  <td class="setting-td">
+                    <div class="onoffswitch">
+                      <input class="onoffswitch-checkbox" id="myonoffswitch8" type="checkbox"
+                             name="accept_online_payment"
+                             {% if tenant.accept_online_payment %}checked{% endif %} value="1">
+                      <label class="onoffswitch-label" for="myonoffswitch8">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+
               </table>
               <div class="p-3 text-center col-sm-12 ">
                 <button type="submit" class="btn btn-lg btn-block btn-primary">Save</button>
@@ -308,6 +325,7 @@
           </form>
         </div>
       </div>
+      <p class="text-center mb-5"> --- END OF PAGE ---</p>
     {% endif %}
   </div>
 

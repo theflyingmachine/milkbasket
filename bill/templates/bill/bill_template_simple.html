@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="{% static "/css/bootstrap.css" %}"/>
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script type="application/javascript" crossorigin="anonymous"
+          src="{{ env }}/merchantpgpui/checkoutjs/merchants/{{ mid }}.js"></script>
+  <script src="{% static "/bill/script_pay.js" %}"></script>
   <style>
 
       @font-face {
@@ -212,6 +215,18 @@
             {% endfor %}
           </table>
         </div>
+
+        <div class="text-center">
+          {% if not payment_status and orderid and token and amount and tenant.accept_online_payment %}
+            {#            <a href="{% url 'app_create' bill_number %}" class="button">Pay Online</a>#}
+            <div class="btn-area p-2">
+              <button type="button" id="jsCheckoutPayment" name="submit"
+                      class="btn btn-primary w-100 font-weight-bold">Pay Online ₹{{ amount }}
+              </button>
+            </div>
+          {% endif %}
+
+        </div>
         <div class="text-center">
           {% if payment_status %}
             <img
@@ -321,6 +336,15 @@
       document.getElementById('calendar-view').style.display = "block";
     }
   }
+
+  document.getElementById("jsCheckoutPayment").addEventListener("click", function () {
+      openJsCheckoutPopup('{{orderid}}', '{{token}}', '{{amount}}');
+      document.getElementById("jsCheckoutPayment").disabled = true;
+      document.getElementById("jsCheckoutPayment").innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
+
+    }
+  );
+
 </script>
 
 </body>

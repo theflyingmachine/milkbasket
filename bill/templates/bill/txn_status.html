@@ -1,0 +1,33 @@
+<html>
+
+<head>
+  <title>Online Payment Status Check - MilkBasket</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+        crossorigin="anonymous">
+</head>
+
+<body>
+<div class="container text-center">
+  <div class="shadow p-3 mb-5 bg-white rounded">
+    <h2>Transaction Status</h2>
+    {% if result.resultInfo.resultStatus == 'TXN_SUCCESS' %}
+      <h2 class="text-center text-success">Payment Successful Verified</h2>
+    {% else %}
+      <h2 class="text-center text-danger">{{ result.resultInfo.resultMsg }}</h2>
+    {% endif %}
+    <table class="table table-bordered">
+      {% for key, value in result.items %}
+        <tr>
+          <td>{{ key }}</td>
+          <td>{{ value }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+</body>
+
+</html>

@@ -274,7 +274,10 @@
             {% for entry in transaction %}
               <tr class="d-flex">
                 <td class="p-2 col-2">#{{ entry.id }}</td>
-                <td class="p-2 col-6">{{ entry.log_date }}</td>
+                <td class="p-2 col-6">{{ entry.log_date }}  {% if entry.payment_mode == 'ONLINE' %}
+                  <a target="_blank"
+                     href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% else %}
+                  <span class="text-info">{{ entry.payment_mode }}{% endif %}</span></td>
                 <td class="p-2 col-4">{{ entry.amount }}
                   {% if forloop.last and is_revertible %}
                     <button id="reverttransactionbuttonmain" type="button"
@@ -334,7 +337,7 @@
             </tbody>
           </table>
         </div>
-        <p class="text-center"> --- END OF PAGE ---</p>
+        <p class="text-center mb-5 pb-5"> --- END OF PAGE ---</p>
       {% endif %}
 
 

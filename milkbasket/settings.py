@@ -30,7 +30,7 @@ SECRET_KEY = '06^)^*-!6m9pp_21aq)(j#a5yv^#7y5&c8o+l#4hmgy+s!eekk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENV_DEBUG
 
-ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1', 'e26d-103-80-118-21.ngrok.io']
+ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1', '6c98-223-228-236-15.ngrok.io']
 
 LOGIN_URL = reverse_lazy('landing')
 
@@ -43,11 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'mathfilters',
     'maintenance_mode',
     'fontawesome-free',
     'register',
     'bill',
+    'customer',
 ]
 
 MIDDLEWARE = [

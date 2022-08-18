@@ -305,6 +305,49 @@
           font-size: 150px;
       }
 
+      {#Footer CSS below#}
+      @font-face {
+          font-family: Typeface;
+          src: url("{% static "/src/Caveat.ttf"%}");
+      }
+
+      .milkman {
+          font-family: Typeface;
+          font-size: 35px;
+      }
+
+      .footer_mobile {
+          position: fixed;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          height: 50px;
+          background-color: lightseagreen;
+          color: black;
+          text-align: center;
+      }
+
+      .footer_desktop {
+          position: fixed;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          height: 100px;
+      }
+
+      .copyright {
+          background-color: #2f2f2f;
+          color: #9d9d9d;
+          font-size: 15px;
+      }
+
+      .footer-compliance {
+          background-color: #041e34;
+          color: white;
+          text-align: center;
+          font-size: 12px;
+      }
+
   </style>
   <title></title>
 </head>
@@ -328,5 +371,6 @@
   </form>
 </div>
 
-</body>
-</html>
+<!-- Footer -->
+{% include "register/footer.html" %}
+

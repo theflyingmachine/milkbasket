@@ -21,6 +21,7 @@ class Tenant(models.Model):
     email_pref = models.BooleanField(default=False)
     customers_bill_access = models.BooleanField(default=True)
     bill_till_date = models.BooleanField(default=True)
+    accept_online_payment = models.BooleanField(default=False)
     milk_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
     date_effective = models.DateTimeField(default=None, null=True)
 
@@ -43,6 +44,8 @@ class Payment(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     log_date = models.DateTimeField(auto_now_add=True, null=True)
+    payment_mode = models.CharField(max_length=10, null=True, default='CASH', blank=True)
+    transaction_id = models.CharField(max_length=50, null=True, default=None, blank=True)
 
 
 class Register(models.Model):
