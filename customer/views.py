@@ -114,7 +114,7 @@ def customer_dashboard_login(request):
         password = request.POST.get("password")
         customer = Customer.objects.filter(contact=username).first()
 
-        if customer and customer.name == password:
+        if customer and f'pass@{customer.name}' == password:
             request.session['customer_session'] = True
             request.session['customer'] = customer.id
             request.session.save()

@@ -123,6 +123,16 @@
         background: #dd4b39;
         color: white;
     }
+
+    @font-face {
+        font-family: fontastique;
+        src: url("{% static "/src/fontastique.ttf"%}");
+    }
+
+    .intro {
+        font-family: fontastique;
+        font-size: 50px;
+    }
   </style>
 </head>
 <body>
@@ -134,16 +144,20 @@
       <form action="{% url 'customer_dashboard_login' %}" method="post"
             class="login100-form validate-form">{% csrf_token %}
         <span class="login100-form-logo">
-						<img src="{% static "/customer/login/images/favicon-1.png" %}" width="150"
-                             height="150">
+						<img src="{% static "/customer/login/images/favicon-1.png" %}" width="75"
+                             height="75">
 					</span>
+
+        <div class="text-center">
+          <strong class="intro text-white text-center">MilkBasket</strong>
+        </div>
 
         <span class="login100-form-title p-b-34 p-t-27">
 						CUSTOMER PORTAL
 					</span>
 
-        <div class="wrap-input100 validate-input" data-validate="Enter username">
-          <input class="input100" type="text" name="username" placeholder="Username">
+        <div class="wrap-input100 validate-input" data-validate="Enter Mobile Number">
+          <input class="input100" type="text" name="username" placeholder="Mobile Number">
           <span class="focus-input100" data-placeholder="&#xf207;"></span>
         </div>
 
