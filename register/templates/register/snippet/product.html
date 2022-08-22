@@ -729,15 +729,46 @@
   </style>
   <div class="m-lg-5 py-5 px-lg-5">
     <h2 class="text-center text-primary"><b>OUR PRODUCT</b></h2>
-    <h3 class="calligraphy">
-      - We Sell Fresh & Organic Cow Milk!
-    </h3>
-    <h3 class="calligraphy">
-      -- We Connect Milk Sellers to Consumers!
-    </h3>
-    <h3 class="calligraphy">
-      --- We bring Milkman Online!
-    </h3>
+
+    <div class="row mt-5">
+      <div class="col-6 text-center">
+        <img class="" src="https://static.toiimg.com/photo/msid-70139351/70139351.jpg?792974"
+             alt="Milk" width="390" height="450">
+
+        <h3 class="calligraphy">
+          Fresh & Organic Cow Milk
+        </h3>
+      </div>
+      <div class="col-6  text-center">
+        {% if not sellers %}
+          <span>No sellers available at the moment.</span>
+        {% else %}
+          <span class="text-info">Available Milk Sellers</span>
+          <table class="table table-hover">
+            <thead>
+            <tr>
+              <th scope="col">Seller</th>
+              <th scope="col">Price</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for seller in sellers %}
+              <tr>
+                <td><a href="mailto:{{ seller.tenant__email }}">{{ seller.tenant__first_name }}</a>
+                </td>
+                <td><strong>₹ {{ seller.milk_price }}</strong> <span
+                 class="text-secondary">/ Liter</span></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+
+      </div>
+    </div>
+
+
     <hr>
   </div>
 
