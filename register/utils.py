@@ -3,10 +3,11 @@ import random
 import re
 import string
 from calendar import monthrange
-from datetime import datetime
+from datetime import datetime, date
 from io import BytesIO
 
 import requests
+from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.db.models import Q
@@ -14,10 +15,11 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.template.loader import get_template
+from django.urls import reverse
 from pymongo import MongoClient
 from xhtml2pdf import pisa
 
-from milkbasket.secret import ALEXA_KEY
+from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN
 from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
@@ -419,6 +421,56 @@ def get_last_autopilot(tenant_id=2):
     except Register.DoesNotExist:
         last_entry_date = 1
     return last_entry_date
+
+
+def get_all_due_customer(request, cust_id=None):
+    """ Get formatted due for billing """
+    current_date = date.today()
+    prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
+    current_month_name = current_date.strftime("%B")
+    due_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
+                                           paid=0).values('customer_id',
+                                                          'customer__name',
+                                                          'customer__contact',
+                                                          'customer__email').distinct()
+    if cust_id:
+        due_customer = due_customer.filter(customer_id=cust_id)
+
+    for customer in due_customer:
+        customer['total_due'], customer['prev_month_due'], customer[
+            'adv'] = get_customer_due_amount(
+            customer['customer_id'])
+    is_last_day = is_last_day_of_month()
+    due_cust = []
+    for c in due_customer:
+        if c['customer__contact'] and c['total_due'] > 0:
+            if is_last_day or not c['prev_month_due'] > 0:
+                to_be_paid, due_month = c['total_due'], current_month_name
+            else:
+                to_be_paid, due_month = c['prev_month_due'], prev_month_name
+            due_cust.append(
+                dict(id=c['customer_id'],
+                     name=c['customer__name'],
+                     contact=c['customer__contact'],
+                     to_be_paid=to_be_paid,
+                     due_month=due_month,
+                     profile_url=reverse('customer_profile', args=[c['customer_id']]),
+                     advance=c['adv'])
+            )
+    return due_cust
+
+
+def send_whatsapp_message(wa_body):
+    url = f"https://graph.facebook.com/v13.0/{WA_NUMBER_ID}/messages"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {WA_TOKEN}",
+    }
+    data = wa_body
+    response = requests.post(url, headers=headers, json=data)
+    # print("Status Code", response.status_code)
+    # print("JSON Response ", response.json())
+    return response.status_code == 200
 
 
 #  ===================== Custom Error Handler Views ==============================
