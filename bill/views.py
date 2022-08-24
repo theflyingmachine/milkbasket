@@ -1,20 +1,13 @@
-import decimal
 from calendar import monthrange
-from datetime import datetime
 
-import paytmchecksum
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 
 from bill import config
-from bill.config import transactionStatus
 from bill.models import OnlinePayment
-from register.constant import PAYMENT_TEMPLATE_ID
-from register.models import Payment as PaymentModel
-from register.models import Register, Customer, Balance
+from register.models import Register
 from register.models import Tenant
-from register.utils import get_milk_current_price, send_sms_api, get_customer_balance_amount
+from register.utils import get_milk_current_price, get_customer_balance_amount
 from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
 
@@ -142,118 +135,118 @@ def fetch_bill(bill_number, full_data=False, update_count=False):
 
     return bill_metadata
 
-
-@csrf_exempt
-def payment_callback(request):
-    data = dict()
-    data = request.POST
-    data = data.copy().dict()
-    if data:
-        checksum = data['CHECKSUMHASH']
-        data.pop('CHECKSUMHASH', None)
-
-        # verify checksum
-        verifySignature = paytmchecksum.verifySignature(data, config.PAYTM_MERCHANT_KEY, checksum)
-        text_error = ''
-        text_success = ''
-
-        if verifySignature:
-            text_success = "Checksum is verified.Transaction details are below"
-            # Update BE with payment status
-            OnlinePayment.objects.filter(order_id=data['ORDERID']).update(status=data['STATUS'],
-                                                                          status_msg=data[
-                                                                              'RESPMSG'],
-                                                                          online_transaction_id=
-                                                                          data.get('TXNID'),
-                                                                          raw_resp=data)
-            verify_transaction = transactionStatus(data['ORDERID'])
-            if verify_transaction['resultInfo']['resultStatus'] == 'TXN_SUCCESS':
-                payment = OnlinePayment.objects.filter(order_id=data['ORDERID']).first()
-                milkbasket_payment = PaymentModel.objects.filter(payment_mode='ONLINE',
-                                                                 transaction_id=payment.online_transaction_id).first()
-                if payment.status == 'TXN_SUCCESS' and not milkbasket_payment:
-                    accept_payment(payment.customer_id, payment.amount,
-                                   payment.online_transaction_id)
-
-        else:
-            text_error = "Checksum is not verified."
-    else:
-        text_error = "Empty POST Response."
-
-    template = 'bill/callback.html'
-    context = {
-        'data': data, 'text_success': text_success, 'text_error': text_error,
-        'verifySignature': verifySignature,
-        'billNumber': payment.bill_number
-    }
-    return render(request, template, context, status=200)
-
-
-def check_txn_status(request, transaction_id=None):
-    template = 'bill/txn_status.html'
-    if transaction_id:
-        online_trans = OnlinePayment.objects.filter(online_transaction_id=transaction_id).latest(
-            'order_id')
-        verify_transaction = transactionStatus(online_trans.order_id)
-        context = {
-            'result': verify_transaction,
-            'metadata': online_trans
-        }
-        return render(request, template, context, status=200)
-
-
-def accept_payment(customer_id, payment_amount, transaction_id, sms_notification=True):
-    # Update Payment Table
-    customer = Customer.objects.filter(id=customer_id).first()
-    sms_notification = sms_notification
-    if customer_id and payment_amount:
-        payment_amount = float(payment_amount)
-        new_payment = PaymentModel(tenant_id=customer.tenant_id, customer_id=customer.id,
-                                   amount=payment_amount, payment_mode='ONLINE',
-                                   transaction_id=transaction_id)
-        try:
-            new_payment.save()
-        except:
-            pass
-            # return redirect(formatted_url)
-        balance_amount, _ = Balance.objects.get_or_create(tenant_id=customer.tenant_id,
-                                                          customer_id=customer.id)
-        adjust_amount = float(getattr(balance_amount, 'balance_amount')) if balance_amount else 0
-        # Set advance to old bal
-        balance_amount.balance_amount = 0
-        balance_amount.last_balance_amount = adjust_amount
-        balance_amount.save()
-        # Get total amount in hand
-        payment_amount = payment_amount + abs(adjust_amount)
-        # Update Register
-        accepting_payment = Register.objects.filter(tenant_id=customer.tenant_id,
-                                                    customer_id=customer_id,
-                                                    schedule__endswith='yes',
-                                                    paid=0).order_by('log_date')
-        for entry in accepting_payment:
-            if payment_amount > 0:
-                entry_cost = float(
-                    entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
-                if payment_amount - entry_cost >= 0:
-                    Register.objects.filter(tenant_id=customer.tenant_id, id=entry.id).update(
-                        paid=True, transaction_number=new_payment)
-                    payment_amount = payment_amount - entry_cost
-                elif payment_amount != 0:
-                    Balance.objects.update_or_create(tenant_id=customer.tenant_id,
-                                                     customer_id=customer_id,
-                                                     defaults={"balance_amount": payment_amount}
-                                                     )
-                    payment_amount = 0
-
-        if payment_amount != 0:
-            Balance.objects.update_or_create(tenant_id=customer.tenant_id,
-                                             customer_id=customer_id,
-                                             defaults={"balance_amount": -payment_amount}
-                                             )
-        # Send SMS notification
-        if sms_notification:
-            transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
-            sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
-            send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
-
-    return True
+#
+# @csrf_exempt
+# def payment_callback(request):
+#     data = dict()
+#     data = request.POST
+#     data = data.copy().dict()
+#     if data:
+#         checksum = data['CHECKSUMHASH']
+#         data.pop('CHECKSUMHASH', None)
+#
+#         # verify checksum
+#         verifySignature = paytmchecksum.verifySignature(data, config.PAYTM_MERCHANT_KEY, checksum)
+#         text_error = ''
+#         text_success = ''
+#
+#         if verifySignature:
+#             text_success = "Checksum is verified.Transaction details are below"
+#             # Update BE with payment status
+#             OnlinePayment.objects.filter(order_id=data['ORDERID']).update(status=data['STATUS'],
+#                                                                           status_msg=data[
+#                                                                               'RESPMSG'],
+#                                                                           online_transaction_id=
+#                                                                           data.get('TXNID'),
+#                                                                           raw_resp=data)
+#             verify_transaction = transactionStatus(data['ORDERID'])
+#             if verify_transaction['resultInfo']['resultStatus'] == 'TXN_SUCCESS':
+#                 payment = OnlinePayment.objects.filter(order_id=data['ORDERID']).first()
+#                 milkbasket_payment = PaymentModel.objects.filter(payment_mode='ONLINE',
+#                                                                  transaction_id=payment.online_transaction_id).first()
+#                 if payment.status == 'TXN_SUCCESS' and not milkbasket_payment:
+#                     accept_payment(payment.customer_id, payment.amount,
+#                                    payment.online_transaction_id)
+#
+#         else:
+#             text_error = "Checksum is not verified."
+#     else:
+#         text_error = "Empty POST Response."
+#
+#     template = 'bill/callback.html'
+#     context = {
+#         'data': data, 'text_success': text_success, 'text_error': text_error,
+#         'verifySignature': verifySignature,
+#         'billNumber': payment.bill_number
+#     }
+#     return render(request, template, context, status=200)
+#
+#
+# def check_txn_status(request, transaction_id=None):
+#     template = 'bill/txn_status.html'
+#     if transaction_id:
+#         online_trans = OnlinePayment.objects.filter(online_transaction_id=transaction_id).latest(
+#             'order_id')
+#         verify_transaction = transactionStatus(online_trans.order_id)
+#         context = {
+#             'result': verify_transaction,
+#             'metadata': online_trans
+#         }
+#         return render(request, template, context, status=200)
+#
+#
+# def accept_payment(customer_id, payment_amount, transaction_id, sms_notification=True):
+#     # Update Payment Table
+#     customer = Customer.objects.filter(id=customer_id).first()
+#     sms_notification = sms_notification
+#     if customer_id and payment_amount:
+#         payment_amount = float(payment_amount)
+#         new_payment = PaymentModel(tenant_id=customer.tenant_id, customer_id=customer.id,
+#                                    amount=payment_amount, payment_mode='ONLINE',
+#                                    transaction_id=transaction_id)
+#         try:
+#             new_payment.save()
+#         except:
+#             pass
+#             # return redirect(formatted_url)
+#         balance_amount, _ = Balance.objects.get_or_create(tenant_id=customer.tenant_id,
+#                                                           customer_id=customer.id)
+#         adjust_amount = float(getattr(balance_amount, 'balance_amount')) if balance_amount else 0
+#         # Set advance to old bal
+#         balance_amount.balance_amount = 0
+#         balance_amount.last_balance_amount = adjust_amount
+#         balance_amount.save()
+#         # Get total amount in hand
+#         payment_amount = payment_amount + abs(adjust_amount)
+#         # Update Register
+#         accepting_payment = Register.objects.filter(tenant_id=customer.tenant_id,
+#                                                     customer_id=customer_id,
+#                                                     schedule__endswith='yes',
+#                                                     paid=0).order_by('log_date')
+#         for entry in accepting_payment:
+#             if payment_amount > 0:
+#                 entry_cost = float(
+#                     entry.current_price / 1000 * decimal.Decimal(float(entry.quantity)))
+#                 if payment_amount - entry_cost >= 0:
+#                     Register.objects.filter(tenant_id=customer.tenant_id, id=entry.id).update(
+#                         paid=True, transaction_number=new_payment)
+#                     payment_amount = payment_amount - entry_cost
+#                 elif payment_amount != 0:
+#                     Balance.objects.update_or_create(tenant_id=customer.tenant_id,
+#                                                      customer_id=customer_id,
+#                                                      defaults={"balance_amount": payment_amount}
+#                                                      )
+#                     payment_amount = 0
+#
+#         if payment_amount != 0:
+#             Balance.objects.update_or_create(tenant_id=customer.tenant_id,
+#                                              customer_id=customer_id,
+#                                              defaults={"balance_amount": -payment_amount}
+#                                              )
+#         # Send SMS notification
+#         if sms_notification:
+#             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
+#             sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
+#             send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
+#
+#     return True
