@@ -3,8 +3,21 @@ import json
 import paytmchecksum
 import requests
 
-from milkbasket.secret import PAYTM_MID, PAYTM_WEBSITE, PAYTM_ENVIRONMENT, PAYTM_MERCHANT_KEY, \
-    CALLBACK_URL
+# from milkbasket.secret import PAYTM_MID, PAYTM_WEBSITE, PAYTM_ENVIRONMENT, PAYTM_MERCHANT_KEY, \
+#     CALLBACK_URL
+
+"""
+---- Documentation ----
+below keys and config variables to be place on secret.py
+PayTm Online Payment Gateway
+PAYTM_MID = "<your paytm merchant id>"
+PAYTM_MERCHANT_KEY = "<your paytm merchant key>"
+PAYTM_ENVIRONMENT = 'https://securegw-stage.paytm.in' / 'https://securegw.paytm.in'
+PAYTM_WEBSITE = 'WEBSTAGING' / 'DEFAULT'
+CALLBACK_URL = 'http://127.0.0.1:8000/bill/callback'
+"""
+
+PAYTM_MID, PAYTM_WEBSITE, PAYTM_ENVIRONMENT, PAYTM_MERCHANT_KEY, CALLBACK_URL = '', '', '', '', ''
 
 
 # order_id = 'order_' + str(datetime.datetime.now().timestamp())
@@ -79,5 +92,4 @@ def transactionStatus(order_id):
                              headers={"Content-type": "application/json"}).json()
     response_str = json.dumps(response)
     res = json.loads(response_str)
-    msg = "Transaction Status Response"
     return res['body']

@@ -1,3 +1,4 @@
+import ast
 import decimal
 import json
 from calendar import monthrange
@@ -34,7 +35,7 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import authenticate_alexa
+from register.utils import authenticate_alexa, get_all_due_customer, send_whatsapp_message
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
@@ -1400,9 +1401,79 @@ def product(request):
     return render(request, template, context)
 
 
-def view_customer_profile(request):
-    if request.session.get('customer_session'):
-        res = f"Welcome, {request.session.get('customer_id')}"
-    else:
-        res = 'You are not logged in'
-    return HttpResponse(res)
+def broadcast_bulk_bill(request):
+    template = 'register/broadcast.html'
+    context = {'page_title': 'Generate Bills - Milk Basket', 'is_mobile': is_mobile(request)}
+    return render(request, template, context)
+
+
+def broadcast_metadata(request):
+    context = {}
+    if request.method == "GET":
+        due_cust = get_all_due_customer(request)
+        context.update({'due_customer': due_cust,
+                        })
+    return JsonResponse(context)
+
+
+@login_required
+def broadcast_send(request, cust_id=None):
+    if cust_id:
+        due = get_all_due_customer(request, cust_id)
+        bill_byte = generate_bill(request, cust_id, no_download=True)
+        bill = ast.literal_eval(bill_byte.content.decode('utf-8'))
+        sms_body = f"""Dear {due[0]['name']},
+Total due amount for the month of {due[0]['due_month']} is Rs {due[0]['to_be_paid']}.
+
+[Milk Basket]"""
+        wa_body = {
+            "messaging_product": "whatsapp",
+            "to": "919620413136",
+            "type": "template",
+            "template": {
+                "name": "due_bill_with_header",
+                "language": {
+                    "code": "en",
+                    "policy": "deterministic"
+                },
+                "components": [
+                    {
+                        "type": "header",
+                        "parameters": [
+                            {
+                                "type": "text",
+                                "text": due[0]['to_be_paid']
+
+                            }
+                        ]
+                    },
+
+                    {
+                        "type": "body",
+                        "parameters": [
+                            {
+                                "type": "text",
+                                "text": due[0]['name']
+                            },
+                            {
+                                "type": "text",
+                                "text": due[0]['to_be_paid']
+                            },
+                            {
+                                "type": "text",
+                                "text": due[0]['due_month']
+                            },
+                            {
+                                "type": "text",
+                                "text": f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        sms_res = send_sms_api(9620413136, sms_body, DUE_TEMPLATE_ID)
+        wa_res = send_whatsapp_message(wa_body)
+
+        return JsonResponse({"sms": 2 if sms_res.text.__contains__('"status":"success"') else 3,
+                             "wa": 2 if wa_res else 3})

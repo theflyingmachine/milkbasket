@@ -81,6 +81,15 @@
         border-radius: 0 30px 30px 0;
     }
 
+    .onoffswitchdiabled-inner:after {
+        content: "Off";
+        padding-right: 10px;
+        background-color: #969696;
+        color: #ffffff;
+        text-align: right;
+        border-radius: 0 30px 30px 0;
+    }
+
     .onoffswitch-switch {
         display: block;
         width: 30px;
@@ -302,16 +311,18 @@
 
                 {# Accept Online Payments #}
                 <tr>
-                  <td class="setting-td"><i class="fas fa-money-check"></i> Accept Online Payments
+                  <td class="setting-td text-secondary"><i class="fas fa-money-check"></i> Accept
+                    Online Payments (Not Supported)
                   </td>
                   <td class="setting-td">
                     <div class="onoffswitch">
-                      <input class="onoffswitch-checkbox" id="myonoffswitch8" type="checkbox"
+                      <input disabled class="onoffswitch-checkbox text-secondary"
+                             id="myonoffswitch8" type="checkbox"
                              name="accept_online_payment"
                              {% if tenant.accept_online_payment %}checked{% endif %} value="1">
                       <label class="onoffswitch-label" for="myonoffswitch8">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
+                        <span class="onoffswitchdiabled-inner"></span>
+                        <span class="onoffswitchdiabled-switch"></span>
                       </label>
                     </div>
                   </td>

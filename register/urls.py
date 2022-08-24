@@ -56,7 +56,10 @@ urlpatterns = [
     path('return-refund', views.return_refund, name='return_refund'),
     path('terms-conditions', views.terms_conditions, name='terms_conditions'),
 
-    path('view_customer_profile', views.view_customer_profile, name='view_customer_profile'),
+    # Broadcast Bills
+    path('broadcast-bills', views.broadcast_bulk_bill, name='broadcast_bulk_bill'),
+    path('broadcast-metadata', views.broadcast_metadata, name='broadcast_metadata'),
+    path('broadcast-send/<int:cust_id>/', views.broadcast_send, name='broadcast_send'),
 
 ]
 
