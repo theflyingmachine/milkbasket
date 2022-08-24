@@ -1403,7 +1403,7 @@ def product(request):
 
 def broadcast_bulk_bill(request):
     template = 'register/broadcast.html'
-    context = {'page_title': 'Generate Bills - Milk Basket', }
+    context = {'page_title': 'Generate Bills - Milk Basket', 'is_mobile': is_mobile(request)}
     return render(request, template, context)
 
 
