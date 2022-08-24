@@ -29,20 +29,12 @@
       constructor(props) {
         super(props);
         this.sendNotification = this.sendNotification.bind(this);
-        {#this.state = JSON.parse(window.localStorage.getItem('state')) || {#}
         this.state = {
           isLoading: true,
           reportData: null,
-          reportStatus: {},
+          reportStatus: JSON.parse(localStorage.getItem('myData')) || {},
         };
       }
-
-      /*
-      setState(state) {
-        window.localStorage.setItem('state', JSON.stringify(state));
-        super.setState(state);
-      }
-      */
 
       async componentDidMount() {
         const url = "{% url 'broadcast_metadata' %}";
@@ -55,16 +47,20 @@
         const url = "{% url 'broadcast_send' 123456789 %}".replace(/123456789/, cust.id);
         const response = await fetch(url);
         const data = await response.json();
-        let reportStatus = this.state.reportData;
+        let reportStatus = JSON.parse(localStorage.getItem('myData')) || {};
         reportStatus[cust.id] = data
+        localStorage.setItem('myData', JSON.stringify(reportStatus));
         this.setState({reportStatus: reportStatus});
       };
 
       triggerSend(cust) {
-        let reportStatus = this.state.reportData;
+        let reportStatus = JSON.parse(localStorage.getItem('myData')) || {};
         reportStatus[cust.id] = {"sms": 1, "wa": 1}
+        localStorage.setItem('myData', JSON.stringify(reportStatus));
         this.setState({reportStatus: reportStatus});
         this.sendNotification(cust);
+        let now = new Date().getTime();
+        localStorage.setItem('setupTime', now)
       };
 
       render() {
@@ -177,6 +173,19 @@
 {# Dev Bundle #}
 {#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
 {#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
+<script>
+  let hours = 24; // to clear the localStorage after 8 hour - This clears the previous sent status
+  let now = new Date().getTime();
+  let setupTime = localStorage.getItem('setupTime');
+  if (setupTime == null) {
+    localStorage.setItem('setupTime', now)
+  } else {
+    if (now - setupTime > hours * 60 * 60 * 1000) {
+      localStorage.clear()
+      localStorage.setItem('setupTime', now);
+    }
+  }
+</script>
 {% include "register/footer.html" %}
 
 
