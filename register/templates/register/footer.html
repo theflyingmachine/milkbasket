@@ -1,6 +1,6 @@
 </div>
 <div
- class="text-center footer text-white {% if not request.user.is_superuser and user.is_authenticated and is_mobile %}footer-link-bg {% endif %}"
+ class="text-center footer_desktop footer text-white {% if not request.user.is_superuser and user.is_authenticated and is_mobile %}footer-link-bg {% endif %}"
  style="margin-bottom:0">
 
   {% if not request.user.is_superuser and user.is_authenticated and is_mobile %}
@@ -53,7 +53,8 @@
 
       <div class="footer-compliance p-2 m-0 text-center">
         <a class="text-decoration-none text-light" href="{% url 'about_us' %}">About Us</a> &nbsp;&nbsp;|&nbsp;&nbsp;
-        <a class="text-decoration-none text-light" href="{% url 'product' %}">Product</a> &nbsp;&nbsp;|&nbsp;&nbsp;
+        <a class="text-decoration-none text-light" href="{% url 'product' %}">Product & Pricing</a>
+        &nbsp;&nbsp;|&nbsp;&nbsp;
         <a class="text-decoration-none text-light" href="{% url 'privacy_policy' %}">Privacy
           Policy</a> &nbsp;&nbsp;|&nbsp;&nbsp;
         <a class="text-decoration-none text-light" href="{% url 'return_refund' %}">Return &
@@ -73,7 +74,7 @@
             <span>Copyrights &copy; {% now 'Y' %} | Milk Basket</span>
           </div>
           <div class="col-4 text-center milkman pt-2">
-            <span>Bringing milkman online!</span>
+            <span>Fresh & Organic Milk</span>
           </div>
           <div class="col-4 text-right py-4">
             <span>Proudly Handcrafted in Raxaul Bihar, India.</span>

@@ -1395,7 +1395,9 @@ def terms_conditions(request):
 
 def product(request):
     template = 'register/snippet/product.html'
-    context = {'page_title': 'Product - Milk Basket', }
+    sellers = Tenant.objects.filter(tenant__is_active=True).values('tenant__first_name',
+                                                                   'milk_price', 'tenant__email')
+    context = {'page_title': 'Product - Milk Basket', 'sellers': sellers}
     return render(request, template, context)
 
 
