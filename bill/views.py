@@ -3,11 +3,9 @@ from calendar import monthrange
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from bill import config
-from bill.models import OnlinePayment
 from register.models import Register
 from register.models import Tenant
-from register.utils import get_milk_current_price, get_customer_balance_amount
+from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
 
@@ -61,36 +59,36 @@ def index(request, bill_number=None):
                                 'milk_price': get_milk_current_price(tenant_id, description=True)})
 
                 #     Add Details for Online Payment
-                adv = get_customer_balance_amount(bill_metadata['customer_id'])
-                amount_payable = amount_payable - adv
-                if amount_payable > 0:
-                    token = config.getTransactionToken(amount_payable,
-                                                       bill_metadata['customer_id'], bill_number)
-                    if token:
-                        start_payment, _ = OnlinePayment.objects.update_or_create(
-                            customer_id=bill_metadata['customer_id'],
-                            bill_number=bill_number,
-                            order_id=bill_number,
-                            amount=amount_payable,
-                            status='Init',
-                            defaults={'token': token}
-                        )
-                    else:
-                        start_payment = OnlinePayment.objects.filter(
-                            customer_id=bill_metadata['customer_id'],
-                            bill_number=bill_number,
-                            order_id=bill_number,
-                            amount=amount_payable,
-                            status='Init').first()
-                    # print(token)
-                    context.update({
-                        'tenant': tenant_pref,
-                        'mid': config.PAYTM_MID, 'amount': amount_payable,
-                        'orderid': bill_number,
-                        'env': config.PAYTM_ENVIRONMENT,
-                        'token': start_payment.token if start_payment else None,
-                        'billNumber': bill_number,
-                    })
+                # adv = get_customer_balance_amount(bill_metadata['customer_id'])
+                # amount_payable = amount_payable - adv
+                # if amount_payable > 0:
+                #     token = config.getTransactionToken(amount_payable,
+                #                                        bill_metadata['customer_id'], bill_number)
+                #     if token:
+                #         start_payment, _ = OnlinePayment.objects.update_or_create(
+                #             customer_id=bill_metadata['customer_id'],
+                #             bill_number=bill_number,
+                #             order_id=bill_number,
+                #             amount=amount_payable,
+                #             status='Init',
+                #             defaults={'token': token}
+                #         )
+                #     else:
+                #         start_payment = OnlinePayment.objects.filter(
+                #             customer_id=bill_metadata['customer_id'],
+                #             bill_number=bill_number,
+                #             order_id=bill_number,
+                #             amount=amount_payable,
+                #             status='Init').first()
+                #     # print(token)
+                #     context.update({
+                #         'tenant': tenant_pref,
+                #         'mid': config.PAYTM_MID, 'amount': amount_payable,
+                #         'orderid': bill_number,
+                #         'env': config.PAYTM_ENVIRONMENT,
+                #         'token': start_payment.token if start_payment else None,
+                #         'billNumber': bill_number,
+                #     })
             else:
                 context.update({'bill_access': False,
                                 'customer_name': 'Not Available'})
