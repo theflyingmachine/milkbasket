@@ -1,10 +1,13 @@
 {% include "register/header.html" %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"
-        charset="utf-8"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"
-        charset="utf-8"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"
-        charset="utf-8"></script>
+
+{# PROD Bundle #}
+<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+{# Dev Bundle #}
+{#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
+{#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
+
 <link rel="stylesheet" type="text/css"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -32,6 +35,11 @@
       #chartdiv3 {
           width: 100%;
           height: 400px;
+      }
+
+      #chartdiv4 {
+          width: 100%;
+          height: 600px;
       }
 
       .income-expense-total {
@@ -64,33 +72,21 @@
       }
 
       async componentDidMount() {
-        let hostname = ''
+        let hostname;
         if (window.location.hostname === '127.0.0.1') {
           hostname = window.location.hostname + ':8000';
         } else {
           hostname = window.location.hostname;
         }
 
-        var uuid = Math.random().toString(36).substr(2);
-        {#  Timmer #}
-        this.myInterval = setInterval(() => {
-          if (this.state.isLoading === true) {
-            this.fetchStatus(hostname, uuid);
-          } else {
-            clearInterval(0);
-            clearInterval(1);
-            clearInterval(2);
-          }
-        }, 500)
-
-
+        let uuid = Math.random().toString(36).substr(2);
+        this.fetchStatus(hostname, uuid);
         const url =
           "{{protocol}}://" + hostname + "/milkbasket/report-data/" + uuid;
         const responce = await fetch(url);
         const data = await responce.json();
         this.setState({reportData: data, isLoading: false});
       }
-
 
       async fetchStatus(hostname, token) {
         const url =
@@ -99,6 +95,9 @@
         const data = await responce.json();
         if (data.status !== null) {
           this.setState({reportStatus: data});
+        }
+        if (data.percent == null || data.percent < 100 || this.state.isLoading) {
+          await this.fetchStatus(hostname, token);
         }
       }
 
@@ -115,9 +114,11 @@
           width: `${this.state.reportStatus ? this.state.reportStatus.percent : 0}%`,
         };
 
-        let component = null;
-        let milk_chart = null
-        let graph_data = null
+        let component;
+        let milk_chart = null;
+        let graph_data = null;
+        let due_customers = null;
+        let due_month = null;
         let loading_component = <div className="text-center m-xl-5 p-xl-5">
 
           <div className="spinner-grow text-primary spinner-size-big" role="status">
@@ -145,7 +146,7 @@
             {
               <h3>Processing: {this.state.reportStatus ? this.state.reportStatus.status : 'Starting'}</h3>}
           </div>
-          <div class="progress">
+          <div className="progress">
             <div
               className="progress-bar progress-bar-striped progress-bar-animated progress-percent"
               style={myStyle} role="progressbar" aria-valuenow="75" aria-valuemin="0"
@@ -160,6 +161,8 @@
         } else {
           milk_chart = this.state.reportData.chart_data_milk
           graph_data = this.state.reportData.graph_data
+          due_customers = this.state.reportData.due_customers
+          due_month = this.state.reportData.due_month
           component = <div>
             {#  Proft and loss table #}
             <h3 className="text-center mt-5">Profit and Loss</h3>
@@ -219,7 +222,7 @@
             </div>
 
             <h3 className="text-center mt-5">Total Milk Production</h3>
-            <h5 className="text-center">Trend over last 356 days</h5>
+            <h5 className="text-center">Trend over last 365 days</h5>
 
 
             {# Graph 3 - Milk Production#}
@@ -227,16 +230,16 @@
 // Themes begin
               am4core.useTheme(am4themes_animated);
 // Themes end
-              var chart = am4core.create("chartdiv3", am4charts.XYChart);
+              let chart = am4core.create("chartdiv3", am4charts.XYChart);
               chart.legend = new am4charts.Legend()
               chart.legend.position = 'top'
               chart.data = JSON.parse(milk_chart)
 // Create axes
-              var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+              let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
               dateAxis.renderer.minGridDistance = 60;
-              var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+              valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 // Create series
-              var seriesTotal = chart.series.push(new am4charts.LineSeries());
+              let seriesTotal = chart.series.push(new am4charts.LineSeries());
               seriesTotal.dataFields.valueY = "milkQuantity";
               seriesTotal.name = "Total Production";
               seriesTotal.dataFields.dateX = "dayName";
@@ -245,7 +248,7 @@
               seriesTotal.fill = am4core.color("#3256a8");
               seriesTotal.strokeWidth = "5";
               // Create series morning
-              var seriesMorning = chart.series.push(new am4charts.LineSeries());
+              let seriesMorning = chart.series.push(new am4charts.LineSeries());
               seriesMorning.dataFields.valueY = "milkMorning";
               seriesMorning.name = "Morning";
               seriesMorning.dataFields.dateX = "dayName";
@@ -254,7 +257,7 @@
               seriesMorning.fill = am4core.color("#47D4D4");
               seriesMorning.strokeWidth = "2";
               // Create series evening
-              var seriesEvening = chart.series.push(new am4charts.LineSeries());
+              let seriesEvening = chart.series.push(new am4charts.LineSeries());
               seriesEvening.dataFields.valueY = "milkEvening";
               seriesEvening.name = "Evening";
               seriesEvening.dataFields.dateX = "dayName";
@@ -266,22 +269,18 @@
               seriesMorning.tooltip.pointerOrientation = "vertical";
               seriesEvening.tooltip.pointerOrientation = "vertical";
               chart.cursor = new am4charts.XYCursor();
-              {#chart.cursor.snapToSeries = seriesTotal;#}
-              {#chart.cursor.snapToSeries = seriesMorning;#}
-              {#chart.cursor.snapToSeries = seriesEvening;#}
               chart.cursor.xAxis = dateAxis;
-//chart.scrollbarY = new am4core.Scrollbar();
               chart.scrollbarX = new am4core.Scrollbar();
 
 
               {# Graph 2 #}
-              var chart = am4core.create("chartdiv2", am4charts.XYChart);
+              chart = am4core.create("chartdiv2", am4charts.XYChart);
               chart.legend = new am4charts.Legend()
               chart.legend.position = 'top'
 // Add data line graph
               chart.data = JSON.parse(graph_data);
 // Create category axis
-              var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+              categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
               categoryAxis.dataFields.category = "month";
               categoryAxis.renderer.cellStartLocation = 0.1
               categoryAxis.renderer.cellEndLocation = 0.9
@@ -289,12 +288,14 @@
               categoryAxis.renderer.minGridDistance = 15;
               categoryAxis.renderer.labels.template.valign = "down";
 // Create value axis
-              var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+              valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
               valueAxis.renderer.inversed = false;
               valueAxis.title.text = "Amount";
               valueAxis.renderer.minLabelPosition = 0.01;
+              chart.scrollbarX = new am4core.Scrollbar();
+
 // Create series
-              var series1 = chart.series.push(new am4charts.LineSeries());
+              let series1 = chart.series.push(new am4charts.LineSeries());
               series1.dataFields.valueY = "income";
               series1.dataFields.categoryX = "month";
               series1.name = "Income";
@@ -302,7 +303,7 @@
               series1.tooltipText = "Income: {valueY}";
               series1.visible = false;
               series1.strokeWidth = "3";
-              var series2 = chart.series.push(new am4charts.LineSeries());
+              let series2 = chart.series.push(new am4charts.LineSeries());
               series2.dataFields.valueY = "expense";
               series2.dataFields.categoryX = "month";
               series2.name = 'Expense';
@@ -311,7 +312,7 @@
               series2.fill = am4core.color("red");
               series2.stroke = am4core.color("red");
               series2.strokeWidth = "3";
-              var series3 = chart.series.push(new am4charts.LineSeries());
+              let series3 = chart.series.push(new am4charts.LineSeries());
               series3.dataFields.valueY = "due";
               series3.dataFields.categoryX = "month";
               series3.name = 'Due';
@@ -320,7 +321,7 @@
               series3.fill = am4core.color("orange");
               series3.stroke = am4core.color("orange");
               series3.strokeWidth = "3";
-              var series4 = chart.series.push(new am4charts.LineSeries());
+              let series4 = chart.series.push(new am4charts.LineSeries());
               series4.dataFields.valueY = "paid";
               series4.dataFields.categoryX = "month";
               series4.name = 'Paid';
@@ -340,14 +341,14 @@
               series2.segments.template.strokeWidth = 1;
 
               {# Graph 1 #}
-              var chart = am4core.create('chartdiv1', am4charts.XYChart)
+              chart = am4core.create('chartdiv1', am4charts.XYChart)
               chart.colors.step = 2;
               chart.legend = new am4charts.Legend()
               chart.legend.position = 'top'
               chart.maskBullets = false;
               chart.fontSize = 13;
 
-              var xAxis = chart.xAxes.push(new am4charts.CategoryAxis())
+              let xAxis = chart.xAxes.push(new am4charts.CategoryAxis())
               xAxis.dataFields.category = 'month'
               xAxis.renderer.cellStartLocation = 0.1
               xAxis.renderer.cellEndLocation = 0.9
@@ -357,11 +358,11 @@
               xAxis.renderer.labels.template.valign = "down";
               xAxis.renderer.labels.template.fontSize = 15
 
-              var yAxis = chart.yAxes.push(new am4charts.ValueAxis());
+              let yAxis = chart.yAxes.push(new am4charts.ValueAxis());
               yAxis.min = 0;
 
               function createSeries(value, name) {
-                var series = chart.series.push(new am4charts.ColumnSeries())
+                let series = chart.series.push(new am4charts.ColumnSeries())
                 series.dataFields.valueY = value
                 series.dataFields.categoryX = 'month'
                 series.name = name
@@ -369,7 +370,7 @@
                 series.events.on("hidden", arrangeColumns);
                 series.events.on("shown", arrangeColumns);
 
-                var bullet = series.bullets.push(new am4charts.LabelBullet())
+                let bullet = series.bullets.push(new am4charts.LabelBullet())
                 bullet.interactionsEnabled = false
                 bullet.label.rotation = 90;
                 bullet.dy = 30;
@@ -385,20 +386,21 @@
 
               createSeries('income', 'Income');
               createSeries('expense', 'Expense');
+              chart.scrollbarX = new am4core.Scrollbar();
 
               function arrangeColumns() {
 
-                var series = chart.series.getIndex(0);
+                let series = chart.series.getIndex(0);
 
-                var w = 1 - xAxis.renderer.cellStartLocation - (1 - xAxis.renderer.cellEndLocation);
+                let w = 1 - xAxis.renderer.cellStartLocation - (1 - xAxis.renderer.cellEndLocation);
                 if (series.dataItems.length > 1) {
-                  var x0 = xAxis.getX(series.dataItems.getIndex(0), "categoryX");
-                  var x1 = xAxis.getX(series.dataItems.getIndex(1), "categoryX");
-                  var delta = ((x1 - x0) / chart.series.length) * w;
+                  let x0 = xAxis.getX(series.dataItems.getIndex(0), "categoryX");
+                  let x1 = xAxis.getX(series.dataItems.getIndex(1), "categoryX");
+                  let delta = ((x1 - x0) / chart.series.length) * w;
                   if (am4core.isNumber(delta)) {
-                    var middle = chart.series.length / 2;
+                    let middle = chart.series.length / 2;
 
-                    var newIndex = 0;
+                    let newIndex = 0;
                     chart.series.each(function (series) {
                       if (!series.isHidden && !series.isHiding) {
                         series.dummyData = newIndex;
@@ -407,14 +409,14 @@
                         series.dummyData = chart.series.indexOf(series);
                       }
                     })
-                    var visibleCount = newIndex;
-                    var newMiddle = visibleCount / 2;
+                    let visibleCount = newIndex;
+                    let newMiddle = visibleCount / 2;
 
                     chart.series.each(function (series) {
-                      var trueIndex = chart.series.indexOf(series);
-                      var newIndex = series.dummyData;
+                      let trueIndex = chart.series.indexOf(series);
+                      let newIndex = series.dummyData;
 
-                      var dx = (newIndex - trueIndex + middle - newMiddle) * delta
+                      let dx = (newIndex - trueIndex + middle - newMiddle) * delta
 
                       series.animate({
                         property: "dx",
@@ -428,6 +430,56 @@
                   }
                 }
               }
+
+              {# Graph 4 #}
+              // Create chart instance
+              chart = am4core.create("chartdiv4", am4charts.XYChart);
+
+// Add data
+              chart.data = JSON.parse(due_customers);
+              chart.legend = new am4charts.Legend();
+              chart.legend.position = "top";
+
+// Create axes
+              let categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+              categoryAxis.dataFields.category = "customer_name";
+              categoryAxis.renderer.grid.template.opacity = 0;
+
+              let valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+              valueAxis.min = 0;
+              valueAxis.renderer.grid.template.opacity = 0;
+              valueAxis.renderer.ticks.template.strokeOpacity = 0.5;
+              valueAxis.renderer.ticks.template.stroke = am4core.color("#495C43");
+              valueAxis.renderer.ticks.template.length = 10;
+              valueAxis.renderer.line.strokeOpacity = 0.5;
+              valueAxis.renderer.baseGrid.disabled = true;
+              valueAxis.renderer.minGridDistance = 40;
+//Add scrollbar
+              chart.scrollbarX = new am4core.Scrollbar();
+              chart.scrollbarX.parent = chart.bottomAxesContainer;
+              chart.scrollbarY = new am4core.Scrollbar();
+              chart.scrollbarY.parent = chart.leftAxesContainer;
+
+// Create series
+              function createSeriesDue(field, name) {
+                let series = chart.series.push(new am4charts.ColumnSeries());
+                series.dataFields.valueX = field;
+                series.dataFields.categoryY = "customer_name";
+                series.stacked = true;
+                series.name = name;
+
+                let labelBullet = series.bullets.push(new am4charts.LabelBullet());
+                labelBullet.locationX = 0.5;
+                labelBullet.tooltipText = "{customer_name}\n{name}: {valueX}\nTotal: {total_due}"
+                labelBullet.label.text = "{valueX}";
+                labelBullet.label.fill = am4core.color("#fff");
+              }
+
+              let legend_month = JSON.parse(due_month);
+              for (let i = 0; i < legend_month.length; i++) {
+                createSeriesDue(legend_month[i], legend_month[i].split("-")[0]);
+              }
+
 
             })
             }
@@ -453,6 +505,12 @@
               <div id="chartdiv3"></div>
             </div>
           </div>
+          <div className="row">
+            <div className="col-12">
+              {this.state.isLoading ? '' : <h3 className="pt-5 text-center">Customers Due</h3>}
+              <div id="chartdiv4"></div>
+            </div>
+          </div>
           {this.state.isLoading ? '' : <p className="p-5 text-center"> --- END OF PAGE ---</p>}
 
 
@@ -467,13 +525,6 @@
   </script>
   <div id="report"></div>
 {% endblock %}
-{# PROD Bundle #}
-<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
-{# Dev Bundle #}
-{#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
-{#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
 
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
