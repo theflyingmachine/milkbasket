@@ -460,6 +460,38 @@ def get_all_due_customer(request, cust_id=None):
     return due_cust
 
 
+def get_customer_due_amount_by_month(request, customer_id=None):
+    """ Returns DUE amount of customers by month"""
+    register_due_qs = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
+                                              paid=0)
+    due_customer = register_due_qs.values('customer_id',
+                                          'customer__name',
+                                          'customer__contact',
+                                          'customer__email').distinct()
+    if customer_id:
+        due_customer = due_customer.filter(tenant_id=request.user.id, customer_id=customer_id)
+    due_list = []
+    for customer in due_customer:
+        due_qs = register_due_qs.filter(customer_id=customer['customer_id'])
+        total_due = sum([float(entry.current_price / 1000) * entry.quantity for entry in due_qs])
+        due_dict = {
+            'customer_id': customer['customer_id'],
+            'customer_name': customer['customer__name'],
+            'total_due': total_due,
+        }
+        months = due_qs.dates('log_date', 'month', order='DESC')
+        for month in months:
+            month_due = sum(
+                [float(entry.current_price / 1000) * entry.quantity for entry in due_qs if
+                 entry.log_date.month == month.month and entry.log_date.year == month.year])
+            due_dict[month.strftime("%B-%Y")] = month_due
+        due_list.append(due_dict)
+    due_list = (sorted(due_list, key=lambda i: (i['total_due'], i['customer_name'])))
+    due_months = [d.strftime("%B-%Y") for d in
+                  register_due_qs.dates('log_date', 'month', order='DESC')]
+    return due_list, due_months
+
+
 def send_whatsapp_message(wa_body):
     url = f"https://graph.facebook.com/v13.0/{WA_NUMBER_ID}/messages"
     headers = {

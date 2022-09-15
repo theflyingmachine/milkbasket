@@ -35,14 +35,16 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import authenticate_alexa, get_all_due_customer, send_whatsapp_message
+from register.utils import authenticate_alexa
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
+from register.utils import get_all_due_customer
 from register.utils import get_bill_summary
 from register.utils import get_customer_balance_amount
 from register.utils import get_customer_due_amount
+from register.utils import get_customer_due_amount_by_month
 from register.utils import get_last_autopilot
 from register.utils import get_last_transaction
 from register.utils import get_milk_current_price
@@ -55,6 +57,7 @@ from register.utils import is_transaction_revertible
 from register.utils import render_to_pdf
 from register.utils import send_email_api
 from register.utils import send_sms_api
+from register.utils import send_whatsapp_message
 
 
 @login_required
@@ -1097,7 +1100,7 @@ def report_data(request, poll_id=None):
     percent += 5
     request.session[f'{poll_id}_percent'] = percent
     request.session.save()
-
+    due_list, due_month = get_customer_due_amount_by_month(request)
     context = {
         'graph_data': mark_safe(json.dumps(chart_data)),
         'table_data': chart_data,
@@ -1106,6 +1109,8 @@ def report_data(request, poll_id=None):
         'all_time_income': all_time_income,
         'is_profit': is_profit,
         'all_time_profit_or_loss': all_time_profit_or_loss,
+        'due_customers': mark_safe(json.dumps(due_list)),
+        'due_month': mark_safe(json.dumps(due_month)),
     }
     request.session[poll_id] = 'Done'
     request.session.save()

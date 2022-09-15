@@ -53,7 +53,7 @@ class Register(models.Model):
         ('morning-yes', _('Morning Present')),
         ('morning-no', _('Morning Absent')),
         ('evening-yes', _('Evening Present')),
-        ('evening-yes', _('Evening Absent'))
+        ('evening-no', _('Evening Absent'))
     ]
     tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
