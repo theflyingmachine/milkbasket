@@ -19,7 +19,7 @@ from django.urls import reverse
 from pymongo import MongoClient
 from xhtml2pdf import pisa
 
-from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN
+from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT
 from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
@@ -503,6 +503,52 @@ def send_whatsapp_message(wa_body):
     # print("Status Code", response.status_code)
     # print("JSON Response ", response.json())
     return response.status_code == 200
+
+
+def get_customer_contact(request, cust_id):
+    """ Fetch contact number of a customer """
+    return Customer.objects.filter(tenant_id=request.user.id, id=cust_id).first().contact
+
+
+def send_wa_payment_notification(cust_number, cust_name, payment_amount, payment_time,
+                                 transaction_number):
+    """ Send WA notification for Payment received """
+    wa_body = {
+        "messaging_product": "whatsapp",
+        "to": f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}",
+        "type": "template",
+        "template": {
+            "name": "payment_received",
+            "language": {
+                "code": "en",
+                "policy": "deterministic"
+            },
+            "components": [
+                {
+                    "type": "body",
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "text": cust_name
+                        },
+                        {
+                            "type": "text",
+                            "text": payment_amount
+                        },
+                        {
+                            "type": "text",
+                            "text": payment_time
+                        },
+                        {
+                            "type": "text",
+                            "text": transaction_number
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    return send_whatsapp_message(wa_body)
 
 
 #  ===================== Custom Error Handler Views ==============================

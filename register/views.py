@@ -23,7 +23,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
-from milkbasket.secret import RUN_ENVIRONMENT
+from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER
 from register.constant import DUE_TEMPLATE_ID
 from register.constant import PAYMENT_TEMPLATE_ID
 from register.forms import CustomerForm
@@ -35,7 +35,7 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import authenticate_alexa
+from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
@@ -889,6 +889,8 @@ def accept_payment(request, year=None, month=None, return_url=None):
             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
             sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
             send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
+            send_wa_payment_notification(customer.contact, customer.name, new_payment.amount,
+                                         transaction_time, new_payment.id)
 
     return redirect(formatted_url)
 
@@ -1427,16 +1429,17 @@ def broadcast_send(request, cust_id=None):
         due = get_all_due_customer(request, cust_id)
         bill_byte = generate_bill(request, cust_id, no_download=True)
         bill = ast.literal_eval(bill_byte.content.decode('utf-8'))
+        cust_number = get_customer_contact(request, cust_id)
         sms_body = f"""Dear {due[0]['name']},
 Total due amount for the month of {due[0]['due_month']} is Rs {due[0]['to_be_paid']}.
 
 [Milk Basket]"""
         wa_body = {
             "messaging_product": "whatsapp",
-            "to": "919620413136",
+            "to": f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}",
             "type": "template",
             "template": {
-                "name": "due_bill_with_header",
+                "name": "bill_generated",
                 "language": {
                     "code": "en",
                     "policy": "deterministic"
@@ -1477,7 +1480,8 @@ Total due amount for the month of {due[0]['due_month']} is Rs {due[0]['to_be_pai
                 ]
             }
         }
-        sms_res = send_sms_api(9620413136, sms_body, DUE_TEMPLATE_ID)
+        sms_res = send_sms_api(DEV_NUMBER if RUN_ENVIRONMENT == 'dev' else cust_number, sms_body,
+                               DUE_TEMPLATE_ID)
         wa_res = send_whatsapp_message(wa_body)
 
         return JsonResponse({"sms": 2 if sms_res.text.__contains__('"status":"success"') else 3,
