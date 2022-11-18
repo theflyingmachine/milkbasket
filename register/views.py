@@ -1480,9 +1480,16 @@ Total due amount for the month of {due[0]['due_month']} is Rs {due[0]['to_be_pai
                 ]
             }
         }
+        wa_message = '''Dear {0},
+Your bill of ₹ {1} for the month of {2} has been generated.
+
+You can view the bill at 🧾👉 {3}
+
+Thanks 🙏🐄🥛🧾'''.format(due[0]['name'], due[0]['to_be_paid'], due[0]['due_month'],
+                      f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}")
         sms_res = send_sms_api(DEV_NUMBER if RUN_ENVIRONMENT == 'dev' else cust_number, sms_body,
                                DUE_TEMPLATE_ID)
-        wa_res = send_whatsapp_message(wa_body)
+        wa_res = send_whatsapp_message(wa_body, wa_message)
 
         return JsonResponse({"sms": 2 if sms_res.text.__contains__('"status":"success"') else 3,
                              "wa": 2 if wa_res else 3})

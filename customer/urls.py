@@ -7,6 +7,8 @@ urlpatterns = [
     path('logout', views.customer_dashboard_logout, name='customer_dashboard_logout'),
     path('login', views.customer_dashboard_login, name='customer_dashboard_login'),
 
+    path('webhooks/whatsapp/message', views.whatsapp_webhook, name='whatsapp_webhook'),
+
 ]
 
 # handler403 = 'register.utils.error_403_view'
