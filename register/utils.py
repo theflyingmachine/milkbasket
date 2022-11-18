@@ -19,7 +19,8 @@ from django.urls import reverse
 from pymongo import MongoClient
 from xhtml2pdf import pisa
 
-from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN
+from customer.models import WhatsAppMessage
+from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT
 from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
@@ -492,7 +493,7 @@ def get_customer_due_amount_by_month(request, customer_id=None):
     return due_list, due_months
 
 
-def send_whatsapp_message(wa_body):
+def send_whatsapp_message(wa_body, wa_message):
     url = f"https://graph.facebook.com/v13.0/{WA_NUMBER_ID}/messages"
     headers = {
         "Content-Type": "application/json",
@@ -502,7 +503,86 @@ def send_whatsapp_message(wa_body):
     response = requests.post(url, headers=headers, json=data)
     # print("Status Code", response.status_code)
     # print("JSON Response ", response.json())
+    if response.status_code == 200:
+        resp = response.json()
+        message_id = resp['messages'][0]['id']
+        related_id = None
+        route = 'API'
+        to_number = resp['contacts'][0]['input']
+        sender_number = WA_NUMBER_ID
+        message_type = wa_body['template']['name']
+        payload = resp
+        WhatsAppMessage.insert_message(message_id, related_id, route, to_number, 'Milk Basket',
+                                       sender_number,
+                                       message_type, wa_message, None, payload)
     return response.status_code == 200
+
+
+def get_whatsapp_media(media_id):
+    """ Fetch Whatsapp Media by media_id"""
+    url = f"https://graph.facebook.com/v15.0/{media_id}"
+    headers = {
+        "Authorization": f"Bearer {WA_TOKEN}",
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        resp = response.json()
+        media_url = resp['url']
+        return media_url
+    return False
+
+
+def get_customer_contact(request, cust_id):
+    """ Fetch contact number of a customer """
+    return Customer.objects.filter(tenant_id=request.user.id, id=cust_id).first().contact
+
+
+def send_wa_payment_notification(cust_number, cust_name, payment_amount, payment_time,
+                                 transaction_number):
+    """ Send WA notification for Payment received """
+    wa_body = {
+        "messaging_product": "whatsapp",
+        "to": f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}",
+        "type": "template",
+        "template": {
+            "name": "payment_received",
+            "language": {
+                "code": "en",
+                "policy": "deterministic"
+            },
+            "components": [
+                {
+                    "type": "body",
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "text": cust_name
+                        },
+                        {
+                            "type": "text",
+                            "text": payment_amount
+                        },
+                        {
+                            "type": "text",
+                            "text": payment_time
+                        },
+                        {
+                            "type": "text",
+                            "text": transaction_number
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    wa_message = '''Dear {0},
+Payment of ₹{1} received on {2}. 
+
+Transaction #{3} ✅
+
+Thank you for shopping with us. 🙏'''.format(cust_name, payment_amount, payment_time,
+                                            transaction_number)
+    return send_whatsapp_message(wa_body, wa_message)
 
 
 #  ===================== Custom Error Handler Views ==============================
