@@ -1175,7 +1175,7 @@ def setting(request):
 @login_required
 def logout_request(request):
     logout(request)
-    return redirect('index')
+    return redirect('view_register')
 
 
 @login_required
