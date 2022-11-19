@@ -14,7 +14,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -24,7 +24,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import View
 
 from customer.models import WhatsAppMessage
-from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
+from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER
 from register.constant import DUE_TEMPLATE_ID
 from register.constant import PAYMENT_TEMPLATE_ID
 from register.forms import CustomerForm
@@ -1503,7 +1503,7 @@ def whatsapp_chat(request, wa_number=None):
         message_type__in=('unsupported', 'reaction'))
     distinct_users = {u.sender_number: u.sender_display_name for u in all_messages}
     if wa_number:
-        all_messages = all_messages.filter(sender_number__in=(wa_number, WA_NUMBER_ID))
+        all_messages = all_messages.filter(Q(sender_number=wa_number) | Q(to_number=wa_number))
 
     template = 'register/whatsapp.html'
     context = {
