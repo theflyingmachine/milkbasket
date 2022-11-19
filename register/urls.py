@@ -61,6 +61,11 @@ urlpatterns = [
     path('broadcast-metadata', views.broadcast_metadata, name='broadcast_metadata'),
     path('broadcast-send/<int:cust_id>/', views.broadcast_send, name='broadcast_send'),
 
+    # Whatsapp chat
+    path('whatsapp', views.whatsapp_chat, name='whatsapp_chat'),
+    path('whatsapp/<int:wa_number>', views.whatsapp_chat, name='whatsapp_number_chat'),
+    path('whatsapp/media/<int:media_id>', views.get_whatsapp_media, name='whatsapp_media'),
+
 ]
 
 # handler403 = 'register.utils.error_403_view'
