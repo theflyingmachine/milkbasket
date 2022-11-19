@@ -24,6 +24,8 @@
            href="{% url 'view_report' %}">Report</a>
         <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
            href="{% url 'setting' %}">Setting</a>
+        <a class="nav-item nav-link mr-3 {% if menu_whatsapp %} active {% endif %}"
+           href="{% url 'whatsapp_chat' %}" target="_blank">WhatsApp</a>
         {#      <a class="nav-item nav-link mr-3" target="_blank" href="/bill">Bills</a>#}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if menu_bill %} active {% endif %}" href="#"

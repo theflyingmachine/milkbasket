@@ -191,7 +191,6 @@ def process_wa_payload(pl):
                 text = None
 
             media_id = pl['entry'][0]['changes'][0]['value']['messages'][0]['image']['id']
-            # get_whatsapp_media(media_id)
 
         WhatsAppMessage.insert_message(message_id, related_message_id, 'User Reply',
                                        to_number, sender_name, sender_number,

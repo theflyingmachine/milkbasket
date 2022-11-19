@@ -23,7 +23,8 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
-from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER
+from customer.models import WhatsAppMessage
+from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
 from register.constant import DUE_TEMPLATE_ID
 from register.constant import PAYMENT_TEMPLATE_ID
 from register.forms import CustomerForm
@@ -35,7 +36,8 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification
+from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
+    get_whatsapp_media_by_id
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
@@ -1493,3 +1495,27 @@ Thanks 🙏🐄🥛🧾'''.format(due[0]['name'], due[0]['to_be_paid'], due[0]['
 
         return JsonResponse({"sms": 2 if sms_res.text.__contains__('"status":"success"') else 3,
                              "wa": 2 if wa_res else 3})
+
+
+@login_required()
+def whatsapp_chat(request, wa_number=None):
+    all_messages = WhatsAppMessage.objects.all().exclude(
+        message_type__in=('unsupported', 'reaction'))
+    distinct_users = {u.sender_number: u.sender_display_name for u in all_messages}
+    if wa_number:
+        all_messages = all_messages.filter(sender_number__in=(wa_number, WA_NUMBER_ID))
+
+    template = 'register/whatsapp.html'
+    context = {
+        'page_title': 'Milk Basket - WhatsApp',
+        'all_messages': all_messages,
+        'distinct_users': distinct_users,
+    }
+    return render(request, template, context)
+
+
+@login_required()
+def get_whatsapp_media(request, media_id):
+    if media_id:
+        media = get_whatsapp_media_by_id(media_id)
+        return HttpResponse(media, content_type="image/jpeg")

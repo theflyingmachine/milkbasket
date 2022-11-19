@@ -518,7 +518,7 @@ def send_whatsapp_message(wa_body, wa_message):
     return response.status_code == 200
 
 
-def get_whatsapp_media(media_id):
+def get_whatsapp_media_by_id(media_id):
     """ Fetch Whatsapp Media by media_id"""
     url = f"https://graph.facebook.com/v15.0/{media_id}"
     headers = {
@@ -527,8 +527,9 @@ def get_whatsapp_media(media_id):
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         resp = response.json()
-        media_url = resp['url']
-        return media_url
+        response = requests.get(resp['url'], headers=headers)
+        if response.status_code == 200:
+            return response.content
     return False
 
 
