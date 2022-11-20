@@ -24,7 +24,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import View
 
 from customer.models import WhatsAppMessage
-from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER
+from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
 from register.constant import DUE_TEMPLATE_ID
 from register.constant import PAYMENT_TEMPLATE_ID
 from register.forms import CustomerForm
@@ -1503,7 +1503,10 @@ def whatsapp_chat(request, wa_number=None):
         message_type__in=('unsupported', 'reaction'))
     distinct_users = {u.sender_number: u.sender_display_name for u in all_messages}
     if wa_number:
-        all_messages = all_messages.filter(Q(sender_number=wa_number) | Q(to_number=wa_number))
+        if wa_number == int(WA_NUMBER_ID):
+            all_messages = all_messages.filter(sender_number=WA_NUMBER_ID)
+        else:
+            all_messages = all_messages.filter(Q(sender_number=wa_number) | Q(to_number=wa_number))
 
     template = 'register/whatsapp.html'
     context = {
@@ -1517,5 +1520,5 @@ def whatsapp_chat(request, wa_number=None):
 @login_required()
 def get_whatsapp_media(request, media_id):
     if media_id:
-        media = get_whatsapp_media_by_id(media_id)
-        return HttpResponse(media, content_type="image/jpeg")
+        media, media_type = get_whatsapp_media_by_id(media_id)
+        return HttpResponse(media, content_type=media_type)
