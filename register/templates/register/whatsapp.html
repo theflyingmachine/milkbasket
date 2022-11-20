@@ -489,10 +489,16 @@
 
             {# Get Image is chat has media #}
             {% if message.message_body %}<span>{{ message.message_body }}</span>{% endif %}
-            {% if message.message_type == 'image' %}
+            {% if message.message_type in 'sticker, image' %}
               <img class="pb-3" onclick="window.open(this.src, '_blank');"
                    src="{% url 'whatsapp_media' message.media_id %}"
                    width="100%" height="500">
+            {% elif message.message_type == 'video' %}
+              <video class="pb-3" width="100%" height="300" autoplay muted loop
+                     onclick="window.open({% url 'whatsapp_media' message.media_id %}, '_blank');">
+                <source src="{% url 'whatsapp_media' message.media_id %}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
             {% endif %}
 
 

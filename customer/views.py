@@ -174,23 +174,21 @@ def process_wa_payload(pl):
                 pl['entry'][0]['changes'][0]['value']['messages'][0]['context']['id'])
         except KeyError:
             related_message_id = None
-        try:
-            related_message_id = WhatsAppMessage.get_related_message(
-                pl['entry'][0]['changes'][0]['value']['messages'][0]['context']['id'])
-        except KeyError:
-            related_message_id = None
 
         text, media_id = None, None
         if message_type == 'text':
             text = pl['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
 
-        if message_type == 'image':
+        else:
             try:
-                text = pl['entry'][0]['changes'][0]['value']['messages'][0]['image']['caption']
+                text = pl['entry'][0]['changes'][0]['value']['messages'][0][message_type][
+                    'caption']
             except KeyError:
                 text = None
-
-            media_id = pl['entry'][0]['changes'][0]['value']['messages'][0]['image']['id']
+            try:
+                media_id = pl['entry'][0]['changes'][0]['value']['messages'][0][message_type]['id']
+            except KeyError:
+                media_id = None
 
         WhatsAppMessage.insert_message(message_id, related_message_id, 'User Reply',
                                        to_number, sender_name, sender_number,

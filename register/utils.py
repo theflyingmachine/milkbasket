@@ -529,7 +529,7 @@ def get_whatsapp_media_by_id(media_id):
         resp = response.json()
         response = requests.get(resp['url'], headers=headers)
         if response.status_code == 200:
-            return response.content
+            return response.content, resp['mime_type']
     return False
 
 

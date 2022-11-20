@@ -1517,5 +1517,5 @@ def whatsapp_chat(request, wa_number=None):
 @login_required()
 def get_whatsapp_media(request, media_id):
     if media_id:
-        media = get_whatsapp_media_by_id(media_id)
-        return HttpResponse(media, content_type="image/jpeg")
+        media, media_type = get_whatsapp_media_by_id(media_id)
+        return HttpResponse(media, content_type=media_type)
