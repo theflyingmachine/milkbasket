@@ -203,7 +203,7 @@ def process_wa_payload(pl):
 def verify_signature(req):
     received_sign = req.headers.get('X-Hub-Signature-256').split('sha256=')[-1].strip()
     secret = WHATSAPP_WEBHOOK_TOKEN.encode()
-    expected_sign = HMAC(key=secret, msg=req.body, digestmod=sha256).hexdigest()
+    expected_sign = HMAC(key=secret, msg=req.data, digestmod=sha256).hexdigest()
     return compare_digest(received_sign, expected_sign)
 
 
