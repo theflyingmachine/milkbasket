@@ -1,7 +1,8 @@
 import calendar
 import datetime
 import json
-from hmac import compare_digest
+from hashlib import sha256
+from hmac import compare_digest, HMAC
 
 import numpy as np
 from django.http import HttpResponseForbidden, HttpResponse
@@ -199,6 +200,13 @@ def process_wa_payload(pl):
     return 'Unknown'
 
 
+def verify_signature(req):
+    received_sign = req.headers.get('X-Hub-Signature-256').split('sha256=')[-1].strip()
+    secret = WHATSAPP_WEBHOOK_TOKEN.encode()
+    expected_sign = HMAC(key=secret, msg=req.body, digestmod=sha256).hexdigest()
+    return compare_digest(received_sign, expected_sign)
+
+
 @csrf_exempt
 def whatsapp_webhook(request):
     if request.method == 'POST':
@@ -223,7 +231,10 @@ def whatsapp_webhook(request):
         # calculated_signature = hmac.new(secret, payload, hashlib.sha256).hexdigest()
         # valid = calculated_signature == signature
         # print(valid)
-        process_wa_payload(payload)
+        if verify_signature(request):
+            process_wa_payload(payload)
+        else:
+            return HttpResponse("unknown sig", content_type="text/plain")
         return HttpResponse("EVENT_RECEIVED", content_type="text/plain")
 
     if request.method == 'GET':
