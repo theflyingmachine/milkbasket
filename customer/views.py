@@ -231,10 +231,11 @@ def whatsapp_webhook(request):
         # calculated_signature = hmac.new(secret, payload, hashlib.sha256).hexdigest()
         # valid = calculated_signature == signature
         # print(valid)
-        if verify_signature(request):
-            process_wa_payload(payload)
-        else:
-            return HttpResponse("unknown sig", content_type="text/plain")
+        process_wa_payload(payload)
+        # if verify_signature(request):
+        #     process_wa_payload(payload)
+        # else:
+        #     return HttpResponse("unknown sig", content_type="text/plain")
         return HttpResponse("EVENT_RECEIVED", content_type="text/plain")
 
     if request.method == 'GET':
