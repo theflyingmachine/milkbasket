@@ -1501,7 +1501,11 @@ Thanks 🙏🐄🥛🧾'''.format(due[0]['name'], due[0]['to_be_paid'], due[0]['
 def whatsapp_chat(request, wa_number=None):
     all_messages = WhatsAppMessage.objects.all().exclude(
         message_type__in=('unsupported', 'reaction'))
-    distinct_users = {u.sender_number: u.sender_display_name for u in all_messages}
+    customers = Customer.objects.filter(contact__isnull=False).values('contact', 'name')
+    contact_names = {c['contact']: c['name'] for c in customers}
+    distinct_users = {
+        u.sender_number: contact_names.get(str(u.sender_number)[2:]) or u.sender_display_name for u
+        in all_messages}
     if wa_number:
         if wa_number == int(WA_NUMBER_ID):
             all_messages = all_messages.filter(sender_number=WA_NUMBER_ID)
