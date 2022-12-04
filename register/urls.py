@@ -22,7 +22,7 @@ urlpatterns = [
     path('add-new-entry', views.addentry, name='view_add_entry'),
     path('<int:year>/<int:month>/autopilot', views.autopilot, name='view_autopilot'),
     path('autopilot', views.autopilot, name='view_autopilot'),
-    path('select-record', views.selectrecord, name='view_selectrecord'),
+    path('select-record', views.select_record, name='view_select_record'),
     path('manage-expenses', views.manage_expense, name='manage_expense'),
     path('account/<int:year>/<int:month>/manage-expenses', views.manage_expense,
          name='manage_expense'),

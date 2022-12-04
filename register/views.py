@@ -752,7 +752,7 @@ def daterange(date1, date2):
 
 
 @login_required
-def selectrecord(request):
+def select_record(request):
     formatted_url = '#'
     full_register_date = request.POST.get("register_month", None)
     register_month = str(full_register_date).split("-")[1]
