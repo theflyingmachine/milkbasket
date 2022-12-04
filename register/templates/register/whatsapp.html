@@ -29,6 +29,10 @@
           border-left: 5px solid darkseagreen;
           padding: 0.25rem;
       }
+
+      .wa-chat-box-content {
+          background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+      }
   </style>
 </head>
 <body data-new-gr-c-s-check-loaded="14.1088.0" data-gr-ext-installed="">
@@ -140,7 +144,7 @@
              class="chat__contact-name"> {{ chat_display_name }}</h2>
             </div>
           </header>
-          <div id="chat-body" class="chat__content">
+          <div id="chat-body" class="chat__content wa-chat-box-content">
 
             {% for date, all_messages in sorted_all_chat.items %}
 
@@ -233,7 +237,7 @@
 
           </div>
           <footer class="chat__footer">
-            <button class="chat__scroll-btn" aria-label="scroll down">
+            <button class="chat__scroll-btn" aria-label="scroll down" onclick="scrollDown()">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20" width="19" height="20">
                 <path fill="currentColor"
                       d="M3.8 6.7l5.7 5.7 5.7-5.7 1.6 1.6-7.3 7.2-7.3-7.2 1.6-1.6z"></path>
@@ -292,6 +296,11 @@
 <script>
   let chatDiv = document.getElementById("chat-body");
   chatDiv.scrollTop = chatDiv.scrollHeight;
+
+  function scrollDown() {
+    let chatDiv = document.getElementById("chat-body");
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
 </script>
 </body>
 </html>
