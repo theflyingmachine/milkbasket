@@ -1,541 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   {% load static %}
   <title>{{ page_title }}</title>
   <link rel="icon" href="{% static "/favicon.ico" %}">
-  <!-- CSS only -->
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Whatsapp web clone by Karen Okonkwo">
+  <title>(20) Whatsapp Clone</title>
+  <link href="{% static "/css/whatsapp.css" %}" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
         rel="stylesheet"
         integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
         crossorigin="anonymous">
-  <!-- JavaScript Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
-          crossorigin="anonymous"></script>
-
   <style>
-      .wa-chat-box-content {
-          background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-      }
-
-      .wa-bg {
-          background: #dddbd1;
-      }
-
-      .sent-message {
-          float: right;
-          background: #dbf8c6;
-      }
-
-      .replied-message {
-          background: #e5e5e5;
-          border-left: 5px solid darkseagreen;
-      }
-
-      .block-display-css {
-          display: block;
-          height: 100vh;
-      }
-
-      .chat__msg-footer {
-          position: absolute;
-          display: flex;
-          align-items: center;
-          right: 7px;
-          bottom: 3px;
-          color: rgba(0, 0, 0, 0.45);
-          font-size: 0.7rem;
-          font-weight: 500;
-      }
-
-      .chat__msg-status-icon {
-          color: #B3B3B3;
-          margin-left: 3px;
-      }
-
-      .chat__msg-status-icon--blue {
-          color: #0DA9E5;
-      }
-
-      .sidebar {
-          min-width: 300px;
-          flex: 40%;
-          border-right: 1px solid #DADADA;
-          display: flex;
-          flex-direction: column;
-      }
-
-      /*  Sidebar Header */
-
-      .sidebar__avatar-wrapper {
-          width: 40px;
-          height: 40px;
-      }
-
-      .sidebar__actions {
-          margin-right: 20px;
-      }
-
-      .sidebar__actions > * {
+      .sender-name {
           display: inline-block;
-          margin-left: 25px;
-          cursor: pointer;
+          font-weight: bold !important;
       }
-
-      .sidebar__action-icon {
-          color: rgb(145, 145, 145);
-      }
-
-      /* End Sidebar Header */
-
-      /*  Sidebar Alert */
-
-      .sidebar__alert {
-          min-height: 85px;
-          padding: 20px;
-          display: flex;
-          align-items: center;
-      }
-
-      .sidebar__alert--warning {
-          background: #FED859;
-      }
-
-      .sidebar__alert--info {
-          background: #9DE1FE;
-      }
-
-      .sidebar__alert--danger {
-          background: #F3645B;
-      }
-
-      .sidebar__alert-icon-wrapper {
-          margin-right: 10px;
-      }
-
-      .sidebar__alert-icon {
-          color: white;
-      }
-
-      .sidebar__alert-texts {
-          flex: 1;
-      }
-
-      .sidebar__alert-text:first-of-type {
-          font-size: 1rem;
-          margin-bottom: 5px;
-          color: #343738;
-      }
-
-      .sidebar__alert-text:last-of-type {
-          font-size: 0.85rem;
-          color: #414A4E;
-          line-height: 17px;
-      }
-
-      .sidebar__alert--danger .sidebar__alert-text:first-of-type, .sidebar__alert--danger .sidebar__alert-text:last-of-type {
-          color: white;
-      }
-
-      /* End Sidebar Alert */
-
-      /*  Sidebar Search */
-
-      .sidebar__search-wrapper {
-          padding: 7px 10px;
-          height: 50px;
-          background: #F6F6F6;
-          position: relative;
-      }
-
-      /* End Sidebar Search */
-
-      /*  Sidebar Contact List */
-
-      .sidebar__contacts {
-          flex: 1;
-          overflow-y: scroll;
-          background: #F5F5F5;
-          border-top: 1px solid #DADADA;
-      }
-
-      .sidebar-contact {
-          height: 72px;
-          padding: 10px 20px;
-          display: flex;
-          align-items: center;
-          border-bottom: 1px solid #EBEBEB;
-          cursor: pointer;
-      }
-
-      .sidebar-contact:hover {
-          background-color: #EBEBEB;
-      }
-
-      .sidebar-contact__avatar-wrapper {
-          width: 50px;
-          height: 50px;
-          margin-right: 10px;
-      }
-
-      .sidebar-contact__content {
-          overflow: hidden;
-          flex: 1;
-      }
-
-      .sidebar-contact__top-content, .sidebar-contact__bottom-content, .sidebar-contact__message-wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-      }
-
-      .sidebar-contact__name, .sidebar-contact__message {
-          flex: 1;
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-      }
-
-      .sidebar-contact__top-content {
-          margin-bottom: 2px;
-      }
-
-      .sidebar-contact__name {
-          color: #000000;
-          font-size: 1rem;
-          font-weight: 500;
-      }
-
-      .sidebar-contact__time {
-          font-size: 0.7rem;
-          color: rgba(0, 0, 0, 0.45);
-      }
-
-      .sidebar-contact__message-wrapper {
-          color: #00000099;
-          font-size: 0.85rem;
-          margin-right: 3px;
-          overflow: hidden;
-      }
-
-      .sidebar-contact__message-icon {
-          color: #B3B3B3;
-          margin-right: 3px;
-      }
-
-      .sidebar-contact__message-icon--blue {
-          color: #0DA9E5;
-      }
-
-      .sidebar-contact__message--unread {
-          color: #000000;
-          font-weight: 500;
-      }
-
-      .sidebar-contact__icons, .sidebar-contact:not(:focus) .sidebar-contact__icons {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          transform: translateX(24px);
-          transition: transform 0.5s ease;
-      }
-
-      .sidebar-contact:hover .sidebar-contact__icons {
-          transform: translateX(0);
-      }
-
-      .sidebar-contact__icons > * {
-          margin-left: 8px;
-          color: #B3B3B3;
-      }
-
-      .sidebar-contact__unread {
-          display: inline-block;
-          color: white;
-          background-color: rgb(6, 215, 85);
-          border-radius: 18px;
-          min-width: 18px;
-          height: 18px;
-          padding: 0 3px;
-          line-height: 18px;
-          vertical-align: middle;
-          text-align: center;
-          font-size: 0.75rem;
-          font-weight: 500;
-      }
-
-      /*  End Sidebar Contact List */
-
-      @media screen and (min-width: 1000px) and (max-width: 1300px) {
-          .sidebar {
-              flex: 35%;
-          }
-
-          .sidebar ~ div {
-              flex: 65%;
-          }
-      }
-
-      @media screen and (min-width: 1301px) {
-          .sidebar {
-              flex: 30%;
-          }
-
-          .sidebar ~ div {
-              flex: 70%;
-          }
-      }
-
-      /*  Sidebar Contact List */
-
-      .sidebar__contacts {
-          flex: 1;
-          overflow-y: scroll;
-          background: #F5F5F5;
-          border-top: 1px solid #DADADA;
-      }
-
-      .sidebar-contact {
-          height: 72px;
-          padding: 10px 20px;
-          display: flex;
-          align-items: center;
-          border-bottom: 1px solid #EBEBEB;
-          cursor: pointer;
-      }
-
-      .sidebar-contact:hover {
-          background-color: #EBEBEB;
-      }
-
-      .sidebar-contact__avatar-wrapper {
-          width: 50px;
-          height: 50px;
-          margin-right: 10px;
-      }
-
-      .sidebar-contact__content {
-          overflow: hidden;
-          flex: 1;
-      }
-
-      .sidebar-contact__top-content, .sidebar-contact__bottom-content, .sidebar-contact__message-wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-      }
-
-      .sidebar-contact__name, .sidebar-contact__message {
-          flex: 1;
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-      }
-
-      .sidebar-contact__top-content {
-          margin-bottom: 2px;
-      }
-
-      .sidebar-contact__name {
-          color: #000000;
-          font-size: 1rem;
-          font-weight: 500;
-      }
-
-      .sidebar-contact__time {
-          font-size: 0.7rem;
-          color: rgba(0, 0, 0, 0.45);
-      }
-
-      .sidebar-contact__message-wrapper {
-          color: #00000099;
-          font-size: 0.85rem;
-          margin-right: 3px;
-          overflow: hidden;
-      }
-
-      .sidebar-contact__message-icon {
-          color: #B3B3B3;
-          margin-right: 3px;
-      }
-
-      .sidebar-contact__message-icon--blue {
-          color: #0DA9E5;
-      }
-
-      .sidebar-contact__message--unread {
-          color: #000000;
-          font-weight: 500;
-      }
-
-      .sidebar-contact__icons, .sidebar-contact:not(:focus) .sidebar-contact__icons {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          transform: translateX(24px);
-          transition: transform 0.5s ease;
-      }
-
-      .sidebar-contact:hover .sidebar-contact__icons {
-          transform: translateX(0);
-      }
-
-      .sidebar-contact__icons > * {
-          margin-left: 8px;
-          color: #B3B3B3;
-      }
-
-      .sidebar-contact__unread {
-          display: inline-block;
-          color: white;
-          background-color: rgb(6, 215, 85);
-          border-radius: 18px;
-          min-width: 18px;
-          height: 18px;
-          padding: 0 3px;
-          line-height: 18px;
-          vertical-align: middle;
-          text-align: center;
-          font-size: 0.75rem;
-          font-weight: 500;
-      }
-
-      /*  End Sidebar Contact List */
 
       a:link {
           text-decoration: none;
       }
 
-
+      .replied-message {
+          background: #e5e5e5;
+          border-left: 5px solid darkseagreen;
+          padding: 0.25rem;
+      }
   </style>
 </head>
-<body>
-<div>
-  <div class="row">
-    <div id="" class="col-lg-4 col-sm-1 wa-bg" style="overflow:scroll; width:30%;">
-      <div class="sidebar__alert sidebar__alert bg-success">
-        <div class="sidebar__alert-icon-wrapper">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"
-               class="sidebar__alert-icon">
-            <path fill="currentColor"
-                  d="M24.154 2C11.919 2 2 11.924 2 24.165S11.919 46.33 24.154 46.33s22.154-9.924 22.154-22.165S36.389 2 24.154 2zm-.744 15.428v-.618c0-.706.618-1.324 1.324-1.324s1.323.618 1.323 1.324v.618c2.559.618 4.412 2.823 4.412 5.559v3.176l-8.294-8.294a5.056 5.056 0 0 1 1.235-.441zm1.323 15.706a1.77 1.77 0 0 1-1.765-1.765h3.529a1.768 1.768 0 0 1-1.764 1.765zm7.236-.883l-1.765-1.765H17.233v-.882l1.765-1.765v-4.853a5.56 5.56 0 0 1 .794-2.912l-2.559-2.559 1.147-1.147 14.735 14.736-1.146 1.147z"></path>
-          </svg>
-        </div>
-        <div class="sidebar__alert-texts"><p class="sidebar__alert-text text-white"> Milk
-          Basket </p>
-          <a href="{% url 'whatsapp_chat' %}" class=" sidebar__alert-text text-white">Your Whatsapp
-            messages.</a></div>
-
-      </div>
-
-
-      <div class="sidebar__contacts">
-        {% for number, sender in distinct_users.items %}
-          <a class="sidebar-contact" href="{% url 'whatsapp_number_chat' number %}">
-            <div class="sidebar-contact__avatar-wrapper"><img width="40px"
-                                                              src="https://www.nicepng.com/png/detail/202-2024580_png-file-profile-icon-vector-png.png"
-                                                              class="avatar"></div>
-            <div class="sidebar-contact__content">
-              <div class="sidebar-contact__top-content"><h2
-               class="sidebar-contact__name no-underline"> {{ sender }}</h2>
-                {#                <span class="sidebar-contact__time">09:21</span>#}
-              </div>
-              {#              <div class="sidebar-contact__bottom-content"><p#}
-              {#               class="sidebar-contact__message-wrapper">#}
-              {#                <span class="sidebar-contact__message sidebar-contact__message--unread">It's much more difficult to play tennis with a bowling ball than it is to bowl with a tennis ball.</span>#}
-              {#              </p>#}
-              {#                <div class="sidebar-contact__icons">#}
-              {#                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 19" width="19"#}
-              {#                       height="19"#}
-              {#                       class="sidebar-contact__icon">#}
-              {#                    <path fill="currentColor"#}
-              {#                          d="M9.5 18.419C4.574 18.419.581 14.426.581 9.5S4.574.581 9.5.581s8.919 3.993 8.919 8.919-3.993 8.919-8.919 8.919zm2.121-5.708l-.082-2.99 1.647-1.963a1.583 1.583 0 0 0-.188-2.232l-.32-.269a1.58 1.58 0 0 0-2.231.203L8.803 7.42l-2.964.439a.282.282 0 0 0-.14.496l5.458 4.58c.186.157.47.019.464-.224zM5.62 13.994a.504.504 0 0 0 .688-.038l2.204-2.307-1.085-.91-1.889 2.571a.504.504 0 0 0 .082.684z"></path>#}
-              {#                  </svg>#}
-              {#                  <span class="sidebar-contact__unread">3</span>#}
-              {#                  <button aria-label="sidebar-contact__btn">#}
-              {#                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20" width="19"#}
-              {#                         height="20"#}
-              {#                         class="sidebar-contact__icon sidebar-contact__icon--dropdown">#}
-              {#                      <path fill="currentColor"#}
-              {#                            d="M3.8 6.7l5.7 5.7 5.7-5.7 1.6 1.6-7.3 7.2-7.3-7.2 1.6-1.6z"></path>#}
-              {#                    </svg>#}
-              {#                  </button>#}
-              {#                </div>#}
-              {#              </div>#}
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-    </div>
-
-
-    <div id="" class="col-lg-4 col-sm-10 wa-chat-box-content" style="overflow:scroll; width:70%;">
-      <div class="list-group block-display-css p-5">
-        {% for message in all_messages %}
-          <div style="overflow:scroll; width:80%;"
-               class="list-group-item list-group-item-action  mt-3 mb-0 rounded {% if message.route == 'API' %}sent-message{% endif %}">
-            {# Sender Name#}
-            <h6 class="text-danger mb-0">{{ message.sender_display_name }}</h6>
-
-            {# Reply Body#}
-            {% if message.related_message_id %}
-              <div
-               class="list-group-item list-group-item-action rounded replied-message p-0">
-                <span>{{ message.related_message_id.message_body }}</span>
-              </div>
-            {% endif %}
-
-            {# Get Image is chat has media #}
-            {% if message.message_body %}<span>{{ message.message_body }}</span>{% endif %}
-            {% if message.message_type in 'sticker, image' %}
-              <img class="pb-3" onclick="window.open(this.src, '_blank');"
-                   src="{% url 'whatsapp_media' message.media_id %}"
-                   width="100%" height="500">
-            {% elif message.message_type == 'video' %}
-              <video class="pb-3" width="100%" height="300" autoplay muted loop
-                     onclick="window.open({% url 'whatsapp_media' message.media_id %}, '_blank');">
-                <source src="{% url 'whatsapp_media' message.media_id %}" type="video/mp4">
-                Your browser does not support the video tag.
-              </video>
-            {% endif %}
-
-
-            <span class="chat__msg-footer"><span> {{ message.received_at }}</span>
-              {% if message.status in 'read,delivered' %}
-                <svg
-                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 15" width="16" height="15"
-                 aria-label="read"
-                 class="chat__msg-status-icon chat__msg-status-icon{% if message.status == 'read' %}--blue{% endif %}"><path
-                 fill="currentColor"
-                 d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"></path></svg>
-
-              {% elif message.status == 'sent' %}
-                <svg
-                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 15" width="16" height="15"
-                 aria-label="read"
-                 class="chat__msg-status-icon chat__msg-status-icon"><path
-                 fill="currentColor"
-                 d="M 15.01 3.316 z m -4.1 0 l -0.478 -0.372 a 0.365 0.365 0 0 0 -0.51 0.063 L 4.566 9.879 a 0.32 0.32 0 0 1 -0.484 0.033 L 1.891 7.769 a 0.366 0.366 0 0 0 -0.515 0.006 l -0.423 0.433 a 0.364 0.364 0 0 0 0.006 0.514 l 3.258 3.185 c 0.143 0.14 0.361 0.125 0.484 -0.033 l 6.272 -8.048 a 0.365 0.365 0 0 0 -0.063 -0.51 z"></path></svg>
-              {% endif %}
-            </span>
+<body data-new-gr-c-s-check-loaded="14.1088.0" data-gr-ext-installed="">
+<noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="root">
+  <div class="app">
+    <div class="app-content">
+      <aside class="sidebar">
+        <header class="header">
+          <div class="sidebar__avatar-wrapper"><img
+           src="{% static "/favicon.ico" %}" alt="Milk Basket"
+           class="avatar"></div>
+          <div class="sidebar__actions">
+            <button class="sidebar__action" aria-label="Status">
+              <svg id="df9d3429-f0ef-48b5-b5eb-f9d27b2deba6" xmlns="http://www.w3.org/2000/svg"
+                   viewBox="0 0 24 24" width="24" height="24"
+                   class="sidebar__action-icon sidebar__action-icon--status">
+                <path fill="currentColor"
+                      d="M12.072 1.761a10.05 10.05 0 0 0-9.303 5.65.977.977 0 0 0 1.756.855 8.098 8.098 0 0 1 7.496-4.553.977.977 0 1 0 .051-1.952zM1.926 13.64a10.052 10.052 0 0 0 7.461 7.925.977.977 0 0 0 .471-1.895 8.097 8.097 0 0 1-6.012-6.386.977.977 0 0 0-1.92.356zm13.729 7.454a10.053 10.053 0 0 0 6.201-8.946.976.976 0 1 0-1.951-.081v.014a8.097 8.097 0 0 1-4.997 7.209.977.977 0 0 0 .727 1.813l.02-.009z"></path>
+                <path fill="#009588" d="M19 1.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"></path>
+              </svg>
+            </button>
+            <button class="sidebar__action" aria-label="New chat">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                   class="sidebar__action-icon">
+                <path fill="currentColor"
+                      d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z"></path>
+              </svg>
+            </button>
           </div>
-
-
-          {# Check for reaction #}
-          {% for reaction in message.whatsappmessage_set.all %}
-            {% if reaction.message_type == 'reaction' %}
-              <div style="overflow:scroll; width:80%;"
-                   class="bg-transparent border-0 m-0 mb-2 {% if message.route == 'API' %}sent-message{% endif %}">
-                <h1 class="m-0 p-0">{{ reaction.message_body }}</h1>
+        </header>
+        <div class="sidebar__alert sidebar__alert--info">
+          <div class="sidebar__alert-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"
+                 class="sidebar__alert-icon">
+              <path fill="currentColor"
+                    d="M24.154 2C11.919 2 2 11.924 2 24.165S11.919 46.33 24.154 46.33s22.154-9.924 22.154-22.165S36.389 2 24.154 2zm-.744 15.428v-.618c0-.706.618-1.324 1.324-1.324s1.323.618 1.323 1.324v.618c2.559.618 4.412 2.823 4.412 5.559v3.176l-8.294-8.294a5.056 5.056 0 0 1 1.235-.441zm1.323 15.706a1.77 1.77 0 0 1-1.765-1.765h3.529a1.768 1.768 0 0 1-1.764 1.765zm7.236-.883l-1.765-1.765H17.233v-.882l1.765-1.765v-4.853a5.56 5.56 0 0 1 .794-2.912l-2.559-2.559 1.147-1.147 14.735 14.736-1.146 1.147z"></path>
+            </svg>
+          </div>
+          <div class="sidebar__alert-texts"><a href="{% url 'whatsapp_chat' %}"
+                                               class="sidebar__alert-text"> View all Milk Basket
+            messages </a>
+            {#            <p class="sidebar__alert-text"> Turn on your notifications </p>#}
+          </div>
+        </div>
+        <div class="search-wrapper">
+          <div class="search-icons">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                 class="search-icon">
+              <path fill="currentColor"
+                    d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 0 0 1.256-3.386 5.207 5.207 0 1 0-5.207 5.208 5.183 5.183 0 0 0 3.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 1 1 0-7.21 3.605 3.605 0 0 1 0 7.21z"></path>
+            </svg>
+            <button class="search__back-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor"
+                      d="M12 4l1.4 1.4L7.8 11H20v2H7.8l5.6 5.6L12 20l-8-8 8-8z"></path>
+              </svg>
+            </button>
+          </div>
+          <input class="search" placeholder="Search or start a new chat"></div>
+        <div class="sidebar__contacts">
+          {% for number, sender in distinct_users.items %}
+            <a class="sidebar-contact" href="{% url 'whatsapp_number_chat' number %}">
+              <div class="sidebar-contact__avatar-wrapper"><img width="40px"
+                                                                src="https://www.nicepng.com/png/detail/202-2024580_png-file-profile-icon-vector-png.png"
+                                                                class="avatar"></div>
+              <div class="sidebar-contact__content">
+                <div class="sidebar-contact__top-content"><h2
+                 class="sidebar-contact__name no-underline"> {{ sender }}</h2>
+                  {#                <span class="sidebar-contact__time">09:21</span>#}
+                </div>
+                {#              <div class="sidebar-contact__bottom-content"><p#}
+                {#               class="sidebar-contact__message-wrapper">#}
+                {#                <span class="sidebar-contact__message sidebar-contact__message--unread">It's much more difficult to play tennis with a bowling ball than it is to bowl with a tennis ball.</span>#}
+                {#              </p>#}
+                {#                <div class="sidebar-contact__icons">#}
+                {#                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 19" width="19"#}
+                {#                       height="19"#}
+                {#                       class="sidebar-contact__icon">#}
+                {#                    <path fill="currentColor"#}
+                {#                          d="M9.5 18.419C4.574 18.419.581 14.426.581 9.5S4.574.581 9.5.581s8.919 3.993 8.919 8.919-3.993 8.919-8.919 8.919zm2.121-5.708l-.082-2.99 1.647-1.963a1.583 1.583 0 0 0-.188-2.232l-.32-.269a1.58 1.58 0 0 0-2.231.203L8.803 7.42l-2.964.439a.282.282 0 0 0-.14.496l5.458 4.58c.186.157.47.019.464-.224zM5.62 13.994a.504.504 0 0 0 .688-.038l2.204-2.307-1.085-.91-1.889 2.571a.504.504 0 0 0 .082.684z"></path>#}
+                {#                  </svg>#}
+                {#                  <span class="sidebar-contact__unread">3</span>#}
+                {#                  <button aria-label="sidebar-contact__btn">#}
+                {#                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20" width="19"#}
+                {#                         height="20"#}
+                {#                         class="sidebar-contact__icon sidebar-contact__icon--dropdown">#}
+                {#                      <path fill="currentColor"#}
+                {#                            d="M3.8 6.7l5.7 5.7 5.7-5.7 1.6 1.6-7.3 7.2-7.3-7.2 1.6-1.6z"></path>#}
+                {#                    </svg>#}
+                {#                  </button>#}
+                {#                </div>#}
+                {#              </div>#}
               </div>
-            {% endif %}
+            </a>
           {% endfor %}
-        {% endfor %}
+        </div>
+
+      </aside>
+      <div class="chat">
+        <div class="chat__body">
+          <div class="chat__bg"></div>
+          <header class="header chat__header">
+            <div class="chat__avatar-wrapper"><img
+             src="https://www.nicepng.com/png/detail/202-2024580_png-file-profile-icon-vector-png.png"
+             alt="Sender Pic"
+             class="avatar"></div>
+            <div class="chat__contact-wrapper"><h2
+             class="chat__contact-name"> {{ chat_display_name }}</h2>
+            </div>
+          </header>
+          <div id="chat-body" class="chat__content">
+
+            {% for date, all_messages in sorted_all_chat.items %}
+
+              <div>
+                <div class="chat__date-wrapper"><span class="chat__date"> {{ date }}</span></div>
+                {% if forloop.first %}
+                  <p class="chat__encryption-msg">
+                    <svg width="10px" height="12px" viewBox="0 0 10 12" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg" class="chat__encryption-icon">
+                      <path
+                       d="M5.00847986,1.6 C6.38255462,1.6 7.50937014,2.67435859 7.5940156,4.02703389 L7.59911976,4.1906399 L7.599,5.462 L7.75719976,5.46214385 C8.34167974,5.46214385 8.81591972,5.94158383 8.81591972,6.53126381 L8.81591972,9.8834238 C8.81591972,10.4731038 8.34167974,10.9525438 7.75719976,10.9525438 L2.25767996,10.9525438 C1.67527998,10.9525438 1.2,10.4731038 1.2,9.8834238 L1.2,6.53126381 C1.2,5.94158383 1.67423998,5.46214385 2.25767996,5.46214385 L2.416,5.462 L2.41679995,4.1906399 C2.41679995,2.81636129 3.49135449,1.68973395 4.84478101,1.60510326 L5.00847986,1.6 Z M5.00847986,2.84799995 C4.31163824,2.84799995 3.73624912,3.38200845 3.6709675,4.06160439 L3.6647999,4.1906399 L3.663,5.462 L6.35,5.462 L6.35111981,4.1906399 C6.35111981,3.53817142 5.88169076,2.99180999 5.26310845,2.87228506 L5.13749818,2.85416626 L5.00847986,2.84799995 Z"
+                       fill="currentColor"></path>
+                    </svg>
+                    Messages are end-to-end encrypted. No one outside of this chat, not even
+                    WhatsApp,
+                    can read or listen to them. Click to learn more.
+                  </p>
+                {% endif %}
+
+                {% for message in all_messages %}
+
+
+                  <div class="chat__msg-group mb-0">
+                    <span
+                     class="chat__msg {% if message.route == 'API' %}chat__msg--sent{% else %}chat__msg--rxd{% endif %}">
+
+                      <a href="{% url 'whatsapp_number_chat' message.sender_number %}"
+                         class="text-danger mb-0 sender-name">{{ message.sender_display_name }}</a>
+                      {% if message.message_body or message.related_message_id %}<span>
+                      {% if message.related_message_id %}
+                        <span class="rounded replied-message d-block">
+                        {{ message.related_message_id.message_body }}</span>
+                      {% endif %}
+                        {{ message.message_body }}</span>{% endif %}
+                      {# Get Image is chat has media #}
+                      {% if message.message_type in 'sticker, image' %}
+                        <img class="pb-3" onclick="window.open(this.src, '_blank');"
+                             src="{% url 'whatsapp_media' message.media_id %}"
+                             width="100%" height="500">
+                      {% elif message.message_type == 'video' %}
+                        <video class="pb-3" width="100%" height="300" autoplay muted loop
+                               onclick="window.open({% url 'whatsapp_media' message.media_id %}, '_blank');">
+                          <source src="{% url 'whatsapp_media' message.media_id %}"
+                                  type="video/mp4">
+                          Your browser does not support the video tag.
+                        </video>
+                      {% endif %}
+                      <span
+                       class="chat__msg-filler"> </span><span
+                     class="chat__msg-footer"><span> {{ message.received_at|time:"g:i A" }} </span>
+                      {% if message.status in 'read,delivered' %}
+                        <svg
+                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 15" width="16"
+                         height="15"
+                         aria-label="read"
+                         class="chat__msg-status-icon chat__msg-status-icon{% if message.status == 'read' %}--blue{% endif %}"><path
+                         fill="currentColor"
+                         d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"></path></svg>
+
+                      {% elif message.status == 'sent' %}
+                        <svg
+                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 15" width="16"
+                         height="15"
+                         aria-label="read"
+                         class="chat__msg-status-icon chat__msg-status-icon"><path
+                         fill="currentColor"
+                         d="M 15.01 3.316 z m -4.1 0 l -0.478 -0.372 a 0.365 0.365 0 0 0 -0.51 0.063 L 4.566 9.879 a 0.32 0.32 0 0 1 -0.484 0.033 L 1.891 7.769 a 0.366 0.366 0 0 0 -0.515 0.006 l -0.423 0.433 a 0.364 0.364 0 0 0 0.006 0.514 l 3.258 3.185 c 0.143 0.14 0.361 0.125 0.484 -0.033 l 6.272 -8.048 a 0.365 0.365 0 0 0 -0.063 -0.51 z"></path></svg>
+                      {% endif %}
+                </span>
+
+
+                      </span>
+                    {# Check for reaction #}
+                    {% for reaction in message.whatsappmessage_set.all %}
+                      {% if reaction.message_type == 'reaction' %}
+                        <span
+                         class="bg-transparent border-0 m-0 mb-2 {% if message.route == 'API' %}chat__msg--sent{% else %}chat__msg--rxd{% endif %}">
+                            <h4 class="m-0 p-0">{{ reaction.message_body }}</h4>
+                          </span>
+                      {% endif %}
+                    {% endfor %}
+
+                  </div>
+
+                {% endfor %}
+              </div>
+
+            {% endfor %}
+
+
+          </div>
+          <footer class="chat__footer">
+            <button class="chat__scroll-btn" aria-label="scroll down">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 20" width="19" height="20">
+                <path fill="currentColor"
+                      d="M3.8 6.7l5.7 5.7 5.7-5.7 1.6 1.6-7.3 7.2-7.3-7.2 1.6-1.6z"></path>
+              </svg>
+            </button>
+            <div class="emojis__wrapper ">
+              <div class="emojis__tabs">
+                <div class="emojis__tab emojis__tab--active">
+                  <button aria-label="Recent emojis">
+                    <svg width="24" height="24" viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg" class="emojis__tab-icon">
+                      <path
+                       d="M20.538 11.975a8.563 8.563 0 1 0-17.126 0 8.563 8.563 0 0 0 17.126 0zm1.412 0c0 5.509-4.466 9.975-9.975 9.975C6.465 21.95 2 17.484 2 11.975 2 6.465 6.466 2 11.975 2c5.509 0 9.975 4.466 9.975 9.975zm-9.832-5.27v5.692l4.386 2.627a.706.706 0 1 1-.725 1.212l-5.073-3.04v-6.49a.706.706 0 1 1 1.412 0z"
+                       fill="currentColor"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+
+            </div>
+            <div class="chat__input-wrapper">
+              <button aria-label="Emojis">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                     class="chat__input-icon ">
+                  <path fill="currentColor"
+                        d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.129 0-12.129 0zm11.363 1.108s-.669 1.959-5.051 1.959c-3.505 0-5.388-1.164-5.607-1.959 0 0 5.912 1.055 10.658 0zM11.804 1.011C5.609 1.011.978 6.033.978 12.228s4.826 10.761 11.021 10.761S23.02 18.423 23.02 12.228c.001-6.195-5.021-11.217-11.216-11.217zM12 21.354c-5.273 0-9.381-3.886-9.381-9.159s3.942-9.548 9.215-9.548 9.548 4.275 9.548 9.548c-.001 5.272-4.109 9.159-9.382 9.159zm3.108-9.751c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962z"></path>
+                </svg>
+              </button>
+              <div class="pos-rel">
+                <button aria-label="Attach">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24"
+                       height="24" class="chat__input-icon ">
+                    <path fill="currentColor"
+                          d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"></path>
+                  </svg>
+                </button>
+
+              </div>
+              <input class="chat__input" placeholder="Type a message" value="">
+              <button aria-label="Record voice note">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                     class="chat__input-icon">
+                  <path fill="currentColor"
+                        d="M11.999 14.942c2.001 0 3.531-1.53 3.531-3.531V4.35c0-2.001-1.53-3.531-3.531-3.531S8.469 2.35 8.469 4.35v7.061c0 2.001 1.53 3.531 3.53 3.531zm6.238-3.53c0 3.531-2.942 6.002-6.237 6.002s-6.237-2.471-6.237-6.002H3.761c0 4.001 3.178 7.297 7.061 7.885v3.884h2.354v-3.884c3.884-.588 7.061-3.884 7.061-7.885h-2z"></path>
+                </svg>
+              </button>
+            </div>
+          </footer>
+        </div>
+
       </div>
     </div>
   </div>
 </div>
+<script>
+  let chatDiv = document.getElementById("chat-body");
+  chatDiv.scrollTop = chatDiv.scrollHeight;
+</script>
 </body>
 </html>

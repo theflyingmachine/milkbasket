@@ -1466,20 +1466,28 @@ def whatsapp_chat(request, wa_number=None):
     distinct_users = {
         u.sender_number: contact_names.get(str(u.sender_number)[2:]) or u.sender_display_name for u
         in all_messages}
+    chat_display_name = 'Milk Basket'
     if wa_number:
         if wa_number == int(WA_NUMBER_ID):
             all_messages = all_messages.filter(sender_number=WA_NUMBER_ID)
         else:
             all_messages = all_messages.filter(Q(sender_number=wa_number) | Q(to_number=wa_number))
+            chat_display_name = contact_names.get(str(wa_number)[2:], 'Unknown User')
     # Get sender display name from saved customer details
     for message in all_messages:
         message.sender_display_name = distinct_users.get(message.sender_number)
 
+    # Add messages to date chunks
+    chat_dates = sorted(set([m.received_at.date() for m in all_messages]))
+    sorted_all_chat = {chat_date: [m for m in all_messages if m.received_at.date() == chat_date]
+                       for chat_date in chat_dates}
+
     template = 'register/whatsapp.html'
     context = {
         'page_title': 'Milk Basket - WhatsApp',
-        'all_messages': all_messages,
+        'sorted_all_chat': sorted_all_chat,
         'distinct_users': distinct_users,
+        'chat_display_name': chat_display_name,
     }
     return render(request, template, context)
 
