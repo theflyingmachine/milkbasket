@@ -1466,13 +1466,14 @@ def whatsapp_chat(request, wa_number=None):
     distinct_users = {
         u.sender_number: contact_names.get(str(u.sender_number)[2:]) or u.sender_display_name for u
         in all_messages}
-    for message in all_messages:
-        message.sender_display_name = distinct_users.get(message.sender_number)
     if wa_number:
         if wa_number == int(WA_NUMBER_ID):
             all_messages = all_messages.filter(sender_number=WA_NUMBER_ID)
         else:
             all_messages = all_messages.filter(Q(sender_number=wa_number) | Q(to_number=wa_number))
+    # Get sender display name from saved customer details
+    for message in all_messages:
+        message.sender_display_name = distinct_users.get(message.sender_number)
 
     template = 'register/whatsapp.html'
     context = {
