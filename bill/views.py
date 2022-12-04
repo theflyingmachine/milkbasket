@@ -244,7 +244,7 @@ def fetch_bill(bill_number, full_data=False, update_count=False):
 #         # Send SMS notification
 #         if sms_notification:
 #             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
-#             sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
+#             sms_text = SMS_PAYMENT_MESSAGE.format(customer.name, new_payment.amount, transaction_time, new_payment.id)
 #             send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
 #
 #     return True

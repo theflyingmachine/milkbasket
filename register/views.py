@@ -25,7 +25,8 @@ from django.views.generic import View
 
 from customer.models import WhatsAppMessage
 from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
-from register.constant import DUE_TEMPLATE_ID
+from register.constant import DUE_TEMPLATE_ID, WA_DUE_MESSAGE, WA_DUE_MESSAGE_TEMPLATE, \
+    SMS_DUE_MESSAGE, SMS_PAYMENT_MESSAGE
 from register.constant import PAYMENT_TEMPLATE_ID
 from register.forms import CustomerForm
 from register.forms import RegisterForm
@@ -683,13 +684,14 @@ def account(request, year=None, month=None):
         # Due sms text
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
-        month_and_amount = (
-            f"{prev_month_name} is Rs {customer['payment_due_prev']}") if customer[
-                                                                              'payment_due_prev'] > 0 and not last_day_of_month else (
-            f"{current_month_name} is Rs {customer['payment_due']}")
-        customer[
-            'sms_text'] = f"Dear {customer['customer__name']},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]"
-
+        if customer['payment_due_prev'] > 0 and not last_day_of_month:
+            customer[
+                'sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
+                                                     prev_month_name, customer['payment_due_prev'])
+        else:
+            customer[
+                'sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
+                                                     current_month_name, customer['payment_due'])
     # Get paid customer
     paid_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
                                             paid=1).values('customer_id',
@@ -750,7 +752,7 @@ def daterange(date1, date2):
 
 
 @login_required
-def selectrecord(request):
+def select_record(request):
     formatted_url = '#'
     full_register_date = request.POST.get("register_month", None)
     register_month = str(full_register_date).split("-")[1]
@@ -889,7 +891,8 @@ def accept_payment(request, year=None, month=None, return_url=None):
         # Send SMS notification
         if sms_notification:
             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
-            sms_text = f'Dear {customer.name},\nPayment of Rs {new_payment.amount} received on {transaction_time}. Transaction #{new_payment.id}.\nThanks,\n[Milk Basket]'
+            sms_text = SMS_PAYMENT_MESSAGE.format(customer.name, new_payment.amount,
+                                                  transaction_time, new_payment.id)
             send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
             send_wa_payment_notification(customer.contact, customer.name, new_payment.amount,
                                          transaction_time, new_payment.id)
@@ -1272,10 +1275,11 @@ def customer_profile(request, id=None):
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
         last_day_of_month = is_last_day_of_month()
-        month_and_amount = (
-            f'{prev_month_name} is Rs {due_till_prev_month}') if due_till_prev_month > 0 and not last_day_of_month else (
-            f'{current_month_name} is Rs {due_till_current_month}')
-        sms_text = f'Dear {customer.name},\nTotal due amount for the month of {month_and_amount}.\n[Milk Basket]'
+        if due_till_prev_month > 0 and not last_day_of_month:
+            sms_text = SMS_DUE_MESSAGE.format(customer.name, prev_month_name, due_till_prev_month)
+        else:
+            sms_text = SMS_DUE_MESSAGE.format(customer.name, current_month_name,
+                                              due_till_current_month)
 
         # Check if last transaction is older that 30 days
         last_trans = get_last_transaction(request, customer)
@@ -1432,63 +1436,19 @@ def broadcast_send(request, cust_id=None):
         bill_byte = generate_bill(request, cust_id, no_download=True)
         bill = ast.literal_eval(bill_byte.content.decode('utf-8'))
         cust_number = get_customer_contact(request, cust_id)
-        sms_body = f"""Dear {due[0]['name']},
-Total due amount for the month of {due[0]['due_month']} is Rs {due[0]['to_be_paid']}.
-
-[Milk Basket]"""
-        wa_body = {
-            "messaging_product": "whatsapp",
-            "to": f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}",
-            "type": "template",
-            "template": {
-                "name": "bill_generated",
-                "language": {
-                    "code": "en",
-                    "policy": "deterministic"
-                },
-                "components": [
-                    {
-                        "type": "header",
-                        "parameters": [
-                            {
-                                "type": "text",
-                                "text": due[0]['to_be_paid']
-
-                            }
-                        ]
-                    },
-
-                    {
-                        "type": "body",
-                        "parameters": [
-                            {
-                                "type": "text",
-                                "text": due[0]['name']
-                            },
-                            {
-                                "type": "text",
-                                "text": due[0]['to_be_paid']
-                            },
-                            {
-                                "type": "text",
-                                "text": due[0]['due_month']
-                            },
-                            {
-                                "type": "text",
-                                "text": f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}"
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-        wa_message = '''Dear {0},
-Your bill of ₹ {1} for the month of {2} has been generated.
-
-You can view the bill at 🧾👉 {3}
-
-Thanks 🙏🐄🥛🧾'''.format(due[0]['name'], due[0]['to_be_paid'], due[0]['due_month'],
-                      f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}")
+        sms_body = SMS_DUE_MESSAGE.format(due[0]['name'], due[0]['due_month'],
+                                          due[0]['to_be_paid'])
+        wa_body = WA_DUE_MESSAGE_TEMPLATE
+        wa_body['to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}"
+        wa_body['template']['components'][0]['parameters'][0]['text'] = due[0]['to_be_paid']
+        wa_body['template']['components'][1]['parameters'][0]['text'] = due[0]['name']
+        wa_body['template']['components'][1]['parameters'][1]['text'] = due[0]['to_be_paid']
+        wa_body['template']['components'][1]['parameters'][2]['text'] = due[0]['due_month']
+        wa_body['template']['components'][1]['parameters'][3][
+            'text'] = f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}"
+        wa_message = WA_DUE_MESSAGE.format(due[0]['name'], due[0]['to_be_paid'],
+                                           due[0]['due_month'],
+                                           f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}")
         sms_res = send_sms_api(DEV_NUMBER if RUN_ENVIRONMENT == 'dev' else cust_number, sms_body,
                                DUE_TEMPLATE_ID)
         wa_res = send_whatsapp_message(wa_body, wa_message)
@@ -1506,19 +1466,28 @@ def whatsapp_chat(request, wa_number=None):
     distinct_users = {
         u.sender_number: contact_names.get(str(u.sender_number)[2:]) or u.sender_display_name for u
         in all_messages}
-    for message in all_messages:
-        message.sender_display_name = distinct_users.get(message.sender_number)
+    chat_display_name = 'Milk Basket'
     if wa_number:
         if wa_number == int(WA_NUMBER_ID):
             all_messages = all_messages.filter(sender_number=WA_NUMBER_ID)
         else:
             all_messages = all_messages.filter(Q(sender_number=wa_number) | Q(to_number=wa_number))
+            chat_display_name = contact_names.get(str(wa_number)[2:], 'Unknown User')
+    # Get sender display name from saved customer details
+    for message in all_messages:
+        message.sender_display_name = distinct_users.get(message.sender_number)
+
+    # Add messages to date chunks
+    chat_dates = sorted(set([m.received_at.date() for m in all_messages]))
+    sorted_all_chat = {chat_date: [m for m in all_messages if m.received_at.date() == chat_date]
+                       for chat_date in chat_dates}
 
     template = 'register/whatsapp.html'
     context = {
         'page_title': 'Milk Basket - WhatsApp',
-        'all_messages': all_messages,
+        'sorted_all_chat': sorted_all_chat,
         'distinct_users': distinct_users,
+        'chat_display_name': chat_display_name,
     }
     return render(request, template, context)
 
