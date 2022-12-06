@@ -494,7 +494,7 @@ def get_customer_due_amount_by_month(request, customer_id=None):
     return due_list, due_months
 
 
-def send_whatsapp_message(wa_body, wa_message):
+def send_whatsapp_message(wa_body, wa_message, route=None):
     url = f"https://graph.facebook.com/v13.0/{WA_NUMBER_ID}/messages"
     headers = {
         "Content-Type": "application/json",
@@ -506,7 +506,7 @@ def send_whatsapp_message(wa_body, wa_message):
         resp = response.json()
         message_id = resp['messages'][0]['id']
         related_id = None
-        route = 'API'
+        route = 'API' if route is None else route
         to_number = resp['contacts'][0]['input']
         sender_number = WA_NUMBER_ID
         message_type = wa_body['template']['name']

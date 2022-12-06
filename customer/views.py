@@ -12,9 +12,10 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
 
 from customer.models import WhatsAppMessage
-from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN
+from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT
+from register.constant import WA_NEW_MESSAGE, WA_NEW_MESSAGE_TEMPLATE
 from register.models import Customer, Payment, Register, Tenant
-from register.utils import get_customer_due_amount, get_mongo_client
+from register.utils import get_customer_due_amount, get_mongo_client, send_whatsapp_message
 
 
 def customer_dashboard(request):
@@ -194,6 +195,9 @@ def process_wa_payload(pl):
         WhatsAppMessage.insert_message(message_id, related_message_id, 'User Reply',
                                        to_number, sender_name, sender_number,
                                        message_type, text, media_id, pl)
+
+        # Send Notification to seller
+        send_new_message_notification(sender_number)
         return 'Message Reply'
     except KeyError:
         pass
@@ -246,3 +250,13 @@ def whatsapp_webhook(request):
             "Incorrect token",
             content_type="text/plain",
         )
+
+
+def send_new_message_notification(from_sender):
+    sender = Customer.objects.filter(contact=str(from_sender)[2:], status=True).first()
+    if sender:
+        wa_message = WA_NEW_MESSAGE.format(sender.name)
+        wa_body = WA_NEW_MESSAGE_TEMPLATE
+        wa_body['to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"918987110955"
+        wa_body['template']['components'][0]['parameters'][0]['text'] = sender.name
+        send_whatsapp_message(wa_body, wa_message, route='API_INFO')

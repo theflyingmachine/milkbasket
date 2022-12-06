@@ -1460,7 +1460,7 @@ def broadcast_send(request, cust_id=None):
 @login_required()
 def whatsapp_chat(request, wa_number=None):
     all_messages = WhatsAppMessage.objects.all().exclude(
-        message_type__in=('unsupported', 'reaction'))
+        Q(message_type__in=('unsupported', 'reaction')) | Q(route='API_INFO'))
     customers = Customer.objects.filter(contact__isnull=False).values('contact', 'name')
     contact_names = {c['contact']: c['name'] for c in customers}
     distinct_users = {
