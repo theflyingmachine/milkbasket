@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from register.models import Register, Customer, Payment
+from register.models import Register, Customer, Payment, Tenant
 
 
 @admin.register(Register)
@@ -19,7 +19,7 @@ class RegisterAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         ('Register Entry', {'fields': (
-        'get_customer', 'log_date', 'schedule', 'quantity', 'current_price', 'paid')}),
+            'get_customer', 'log_date', 'schedule', 'quantity', 'current_price', 'paid')}),
     )
 
     def get_customer(self, obj):
@@ -71,3 +71,24 @@ class PaymentAdmin(admin.ModelAdmin):
 
     get_customer.short_description = 'customer'
     get_customer.admin_order_field = 'customer__name'
+
+
+@admin.register(Tenant)
+class TenantAdmin(admin.ModelAdmin):
+    ordering = ('tenant_id',)
+    search_fields = ('contact', 'tenant')
+    list_filter = (
+    'tenant', 'download_pdf_pref', 'sms_pref', 'whatsapp_pref', 'whatsapp_direct_pref',
+    'email_pref', 'customers_bill_access', 'accept_online_payment')
+    list_display = (
+        'tenant_id', 'tenant', 'download_pdf_pref', 'sms_pref', 'whatsapp_pref',
+        'whatsapp_direct_pref',
+        'email_pref', 'customers_bill_access', 'bill_till_date', 'milk_price', 'date_effective',
+        'accept_online_payment', 'contact', 'email'
+    )
+
+    def get_customer(self, obj):
+        return obj.customer.name
+
+    get_customer.short_description = 'tenant'
+    get_customer.admin_order_field = 'tenant_name'

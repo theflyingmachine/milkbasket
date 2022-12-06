@@ -110,3 +110,33 @@ WA_DUE_MESSAGE_TEMPLATE = {
         ]
     }
 }
+
+# Whatsapp new message alert
+WA_NEW_MESSAGE = '''📢 🆕 📩 You have a new message from {0}. 
+
+Open Milk Basket or click the button below to view messages.👇
+'''
+
+WA_NEW_MESSAGE_TEMPLATE = {
+    "messaging_product": "whatsapp",
+    "to": {0},
+    "type": "template",
+    "template": {
+        "name": "unread_message_v1",
+        "language": {
+            "code": "en",
+            "policy": "deterministic"
+        },
+        "components": [
+            {
+                "type": "body",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": {1}
+                    },
+                ]
+            }
+        ]
+    }
+}
