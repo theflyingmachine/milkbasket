@@ -69,7 +69,7 @@ WA_DUE_MESSAGE_TEMPLATE = {
     "to": {0},
     "type": "template",
     "template": {
-        "name": "bill_generated",
+        "name": "bill_generated_v1",
         "language": {
             "code": "en",
             "policy": "deterministic"
