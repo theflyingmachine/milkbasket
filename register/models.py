@@ -24,6 +24,8 @@ class Tenant(models.Model):
     accept_online_payment = models.BooleanField(default=False)
     milk_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=None)
     date_effective = models.DateTimeField(default=None, null=True)
+    contact = models.CharField(max_length=10, null=True, blank=True, default=None)
+    email = models.CharField(max_length=50, null=True, default=None, blank=True)
 
 
 class Customer(models.Model):

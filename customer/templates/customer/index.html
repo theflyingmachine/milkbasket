@@ -358,10 +358,11 @@
                           </div>
                         </div>
                         <div>
-                          <a target="_blank" href="tel:8987110955" class="fa fa-phone"></a>
-                          <a target="_blank" href="https://wa.me/8987110955"
+                          <a target="_blank" href="tel:{{ seller.contact }}"
+                             class="fa fa-phone"></a>
+                          <a target="_blank" href="https://wa.me/{{ seller.contact }}"
                              class="fa fa-whatsapp"></a>
-                          <a target="_blank" href="mailto:{{ seller.tenant__email }}"
+                          <a target="_blank" href="mailto:{{ seller.email }}"
                              class="fa fa-envelope"></a>
                         </div>
                         {#                            <div id="profileReportChart"></div>#}
