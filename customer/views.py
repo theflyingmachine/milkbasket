@@ -38,7 +38,9 @@ def customer_dashboard(request):
                                                                         'date_effective',
                                                                         'tenant__first_name',
                                                                         'tenant__last_name',
-                                                                        'tenant__email').first()
+                                                                        'tenant__email',
+                                                                        'contact',
+                                                                        'email').first()
 
     days_in_month = calendar.monthrange(today.year, today.month)[1]
 
@@ -257,6 +259,7 @@ def send_new_message_notification(from_sender):
     if sender:
         wa_message = WA_NEW_MESSAGE.format(sender.name)
         wa_body = WA_NEW_MESSAGE_TEMPLATE
-        wa_body['to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"918987110955"
+        wa_body[
+            'to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{sender.tenant.contact}"
         wa_body['template']['components'][0]['parameters'][0]['text'] = sender.name
         send_whatsapp_message(wa_body, wa_message, route='API_INFO')
