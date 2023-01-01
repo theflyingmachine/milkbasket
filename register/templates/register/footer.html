@@ -68,22 +68,21 @@
           {% endif %}
         {% endif %}
       </div>
-      <div class="copyright px-3 m-0">
-        <div class="row">
-          <div class="col-4 text-left py-4">
-            <span>Copyrights &copy; {% now 'Y' %} | Milk Basket</span>
+      {% if not user.is_authenticated and not is_mobile %}
+        <div class="copyright px-3 m-0">
+          <div class="row">
+            <div class="col-4 text-left py-4">
+              <span>Copyrights &copy; {% now 'Y' %} | Milk Basket</span>
+            </div>
+            <div class="col-4 text-center milkman pt-2">
+              <span>Fresh & Organic Milk</span>
+            </div>
+            <div class="col-4 text-right py-4">
+              <span>Proudly Handcrafted in Raxaul Bihar, India.</span>
+            </div>
           </div>
-          <div class="col-4 text-center milkman pt-2">
-            <span>Fresh & Organic Milk</span>
-          </div>
-          <div class="col-4 text-right py-4">
-            <span>Proudly Handcrafted in Raxaul Bihar, India.</span>
-          </div>
-
         </div>
-
-
-      </div>
+      {% endif %}
     </div>
   {% endif %}
 </div>
