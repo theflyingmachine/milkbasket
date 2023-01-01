@@ -156,26 +156,23 @@
 						CUSTOMER PORTAL
 					</span>
 
-        <div class="wrap-input100 validate-input" data-validate="Enter Mobile Number">
-          <input class="input100" type="text" name="username" placeholder="Mobile Number">
-          <span class="focus-input100" data-placeholder="&#xf207;"></span>
-        </div>
+        {% if not request_otp and not current_username %}
+          <div class="wrap-input100 validate-input" data-validate="Enter Mobile Number">
+            <input class="input100" type="text" name="username" placeholder="Mobile Number">
+            <span class="focus-input100" data-placeholder="&#xf207;"></span>
+          </div>
+        {% else %}
+          <input type="hidden" name="username" value="{{ current_username }}">
+          <div class="wrap-input100 validate-input" data-validate="Enter password">
+            <input class="input100" type="password" name="password" placeholder="Enter OTP">
+            <span class="focus-input100" data-placeholder="&#xf191;"></span>
+          </div>
+        {% endif %}
 
-        <div class="wrap-input100 validate-input" data-validate="Enter password">
-          <input class="input100" type="password" name="password" placeholder="Password">
-          <span class="focus-input100" data-placeholder="&#xf191;"></span>
-        </div>
-
-        <div class="contact100-form-checkbox">
-          <input class="input-checkbox100" id="ckb1" type="checkbox" name="remember-me">
-          <label class="label-checkbox100" for="ckb1">
-            Remember me
-          </label>
-        </div>
         <span class="text-warning text-center">{{ message }}</span>
         <div class="container-login100-form-btn">
           <button class="login100-form-btn">
-            Login
+            {% if not request_otp %} Request OTP {% else %} Login {% endif %}
           </button>
         </div>
 

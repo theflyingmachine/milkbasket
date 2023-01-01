@@ -20,7 +20,7 @@ class WhatsAppMessage(admin.ModelAdmin):
                        'related_message_id',
                        'received_at']  # Read Only Fields
     ordering = ('-received_at',)
-    search_fields = ('sender_display_name', 'sender_number')
+    search_fields = ('sender_display_name', 'sender_number', 'to_number')
     list_filter = ('sender_display_name', 'sender_number', 'route',)
     list_display = (
         'to_number',

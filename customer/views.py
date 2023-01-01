@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
 
-from customer.models import WhatsAppMessage
+from customer.models import WhatsAppMessage, LoginOTP
 from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT
 from register.constant import WA_NEW_MESSAGE, WA_NEW_MESSAGE_TEMPLATE
 from register.models import Customer, Payment, Register, Tenant
@@ -124,14 +124,22 @@ def customer_dashboard_login(request):
         username = username.lower()
         password = request.POST.get("password")
         customer = Customer.objects.filter(contact=username).first()
-
-        if customer and f'pass@{customer.name}' == password:
-            request.session['customer_session'] = True
-            request.session['customer'] = customer.id
-            request.session.save()
-            return redirect('customer_dashboard')
-        else:
-            context.update({'message': 'Login Failed, please try again'})
+        if customer:
+            otp = LoginOTP.get_otp(customer)
+            context.update({'request_otp': otp.login_attempt < 3,
+                            'remaining_attempt': otp.login_attempt < 3,
+                            'current_username': username})
+            if otp and password:
+                if password == otp.otp_password and otp.login_attempt < 3:
+                    request.session['customer_session'] = True
+                    request.session['customer'] = customer.id
+                    request.session.save()
+                    return redirect('customer_dashboard')
+                else:
+                    otp.login_attempt += 1
+                    otp.save()
+                    context.update({'message': 'Login Failed, {0}'.format(
+                        f'{3 - otp.login_attempt} attempt remaining' if otp.login_attempt < 3 else 'please try again later')})
     if request.session.get('customer_session'):
         return redirect('customer_dashboard')
 
