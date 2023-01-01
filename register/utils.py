@@ -1,10 +1,12 @@
 import base64
+import logging
 import random
 import re
 import string
 from calendar import monthrange
 from datetime import datetime, date
 from io import BytesIO
+from time import gmtime, strftime
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -494,7 +496,7 @@ def get_customer_due_amount_by_month(request, customer_id=None):
     return due_list, due_months
 
 
-def send_whatsapp_message(wa_body, wa_message, route=None):
+def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_number=None):
     url = f"https://graph.facebook.com/v13.0/{WA_NUMBER_ID}/messages"
     headers = {
         "Content-Type": "application/json",
@@ -502,6 +504,7 @@ def send_whatsapp_message(wa_body, wa_message, route=None):
     }
     data = wa_body
     response = requests.post(url, headers=headers, json=data)
+    showtime = strftime("%Y-%m-%d %H:%M:%S", gmtime())
     if response.status_code == 200:
         resp = response.json()
         message_id = resp['messages'][0]['id']
@@ -514,6 +517,15 @@ def send_whatsapp_message(wa_body, wa_message, route=None):
         WhatsAppMessage.insert_message(message_id, related_id, route, to_number, 'Milk Basket',
                                        sender_number,
                                        message_type, wa_message, None, payload)
+        logging.warning(
+            'INFO - {0} - {1} - {2} - {3} - {4} - {5}'.format(showtime, response.status_code,
+                                                              cust_id, to_number, cust_number,
+                                                              payload))
+    else:
+        logging.warning(
+            'ERROR - {0} - {1} - N/A - {2} - {3} - {4}'.format(showtime, response.status_code,
+                                                               cust_id, cust_number,
+                                                               response.json()))
     return response.status_code == 200
 
 
