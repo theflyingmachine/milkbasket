@@ -15,7 +15,8 @@ from customer.models import WhatsAppMessage, LoginOTP
 from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT
 from register.constant import WA_NEW_MESSAGE, WA_NEW_MESSAGE_TEMPLATE
 from register.models import Customer, Payment, Register, Tenant
-from register.utils import get_customer_due_amount, get_mongo_client, send_whatsapp_message
+from register.utils import get_customer_due_amount, get_mongo_client, send_whatsapp_message, \
+    is_mobile
 
 
 def customer_dashboard(request):
@@ -72,9 +73,9 @@ def customer_dashboard(request):
     for day in range(1, today.day + 1):
         days.append(day)
         m_e = register.filter(log_date__day=day, schedule__contains='morning').first()
-        morning_entry.append(m_e.quantity if m_e and 'yes' in m_e.schedule else 0)
+        morning_entry.append(m_e.quantity if m_e and 'yes' in m_e.schedule else None)
         e_e = register.filter(log_date__day=day, schedule__contains='evening').first()
-        evening_entry.append(e_e.quantity if e_e and 'yes' in e_e.schedule else 0)
+        evening_entry.append(e_e.quantity if e_e and 'yes' in e_e.schedule else None)
 
     context = {
         'customer': customer,
@@ -84,8 +85,9 @@ def customer_dashboard(request):
         'bill_stats': {'count_due_bill': count_due_bill, 'count_paid_bill': count_paid_bill,
                        'percent': round((count_due_bill / len(bill_list) * 100),
                                         1) if count_due_bill else 100},
-        'register_stats': {'days': days, 'morning_entry': morning_entry,
-                           'evening_entry': evening_entry},
+        'register_stats': {'days': mark_safe([f'{day} {today.strftime("%b")}' for day in days]),
+                           'morning_entry': json.dumps(morning_entry),
+                           'evening_entry': json.dumps(evening_entry)},
         'transactions': transactions,
         'order_statistics': {
             'labels': mark_safe([f"{v} ML" for v in values]),
@@ -102,7 +104,7 @@ def customer_dashboard(request):
                           'percent': round((today.day / days_in_month) * 100, 1),
                           'remaining': days_in_month - today.day},
         'page_title': 'Milk Basket - Register',
-
+        'is_mobile': is_mobile(request),
     }
     return render(request, template, context)
 
