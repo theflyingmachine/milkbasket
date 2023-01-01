@@ -149,3 +149,22 @@ MAINTENANCE_MODE_IGNORE_STAFF = False  # if True Register will not see the maint
 MAINTENANCE_MODE_IGNORE_SUPERUSER = True  # if True superuser will not see maintenance-mode page
 MAINTENANCE_MODE_TEMPLATE = 'register/errors/Maintenance.html'
 MAINTENANCE_MODE_STATUS_CODE = 503
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'milkbasket.log',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['file'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+    },
+}
