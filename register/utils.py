@@ -515,17 +515,19 @@ def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_nu
         message_type = wa_body['template']['name']
         payload = resp
         WhatsAppMessage.insert_message(message_id, related_id, route, to_number, 'Milk Basket',
-                                       sender_number,
-                                       message_type, wa_message, None, payload)
+                                       sender_number, message_type, wa_message, None, payload,
+                                       sent_payload=wa_body)
         logging.warning(
-            'INFO - {0} - {1} - {2} - {3} - {4} - {5}'.format(showtime, response.status_code,
-                                                              cust_id, to_number, cust_number,
-                                                              payload))
+            'INFO - {0} - {1} - {2} - {3} - {4} - {5} - {6}'.format(showtime, response.status_code,
+                                                                    cust_id, to_number,
+                                                                    cust_number,
+                                                                    payload, wa_body))
     else:
         logging.warning(
-            'ERROR - {0} - {1} - N/A - {2} - {3} - {4}'.format(showtime, response.status_code,
-                                                               cust_id, cust_number,
-                                                               response.json()))
+            'ERROR - {0} - {1} - N/A - {2} - {3} - {4} - {5}'.format(showtime,
+                                                                     response.status_code,
+                                                                     cust_id, cust_number,
+                                                                     response.json(), wa_body))
     return response.status_code == 200
 
 

@@ -21,6 +21,7 @@ class WhatsAppMessage(models.Model):
     media_id = models.IntegerField(null=True, blank=True)
     received_at = models.DateTimeField(auto_now_add=True)
     payload = models.JSONField(default=None, null=True)
+    sent_payload = models.JSONField(default=None, null=True)
 
     class Meta:
         indexes = [
@@ -29,13 +30,13 @@ class WhatsAppMessage(models.Model):
 
     @staticmethod
     def insert_message(message_id, related_id, route, to_number, sender_name, sender_number,
-                       message_type, message_body, media_id, payload):
+                       message_type, message_body, media_id, payload, sent_payload=None):
         WhatsAppMessage.objects.create(message_id=message_id, related_message_id=related_id,
                                        route=route,
                                        to_number=to_number, sender_display_name=sender_name,
                                        sender_number=sender_number, message_type=message_type,
                                        message_body=message_body, media_id=media_id,
-                                       payload=payload)
+                                       payload=payload, sent_payload=sent_payload)
 
     @staticmethod
     def update_status(message_id, status):
