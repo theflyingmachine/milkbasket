@@ -17,6 +17,7 @@ class WhatsAppMessage(admin.ModelAdmin):
                        'route',
                        'status',
                        'payload',
+                       'sent_payload',
                        'related_message_id',
                        'received_at']  # Read Only Fields
     ordering = ('-received_at',)

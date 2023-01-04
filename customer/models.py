@@ -20,7 +20,7 @@ class WhatsAppMessage(models.Model):
     message_body = models.TextField(null=True, blank=True)
     media_id = models.IntegerField(null=True, blank=True)
     received_at = models.DateTimeField(auto_now_add=True)
-    payload = models.JSONField(default=None, null=True)
+    payload = models.JSONField(default=None, null=True, verbose_name="Received Payload")
     sent_payload = models.JSONField(default=None, null=True)
 
     class Meta:
