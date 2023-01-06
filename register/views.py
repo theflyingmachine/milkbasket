@@ -1460,8 +1460,21 @@ def broadcast_send(request, cust_id=None):
 
 @login_required()
 def whatsapp_chat(request, wa_number=None):
-    all_messages = WhatsAppMessage.objects.all().exclude(
+    show_message_date = datetime.now() - timedelta(45)  # Show 45 days old messages only
+    all_known_contact = Customer.objects.filter(contact__gt=0)
+    customer_contacts = [910000000000 + int(c.contact) for c in
+                         all_known_contact.filter(tenant_id=request.user.id)]
+    all_messages = WhatsAppMessage.objects.filter(
+        Q(sender_number__in=customer_contacts) | Q(to_number__in=customer_contacts),
+        received_at__gt=show_message_date).exclude(
         Q(message_type__in=('unsupported', 'reaction')) | Q(route__in=('API_INFO', 'API_OTP')))
+    if request.user.id == 2:
+        # Add All Unknown Messages to Primary Seller
+        unknown_messages = WhatsAppMessage.objects.filter(
+            received_at__gt=show_message_date).exclude(
+            Q(sender_number__in=[910000000000 + int(c.contact) for c in all_known_contact]) |
+            Q(message_type__in=('unsupported', 'reaction')) | Q(route__in=('API_INFO', 'API_OTP')))
+        all_messages = all_messages | unknown_messages
     customers = Customer.objects.filter(contact__isnull=False).values('contact', 'name')
     contact_names = {c['contact']: c['name'] for c in customers}
     distinct_users = {

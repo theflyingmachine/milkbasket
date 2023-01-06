@@ -22,7 +22,7 @@ class WhatsAppMessage(admin.ModelAdmin):
                        'received_at']  # Read Only Fields
     ordering = ('-received_at',)
     search_fields = ('sender_display_name', 'sender_number', 'to_number')
-    list_filter = ('sender_display_name', 'sender_number', 'route',)
+    list_filter = ('route', 'status', 'sender_display_name', 'sender_number')
     list_display = (
         'to_number',
         'sender_number',
