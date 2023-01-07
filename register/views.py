@@ -1,6 +1,7 @@
 import ast
 import decimal
 import json
+import threading
 from calendar import monthrange
 from datetime import date
 from datetime import datetime
@@ -893,9 +894,15 @@ def accept_payment(request, year=None, month=None, return_url=None):
             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
             sms_text = SMS_PAYMENT_MESSAGE.format(customer.name, new_payment.amount,
                                                   transaction_time, new_payment.id)
-            send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
-            send_wa_payment_notification(customer.contact, customer.name, new_payment.amount,
-                                         transaction_time, new_payment.id)
+            sms_thread = threading.Thread(target=send_sms_api,
+                                          args=(customer.contact, sms_text, PAYMENT_TEMPLATE_ID))
+            wa_thread = threading.Thread(target=send_wa_payment_notification,
+                                         args=(customer.contact, customer.name, new_payment.amount,
+                                               transaction_time, new_payment.id))
+            sms_thread.start()
+            wa_thread.start()
+            sms_thread.join()
+            wa_thread.join()
 
     return redirect(formatted_url)
 
@@ -1449,13 +1456,27 @@ def broadcast_send(request, cust_id=None):
         wa_message = WA_DUE_MESSAGE.format(due[0]['name'], due[0]['to_be_paid'],
                                            due[0]['due_month'],
                                            f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}")
-        sms_res = send_sms_api(DEV_NUMBER if RUN_ENVIRONMENT == 'dev' else cust_number, sms_body,
-                               DUE_TEMPLATE_ID)
-        wa_res = send_whatsapp_message(wa_body, wa_message, cust_id=cust_id,
-                                       cust_number=cust_number)
 
-        return JsonResponse({"sms": 2 if sms_res.text.__contains__('"status":"success"') else 3,
-                             "wa": 2 if wa_res else 3})
+        res = {'sms': False, 'whatsapp': False}
+
+        def proxy_send_sms_api():
+            res['sms'] = send_sms_api(DEV_NUMBER if RUN_ENVIRONMENT == 'dev' else cust_number,
+                                      sms_body,
+                                      DUE_TEMPLATE_ID)
+
+        def proxy_send_whatsapp_message():
+            res['whatsapp'] = send_whatsapp_message(wa_body, wa_message, cust_id=cust_id,
+                                                    cust_number=cust_number)
+
+        sms_thread = threading.Thread(target=proxy_send_sms_api, args=())
+        wa_thread = threading.Thread(target=proxy_send_whatsapp_message, args=())
+        sms_thread.start()
+        wa_thread.start()
+        sms_thread.join()
+        wa_thread.join()
+
+        return JsonResponse({"sms": 2 if res['sms'].text.__contains__('"status":"success"') else 3,
+                             "wa": 2 if res['whatsapp'] else 3})
 
 
 @login_required()
