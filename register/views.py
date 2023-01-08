@@ -1228,10 +1228,7 @@ def customer_profile(request, id=None):
                                                          'e-evening']).order_by('-log_date')
         payment_due_amount_prev_month = 0
         payment_due_amount_till_date = 0
-        balance_amount = 0
         if due_cust:
-            # Get the balance table
-            balance_amount = get_customer_balance_amount(id)
             # Check till last month
             due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(
                 log_date__month=current_date.month, log_date__year=current_date.year)
@@ -1310,6 +1307,8 @@ def customer_profile(request, id=None):
             'payment_due_amount_till_date': due_till_current_month,
             'previous_month_name': prev_month_name,
             'tenant': tenant,
+            'balance_amount': balance_amount,
+            'total_due_amount': payment_due_amount_till_date,
         })
         return render(request, template, context)
     return redirect('view_customers')
@@ -1532,3 +1531,52 @@ def get_whatsapp_media(request, media_id):
     if media_id:
         media, media_type = get_whatsapp_media_by_id(media_id)
         return HttpResponse(media, content_type=media_type)
+
+
+@login_required()
+@transaction.atomic()
+def customer_settle_up(request):
+    c_id = request.POST.get("c_id", None)
+    customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
+    if customer:
+        # Check Advance Balance
+        balance = Balance.objects.filter(customer=customer).first()
+        if abs(balance.balance_amount) > 0:
+            # Get last transaction number
+            last_transaction = Payment.objects.filter(customer=customer).latest('log_date')
+            # Get due register and update
+            due_register = Register.objects.filter(customer=customer, paid=False,
+                                                   schedule__endswith='-yes').order_by('log_date')
+            for entry in due_register:
+                due_amount = (entry.current_price / 1000) * decimal.Decimal(float(entry.quantity))
+                if abs(balance.balance_amount) >= due_amount:
+                    # Sufficient Balance Available, adjust current day
+                    entry.paid = True
+                    entry.transaction_number = last_transaction
+                    entry.save()
+                    balance.balance_amount = abs(balance.balance_amount) - due_amount
+                    balance.save()
+
+    profile_url = reverse('customer_profile', args=[customer.id])
+    return redirect(profile_url)
+
+
+@login_required()
+@transaction.atomic()
+def customer_refund(request):
+    c_id = request.POST.get("c_id", None)
+    customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
+    if customer:
+        # Check Advance Balance
+        balance = Balance.objects.filter(customer=customer).first()
+        if abs(balance.balance_amount) > 0:
+            # Get last transaction number / Add Note about Refund
+            last_transaction = Payment.objects.filter(customer=customer).latest('log_date')
+            last_transaction.refund_notes = f'₹{abs(balance.balance_amount)} Refunded on {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}'
+            last_transaction.save()
+            # Update Balance with 0 remaining amount
+            balance.balance_amount = 0
+            balance.save()
+
+    profile_url = reverse('customer_profile', args=[customer.id])
+    return redirect(profile_url)

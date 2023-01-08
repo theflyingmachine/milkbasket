@@ -48,6 +48,7 @@ class Payment(models.Model):
     log_date = models.DateTimeField(auto_now_add=True, null=True)
     payment_mode = models.CharField(max_length=10, null=True, default='CASH', blank=True)
     transaction_id = models.CharField(max_length=50, null=True, default=None, blank=True)
+    refund_notes = models.CharField(max_length=50, null=True, default=None, blank=True)
 
 
 class Register(models.Model):
