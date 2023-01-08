@@ -112,25 +112,37 @@
           <table class="table table-sm table-striped">
             <thead>
             <tr class="d-flex bg-info text-white">
-              <th class="p-2 col-1" scope="col">#</th>
               <th class="p-2 col-4" scope="col">Total Due</th>
               <th class="p-2 col-4" scope="col">Due (till {{ previous_month_name }})</th>
-              <th class="p-2 col-3" scope="col">Action</th>
+              <th class="p-2 col-4" scope="col">Action</th>
             </tr>
             </thead>
             <tbody>
             <tr class="d-flex">
-              <th class="p-2 col-1" scope="row">1</th>
               {% if payment_due_amount_till_date < 0 %}
                 <td class="p-2 col-4">{{ payment_due_amount_till_date|abs }} <span
-                 class="text-success">(Advance)</span></td>
+                 class="text-success">(Advance)</span>
+                  {% if total_due_amount > 0 %}
+                    <button type="button" class="btn-sm btn-warning"
+                            data-toggle="modal"
+                            data-target="#exampleModal3"
+                    >Settle Up
+                    </button>{% endif %}
+                  {% if total_due_amount == 0 %}
+                    <button type="button" class="btn-sm btn-warning"
+                            data-toggle="modal"
+                            data-target="#exampleModal4"
+                    >Refund Advance
+                    </button>{% endif %}
+
+                </td>
               {% else %}
                 <td class="p-2 col-4">{{ payment_due_amount_till_date }}</td>
               {% endif %}
               <td class="p-2 col-4">{% if payment_due_amount_prev_month > 0 %}
                 <span class="font-weight-bold">{{ payment_due_amount_prev_month }}</span>
                 <span class="text-info">{{ previous_month_name }}</span> {% endif %}</td>
-              <td class="col-3">
+              <td class="col-4">
                 <button type="button" class="btn-sm btn-primary"
                         data-toggle="modal"
                         data-target="#exampleModal2"
@@ -274,11 +286,13 @@
             {% for entry in transaction %}
               <tr class="d-flex">
                 <td class="p-2 col-2">#{{ entry.id }}</td>
-                <td class="p-2 col-6">{{ entry.log_date }}  {% if entry.payment_mode == 'ONLINE' %}
-                  <a target="_blank"
-                     href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% else %}
-                  <span class="text-info">{{ entry.payment_mode }}{% endif %}</span></td>
+                <td class="p-2 col-6">{{ entry.log_date }}
+                  {% if entry.payment_mode == 'ONLINE' %}
+                    <a target="_blank"
+                       href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% else %}
+                    <span class="text-info">{{ entry.payment_mode }}{% endif %}</span></td>
                 <td class="p-2 col-4">{{ entry.amount }}
+                  <span class="text-info">{{ entry.refund_notes }}</span>
                   {% if forloop.last and is_revertible %}
                     <button id="reverttransactionbuttonmain" type="button"
                             class="btn btn-danger mb-1"
@@ -353,7 +367,8 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <form name="addexp" action="{% url 'accept_payment' %}" method="post">{% csrf_token %}
+            <form name="addexp" action="{% url 'accept_payment' %}"
+                  method="post">{% csrf_token %}
               <input type="hidden" class="form-control" id="return_url" name="return_url"
                      value="profile/{{ customer.id }}">
               <input type="hidden" class="form-control" id="c_id" name="c_id">
@@ -386,7 +401,8 @@
                   <div class="form-row">
                     <div class="form-group col-md-12 send-sms-checkbox">
                       <label for="name">Send SMS Notification </label>
-                      <input type="checkbox" id="sms-notification" name="sms-notification" checked
+                      <input type="checkbox" id="sms-notification" name="sms-notification"
+                             checked
                              value="1">
                     </div>
                   </div>
@@ -441,7 +457,8 @@
                 <div class="form-row">
                   <div class="form-group col-md-12">
                     <label for="textareabox">SMS Text</label>
-                    <textarea class="container" id="smstextareabox" name="smstextareabox" rows="4"
+                    <textarea class="container" id="smstextareabox" name="smstextareabox"
+                              rows="4"
                               cols="50">
                   </textarea>
                   </div>
@@ -496,7 +513,8 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-user-edit"></i> Edit
+              <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-user-edit"></i>
+                Edit
                 Customer</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -511,7 +529,8 @@
                 <div class="form-row">
                   <div class="form-group col-md-12">
                     <label for="name">Name</label>
-                    <input autofocus required type="text" class="form-control" id="recipient_name"
+                    <input autofocus required type="text" class="form-control"
+                           id="recipient_name"
                            name="name"
                            placeholder="Enter Name">
                   </div>
@@ -573,6 +592,80 @@
                 <button id="editButton" type="submit"
                         class="btn btn-primary justify-content-center col-12">Update
                   Customer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+
+      {#      Settle Up Modal #}
+      <div class="modal fade" id="exampleModal3" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Settle Up Advance
+                - {{ customer.name }}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form name="settleup" action="{% url 'customer_settle_up' %}"
+                  method="post">{% csrf_token %}
+              <input type="hidden" class="form-control" id="c_id" name="c_id"
+                     value="{{ customer.id }}">
+              <div class="p-4">
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Are you sure to settle up the Advance amount against any
+                      remaining due Register entry?</label>
+                    <hr>
+                    <label class="d-block" for="Advance">Available
+                      Advance: {{ balance_amount|floatformat:2 }}</label>
+                    <label class="d-block" for="Due">Total
+                      Due: {{ total_due_amount|floatformat:2 }}</label>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary justify-content-center col-12">
+                  Settle Up
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {# Refund Modal #}
+      <div class="modal fade" id="exampleModal4" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Refund Advance
+                - {{ customer.name }}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form name="refund_balance" action="{% url 'customer_refund' %}"
+                  method="post">{% csrf_token %}
+              <input type="hidden" class="form-control" id="c_id" name="c_id"
+                     value="{{ customer.id }}">
+              <div class="p-4">
+                <div class="form-row">
+                  <div class="form-group col-md-12">
+                    <label for="name">Are you sure to refund remaining Advance?</label>
+                    <hr>
+                    <label class="d-block" for="Advance">Available
+                      Advance: {{ balance_amount|floatformat:2 }}</label>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary justify-content-center col-12">
+                  Refund ₹ {{ balance_amount|floatformat:2 }}
                 </button>
               </div>
             </form>

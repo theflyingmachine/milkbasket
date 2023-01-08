@@ -37,6 +37,8 @@ urlpatterns = [
     path('report-data-status/<str:poll_id>', views.report_data_status, name='view_report_data'),
 
     path('accept-payment', views.accept_payment, name='accept_payment'),
+    path('settle-up-payment', views.customer_settle_up, name='customer_settle_up'),
+    path('refund-payment', views.customer_refund, name='customer_refund'),
     path('account/<int:year>/<int:month>/accept-payment', views.accept_payment,
          name='accept_payment'),
     path('revert-transaction', views.revert_transaction, name='revert_transaction'),
