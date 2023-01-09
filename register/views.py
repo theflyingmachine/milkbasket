@@ -1539,8 +1539,14 @@ def whatsapp_chat(request, wa_number=None):
 @login_required()
 def get_whatsapp_media(request, media_id):
     if media_id:
-        media, media_type = get_whatsapp_media_by_id(media_id)
-        return HttpResponse(media, content_type=media_type)
+        try:
+            media, media_type = get_whatsapp_media_by_id(media_id)
+            return HttpResponse(media, content_type=media_type)
+        except TypeError:
+            logger.warning(f'Media Not Available {media_id}')
+            # Show Not Available Image
+            return redirect(
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png')
 
 
 @login_required()
