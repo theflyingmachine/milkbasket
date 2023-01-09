@@ -156,7 +156,7 @@ MAINTENANCE_MODE_STATUS_CODE = 503
 
 # Sentry Logging
 sentry_sdk.init(
-    dsn=SENTRY_DSN_DEV if RUN_ENVIRONMENT else SENTRY_DSN_PROD,
+    dsn=SENTRY_DSN_DEV if RUN_ENVIRONMENT == 'dev' else SENTRY_DSN_PROD,
     integrations=[
         DjangoIntegration(),
     ],
