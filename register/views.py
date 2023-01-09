@@ -1,6 +1,7 @@
 import ast
 import decimal
 import json
+import logging
 import threading
 from calendar import monthrange
 from datetime import date
@@ -39,7 +40,7 @@ from register.models import Payment
 from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
-    get_whatsapp_media_by_id
+    get_whatsapp_media_by_id, get_client_ip
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
@@ -62,6 +63,8 @@ from register.utils import render_to_pdf
 from register.utils import send_email_api
 from register.utils import send_sms_api
 from register.utils import send_whatsapp_message
+
+logger = logging.getLogger()
 
 
 @login_required
@@ -369,10 +372,13 @@ def add_customer(request):
 
             try:
                 customer.save()
+                logger.info(f'New customer created {customer.name}')
             except Exception as E:
                 list(messages.get_messages(request))
                 messages.add_message(request, messages.ERROR,
                                      f'Something went wrong, we could not add customer')
+                logger.critical(
+                    f'Something went wrong, we could not add customer {messages.ERROR}')
         if no_redirect:
             m_quantity_text = f'{m_quantity} ML (Morning).' if m_quantity else ''
             e_quantity_text = f'{e_quantity} ML (Evening).' if e_quantity else ''
@@ -849,9 +855,11 @@ def accept_payment(request, year=None, month=None, return_url=None):
             new_payment.save()
             messages.add_message(request, messages.SUCCESS,
                                  f'Payment of Rs. {payment_amount} received from {customer.name}')
+            logger.info('Payment Received: {0} from {1}'.format(payment_amount, customer.name))
         except:
             messages.add_message(request, messages.ERROR,
                                  'Could not process payment of Rs. {payment_amount} from {customer.name}')
+            logger.critical('Payment Failed: {0} from {1}'.format(payment_amount, customer.name))
             return redirect(formatted_url)
         balance_amount, _ = Balance.objects.get_or_create(tenant_id=request.user.id,
                                                           customer_id=c_id)
@@ -931,11 +939,13 @@ def revert_transaction(request):
                       'error': f'Transaction #{transaction_number.id} was reverted successfully'}
             messages.add_message(request, messages.WARNING,
                                  f'Transaction #{transaction_number.id} was reverted successfully')
+            logger.info(f'Transaction #{transaction_number.id} was reverted successfully')
         except Exception as e:
             status = {'status': 'failed',
                       'error': f'Error occurred while reverting transactions {e}'}
             messages.add_message(request, messages.ERROR,
                                  f'Error occurred while reverting transactions {e}')
+            logger.critical(f'Error occurred while reverting transactions {e}')
 
     return JsonResponse(status)
 
@@ -955,12 +965,11 @@ def landing(request):
             login(request, user)
             return redirect('view_register')
         else:
-            customer = Customer.objects.filter(contact=username).first()
-            if customer.name == password:
-                request.session['customer_session'] = True
-                request.session['customer'] = customer.id
-                request.session.save()
-                return redirect('customer_dashboard')
+            logger.warning(
+                'Failed Seller Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(username,
+                                                                                        password,
+                                                                                        get_client_ip(
+                                                                                            request)))
             context.update({
                 'message': 'Invalid username or password',
             })
@@ -1162,6 +1171,7 @@ def setting(request):
 
         request.session['alert_class'] = 'success'
         request.session['alert_message'] = 'Settings Saved'
+        logger.info('Settings updated successfully')
         messages.add_message(request, messages.SUCCESS, 'Settings updated successfully')
 
     try:
@@ -1577,6 +1587,8 @@ def customer_refund(request):
             # Update Balance with 0 remaining amount
             balance.balance_amount = 0
             balance.save()
+            logger.info(
+                f'Refund {abs(balance.balance_amount)} completed for Customer:{customer.name}')
 
     profile_url = reverse('customer_profile', args=[customer.id])
     return redirect(profile_url)

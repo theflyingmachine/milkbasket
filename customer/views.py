@@ -1,6 +1,7 @@
 import calendar
 import datetime
 import json
+import logging
 from hashlib import sha256
 from hmac import compare_digest, HMAC
 
@@ -16,7 +17,9 @@ from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN, DEV_NUMBER, RUN_ENVIRONMEN
 from register.constant import WA_NEW_MESSAGE, WA_NEW_MESSAGE_TEMPLATE
 from register.models import Customer, Payment, Register, Tenant
 from register.utils import get_customer_due_amount, get_mongo_client, send_whatsapp_message, \
-    is_mobile
+    is_mobile, get_client_ip
+
+logger = logging.getLogger()
 
 
 def customer_dashboard(request):
@@ -136,10 +139,18 @@ def customer_dashboard_login(request):
                     request.session['customer_session'] = True
                     request.session['customer'] = customer.id
                     request.session.save()
+                    logger.info(
+                        'Customer Login - UserName:{0} Password:{1}, IP:{2}'.format(username,
+                                                                                    password,
+                                                                                    get_client_ip(
+                                                                                        request)))
                     return redirect('customer_dashboard')
                 else:
                     otp.login_attempt += 1
                     otp.save()
+                    logger.warning(
+                        'Failed Customer Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(
+                            username, password, get_client_ip(request)))
                     context.update({'message': 'Login Failed, {0}'.format(
                         f'{3 - otp.login_attempt} attempt remaining' if otp.login_attempt < 3 else 'please try again later')})
     if request.session.get('customer_session'):

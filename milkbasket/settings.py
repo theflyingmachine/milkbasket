@@ -12,12 +12,16 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 from pathlib import Path
 
+# Sentry Logging
+import sentry_sdk
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 from django.contrib import messages
 from django.urls import reverse_lazy
+from sentry_sdk.integrations.django import DjangoIntegration
 
-from milkbasket.secret import EMAIL_PASSWORD
+from milkbasket.secret import EMAIL_PASSWORD, RUN_ENVIRONMENT
 from milkbasket.secret import ENV_DEBUG
+from milkbasket.secret import SENTRY_DSN_DEV, SENTRY_DSN_PROD
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -150,20 +154,44 @@ MAINTENANCE_MODE_IGNORE_SUPERUSER = True  # if True superuser will not see maint
 MAINTENANCE_MODE_TEMPLATE = 'register/errors/Maintenance.html'
 MAINTENANCE_MODE_STATUS_CODE = 503
 
+# Sentry Logging
+sentry_sdk.init(
+    dsn=SENTRY_DSN_DEV if RUN_ENVIRONMENT else SENTRY_DSN_PROD,
+    integrations=[
+        DjangoIntegration(),
+    ],
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True
+)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'main_formatter': {
+            'format': "{asctime} - {levelname} - {module} - {funcName} - {message}",
+            'style': '{',
+        }
+    },
     'handlers': {
         'file': {
-            'level': 'WARNING',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'milkbasket.log',
+            'filename': BASE_DIR / 'log_milkbasket.log',
+            'formatter': 'main_formatter',
         },
     },
     'loggers': {
         '': {
             'handlers': ['file'],
-            'level': 'WARNING',
+            'level': 'INFO',
             'propagate': True,
         },
     },

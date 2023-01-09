@@ -1,3 +1,4 @@
+import logging
 from calendar import monthrange
 
 from django.http import JsonResponse
@@ -9,10 +10,13 @@ from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
 from register.utils import get_register_day_entry
 
+logger = logging.getLogger()
+
 
 def index(request, bill_number=None):
     """Render customer view of bill"""
     if bill_number:
+        logger.info('Bill View: {0}'.format(bill_number))
         template = 'bill/bill_template_simple.html'
         # template = 'bill/bill_template.html'
         context = {
@@ -123,13 +127,13 @@ def fetch_bill(bill_number, full_data=False, update_count=False):
         bill_metadata = metadata.find_one({'bill_number': bill_number})
     else:
         bill_metadata = metadata.find_one({'bill_number': bill_number}, {'_id': 1})
-    if update_count:
+    if update_count and bill_metadata:
         tenant = Register.objects.get(id=bill_metadata['transaction_ids'][0])
-        tenant_id = tenant.tenant_id
-        tenant_pref = Tenant.objects.filter(tenant_id=tenant_id).first()
-        if tenant_pref.customers_bill_access:
-            metadata.update({'bill_number': bill_metadata['bill_number']},
-                            {'$inc': {'views': 1, }})
+        if tenant:
+            tenant_pref = Tenant.objects.filter(tenant_id=tenant.tenant_id).first()
+            if tenant_pref.customers_bill_access:
+                metadata.update({'bill_number': bill_metadata['bill_number']},
+                                {'$inc': {'views': 1, }})
 
     return bill_metadata
 

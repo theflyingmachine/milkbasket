@@ -629,7 +629,8 @@
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary justify-content-center col-12">
+                <button type="submit" class="btn btn-primary justify-content-center col-12"
+                        onclick="acceptPaymentFn(this);">
                   Settle Up
                 </button>
               </div>
@@ -664,7 +665,8 @@
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary justify-content-center col-12">
+                <button type="submit" class="btn btn-primary justify-content-center col-12"
+                        onclick="acceptPaymentFn(this);">
                   Refund ₹ {{ balance_amount|floatformat:2 }}
                 </button>
               </div>
