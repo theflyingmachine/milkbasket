@@ -45,8 +45,8 @@ from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
-from register.utils import get_all_due_customer
 from register.utils import get_bill_summary
+from register.utils import get_customer_all_due
 from register.utils import get_customer_balance_amount
 from register.utils import get_customer_due_amount
 from register.utils import get_customer_due_amount_by_month
@@ -1439,7 +1439,7 @@ def broadcast_bulk_bill(request):
 def broadcast_metadata(request):
     context = {}
     if request.method == "GET":
-        due_cust = get_all_due_customer(request)
+        due_cust = get_customer_all_due(request)
         context.update({'due_customer': due_cust,
                         })
     return JsonResponse(context)
@@ -1448,7 +1448,7 @@ def broadcast_metadata(request):
 @login_required
 def broadcast_send(request, cust_id=None):
     if cust_id:
-        due = get_all_due_customer(request, cust_id)
+        due = get_customer_all_due(request, cust_id)
         bill_byte = generate_bill(request, cust_id, no_download=True)
         bill = ast.literal_eval(bill_byte.content.decode('utf-8'))
         cust_number = get_customer_contact(request, cust_id)

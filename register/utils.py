@@ -3,6 +3,7 @@ import logging
 import random
 import re
 import string
+import threading
 from calendar import monthrange
 from datetime import datetime, date
 from io import BytesIO
@@ -228,13 +229,18 @@ def send_sms_api(contact, sms_text, template_id):
     return response
 
 
-def save_bill_to_mongo(bill_metadata):
+def save_bill_to_mongo(bill_metadata, bill):
     """ Upload bill metadata to cloud mongo db """
     # Upload Bill Metadata
-    metadata = get_mongo_client()
-    bill_metadata_id = metadata.insert(bill_metadata)
-
-    return bill_metadata_id
+    try:
+        metadata = get_mongo_client()
+        bill_metadata_id = metadata.insert(bill_metadata)
+        bill.mongo_id = str(bill_metadata_id)
+        bill.save()
+        logger.info(f'MongoDB bill uploaded {str(bill_metadata_id)}')
+        return bill_metadata_id
+    except:
+        logger.critical(f'MongoDB bill upload failed : {bill_metadata}')
 
 
 def get_register_transactions(cust_id, only_paid=False, only_due=True):
@@ -301,19 +307,6 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
     res = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
     bill_number = f'MB-{cust_id}-{datetime.now().year}-{datetime.now().month}-{res}'
     customer = Customer.objects.get(id=cust_id)
-    # Extract months which has due for calendar
-    active_months = get_active_month(cust_id, all_active=True)
-    calendar = [{'month': active_month.strftime('%B'),
-                 'year': active_month.strftime('%Y'),
-                 'week_start_day': [x for x in range(0, active_month.weekday())],
-                 'days_in_month': [{'day': day,
-                                    'data': get_register_day_entry(cust_id, day=day,
-                                                                   month=active_month.month,
-                                                                   year=active_month.year)
-                                    } for day in range(1, (
-                     monthrange(active_month.year, active_month.month)[1]) + 1)]
-                 } for active_month in active_months]
-
     # Extract only due months for bill
     due_months = get_active_month(cust_id, only_paid=False, only_due=True)
     bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
@@ -342,7 +335,6 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
     bill = Bill(customer_id=customer, bill_number=bill_number,
                 amount=bill_sum_total['sum_total'],
                 bill_last_data_date=customer_register_last_updated(cust_id))
-    bill.save()
 
     # Render PDF data
     data = {'barcode': barcode, 'bill_number': bill_number, 'page_title': bill_number,
@@ -354,18 +346,16 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
                                                                                             'Rs.'),
             'transaction_ids': list(get_register_transactions(cust_id, only_due=True))}
     # Upload Bill metadata to Mongo
-    mongo_id = save_bill_to_mongo(data)
+    mongo_upload_thread = threading.Thread(target=save_bill_to_mongo, args=(data, bill))
+    mongo_upload_thread.start()
     if no_download:
         return JsonResponse(
             {'status': 'success', 'amount': bill_sum_total['sum_total'],
-             'mongo': str(mongo_id), 'bill_number': data['bill_number'],
-             'month_year': bill_month,
-             })
+             'bill_number': data['bill_number'], 'month_year': bill_month, })
     elif raw_data:
         return (
             {'status': 'success', 'amount': bill_sum_total['sum_total'],
-             'mongo': str(mongo_id), 'bill_number': data['bill_number'],
-             'raw_data': data})
+             'bill_number': data['bill_number'], 'raw_data': data})
     return data
 
 
@@ -433,8 +423,9 @@ def get_last_autopilot(tenant_id=2):
     return last_entry_date
 
 
-def get_all_due_customer(request, cust_id=None):
+def get_customer_all_due(request, cust_id=None):
     """ Get formatted due for billing """
+    tenant = Tenant.objects.filter(tenant_id=request.user.id).first()
     current_date = date.today()
     prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
     current_month_name = current_date.strftime("%B")
@@ -450,11 +441,11 @@ def get_all_due_customer(request, cust_id=None):
         customer['total_due'], customer['prev_month_due'], customer[
             'adv'] = get_customer_due_amount(
             customer['customer_id'])
-    is_last_day = is_last_day_of_month()
+    bill_till_date = is_last_day_of_month() or tenant.bill_till_date
     due_cust = []
     for c in due_customer:
         if c['customer__contact'] and c['total_due'] > 0:
-            if is_last_day or not c['prev_month_due'] > 0:
+            if bill_till_date or not c['prev_month_due'] > 0:
                 to_be_paid, due_month = c['total_due'], current_month_name
             else:
                 to_be_paid, due_month = c['prev_month_due'], prev_month_name

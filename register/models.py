@@ -101,3 +101,4 @@ class Bill(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     bill_last_data_date = models.DateTimeField(null=False)
     bill_generated_date = models.DateTimeField(null=False, default=datetime.now)
+    mongo_id = models.CharField(max_length=50, null=True, blank=True)
