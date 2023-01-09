@@ -31,9 +31,12 @@ from register.models import Balance, Payment
 from register.models import Bill
 from register.models import Customer
 from register.models import Register
+from register.models import Tenant
+
 # ======== UTILITY ============
 # Only helper function beyond this point
-from register.models import Tenant
+
+logger = logging.getLogger()
 
 
 def get_mongo_client():
@@ -211,6 +214,7 @@ def send_sms_api(contact, sms_text, template_id):
     except ModuleNotFoundError as e:
         print('API key not found')
         SMS_API_KEY = ''
+        logger.critical('SMS API KEY NOT FOUND')
     if contact and sms_text:
         url = 'https://cyberboy.in/sms/milk_smsapi.php'
         payload = {'apikey': SMS_API_KEY,
@@ -220,6 +224,7 @@ def send_sms_api(contact, sms_text, template_id):
                    }
         print(payload)
         response = requests.post(url, data=payload)
+        logger.info(response.text)
     return response
 
 
@@ -286,6 +291,7 @@ def send_email_api(to_email, subject, data):
         email = EmailMessage(subject, email_body, to=[to_email])
         email.content_subtype = "html"
         if email.send():
+            logger.info('Email Sent Successfully {0}, {1}'.format(to_email, subject))
             status['status'] = 'success'
     return status
 
@@ -517,17 +523,14 @@ def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_nu
         WhatsAppMessage.insert_message(message_id, related_id, route, to_number, 'Milk Basket',
                                        sender_number, message_type, wa_message, None, payload,
                                        sent_payload=wa_body)
-        logging.warning(
-            'INFO - {0} - {1} - {2} - {3} - {4} - {5} - {6}'.format(showtime, response.status_code,
-                                                                    cust_id, to_number,
-                                                                    cust_number,
-                                                                    payload, wa_body))
+        logger.info(
+            'WhatsApp Message Sent Cust_ID:{0}  resp_to:{1} payload_to:{2} response:{3} payload:{4}'.format(
+                cust_id, to_number, cust_number, payload, wa_body))
     else:
-        logging.warning(
-            'ERROR - {0} - {1} - N/A - {2} - {3} - {4} - {5}'.format(showtime,
-                                                                     response.status_code,
-                                                                     cust_id, cust_number,
-                                                                     response.json(), wa_body))
+        logger.error(
+            'WhatsApp Message Failed Cust_ID:{0} payload_to:{1} response:{2} payload:{3}'.format(
+                cust_id, cust_number, response.json(), wa_body))
+
     return response.status_code == 200
 
 
@@ -563,6 +566,16 @@ def send_wa_payment_notification(cust_number, cust_name, payment_amount, payment
     wa_message = WA_PAYMENT_MESSAGE.format(cust_name, payment_amount, payment_time,
                                            transaction_number)
     return send_whatsapp_message(wa_body, wa_message)
+
+
+def get_client_ip(request):
+    """ Extract user IP address for logging purpose """
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 
 #  ===================== Custom Error Handler Views ==============================
