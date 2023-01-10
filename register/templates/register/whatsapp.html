@@ -191,6 +191,12 @@
                                   type="video/mp4">
                           Your browser does not support the video tag.
                         </video>
+                      {% elif message.message_type == 'audio' %}
+                        <audio controls>
+                          <source src="{% url 'whatsapp_media' message.media_id %}"
+                                  type="audio/ogg">
+                        Your browser does not support the audio element.
+                        </audio>
                       {% endif %}
                       <span
                        class="chat__msg-filler"> </span><span
