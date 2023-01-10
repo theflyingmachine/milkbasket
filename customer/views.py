@@ -276,7 +276,8 @@ def whatsapp_webhook(request):
 
 
 def send_new_message_notification(from_sender):
-    sender = Customer.objects.filter(contact=str(from_sender)[2:], status=True).first()
+    sender = Customer.objects.filter(contact=str(from_sender)[2:]).order_by('-member_since',
+                                                                            '-status').first()
     if sender:
         wa_message = WA_NEW_MESSAGE.format(sender.name)
         wa_body = WA_NEW_MESSAGE_TEMPLATE
