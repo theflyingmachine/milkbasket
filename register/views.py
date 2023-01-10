@@ -902,15 +902,9 @@ def accept_payment(request, year=None, month=None, return_url=None):
             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
             sms_text = SMS_PAYMENT_MESSAGE.format(customer.name, new_payment.amount,
                                                   transaction_time, new_payment.id)
-            sms_thread = threading.Thread(target=send_sms_api,
-                                          args=(customer.contact, sms_text, PAYMENT_TEMPLATE_ID))
-            wa_thread = threading.Thread(target=send_wa_payment_notification,
-                                         args=(customer.contact, customer.name, new_payment.amount,
-                                               transaction_time, new_payment.id))
-            sms_thread.start()
-            wa_thread.start()
-            sms_thread.join()
-            wa_thread.join()
+            send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
+            send_wa_payment_notification(customer.contact, customer.name, new_payment.amount,
+                                         transaction_time, new_payment.id)
 
     return redirect(formatted_url)
 

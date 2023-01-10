@@ -7,7 +7,6 @@ import threading
 from calendar import monthrange
 from datetime import datetime, date
 from io import BytesIO
-from time import gmtime, strftime
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -501,7 +500,6 @@ def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_nu
     }
     data = wa_body
     response = requests.post(url, headers=headers, json=data)
-    showtime = strftime("%Y-%m-%d %H:%M:%S", gmtime())
     if response.status_code == 200:
         resp = response.json()
         message_id = resp['messages'][0]['id']
