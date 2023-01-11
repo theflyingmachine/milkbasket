@@ -16,7 +16,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, F, FloatField
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -1233,16 +1233,21 @@ def customer_profile(request, id=None):
         payment_due_amount_prev_month = 0
         payment_due_amount_till_date = 0
         if due_cust:
-            # Check till last month
-            due_cust_prev_month = due_cust.filter(customer_id=id, paid=0).exclude(
+            # Check due till today
+            total_due = due_cust.annotate(
+                total_due=Sum(F('current_price') * F('quantity'),
+                              output_field=FloatField())).aggregate(
+                Sum('total_due'))['total_due__sum']
+            payment_due_amount_till_date = total_due / 1000 if total_due else 0
+
+            # Check due till last month
+            due_cust_prev_month = due_cust.exclude(
                 log_date__month=current_date.month, log_date__year=current_date.year)
-            for due in due_cust_prev_month:
-                payment_due_amount_prev_month += (
-                    due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
-            # Check till today
-            for due in due_cust:
-                payment_due_amount_till_date += (
-                    due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+            total_due = due_cust_prev_month.annotate(
+                total_due=Sum(F('current_price') * F('quantity'),
+                              output_field=FloatField())).aggregate(
+                Sum('total_due'))['total_due__sum']
+            payment_due_amount_prev_month = total_due / 1000 if total_due else 0
 
         # Extract months which has due for calendar
         active_months = get_active_month(id, all_active=True)

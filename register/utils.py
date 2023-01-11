@@ -12,7 +12,7 @@ import requests
 from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.core.mail import EmailMessage
-from django.db.models import Q
+from django.db.models import Q, Sum, F, FloatField
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -176,11 +176,17 @@ def get_customer_due_amount(customer_id):
     today = datetime.today()
     register_due_qs = Register.objects.filter(customer=customer_id, paid=False,
                                               schedule__in=('evening-yes', 'morning-yes'))
-    total_due = sum(
-        [float(entry.current_price / 1000) * entry.quantity for entry in register_due_qs])
+    # Calculate due till today
+    total_due = register_due_qs.annotate(
+        total_due=Sum(F('current_price') * F('quantity'), output_field=FloatField())).aggregate(
+        Sum('total_due'))['total_due__sum']
+    total_due = total_due / 1000 if total_due else 0
+    # Calculate due till previous month
     prv_month_qs = register_due_qs.exclude(log_date__year=today.year, log_date__month=today.month)
-    prev_month_due = sum(
-        [float(entry.current_price / 1000) * entry.quantity for entry in prv_month_qs])
+    prev_month_due = prv_month_qs.annotate(
+        total_due=Sum(F('current_price') * F('quantity'), output_field=FloatField())).aggregate(
+        Sum('total_due'))['total_due__sum']
+    prev_month_due = prev_month_due / 1000 if prev_month_due else 0
     adv = get_customer_balance_amount(customer_id)
     return (total_due - adv), (prev_month_due - adv), adv
 
