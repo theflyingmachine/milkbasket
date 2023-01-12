@@ -71,8 +71,12 @@
                               data-cname="{{ entry.customer__name }}"
                               data-c_contact="{{ entry.customer__contact }}"
                               data-dueamount="{{ entry.payment_due }}"
-                       {% if entry.payment_due_prev %}
+                       {% if not entry.payment_due_prev or is_last_day_of_month or tenant.bill_till_date %}
+                              data-prevdueamount="{{ entry.payment_due }}"
+                              data-monthname="1"
+                       {% else %}
                               data-prevdueamount="{{ entry.payment_due_prev }}"
+                              data-monthname="0"
                        {% endif %}
                       >Make Payment
                       </button>
@@ -571,17 +575,18 @@
       var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
       var c_prevdueamount = button.data('prevdueamount') // Extract info from data-* attribute
       var c_contact = button.data('c_contact') // Extract info from data-* attribute
+      var biiL_till_date = button.data('monthname') // Extract info from data-* attribute
       var modal = $(this)
       modal.find('#c_id').val(c_id)
       modal.find('#c_name').val(c_name)
       modal.find('#c_dueamount').val(c_dueamount)
       modal.find('#c_payment').val(c_dueamount)
-      if (c_prevdueamount > 0) {
+      if (biiL_till_date === 1) {
+        modal.find('#c_payment').val(c_dueamount);
+        modal.find('#prevmonthdue').text('Due till date');
+      } else {
         modal.find('#c_payment').val(c_prevdueamount);
         modal.find('#prevmonthdue').text('Due till {{ previous_month_name }}');
-      } else {
-        modal.find('#c_payment').val(c_dueamount)
-        modal.find('#prevmonthdue').text('Due till date');
       }
       if (!c_contact.isInteger && c_contact.toString().length !== 10) {
         let notifiacation_div = document.getElementById("payment_notification");

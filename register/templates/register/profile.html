@@ -149,8 +149,12 @@
                         data-cid="{{ customer.id }}"
                         data-cname="{{ customer.name }}"
                         data-dueamount="{{ payment_due_amount_till_date }}"
-                 {% if payment_due_amount_prev_month %}
+                 {% if not payment_due_amount_prev_month or is_last_day_of_month or tenant.bill_till_date %}
+                        data-dueamount="{{ payment_due_amount_till_date }}"
+                        data-monthname="1"
+                 {% else %}
                         data-prevdueamount="{{ payment_due_amount_prev_month }}"
+                        data-monthname="0"
                  {% endif %}
                 >Make Payment
                 </button>
@@ -687,16 +691,17 @@
           var c_name = button.data('cname') // Extract info from data-* attribute
           var c_dueamount = button.data('dueamount') // Extract info from data-* attribute
           var c_prevdueamount = button.data('prevdueamount') // Extract info from data-* attribute
+          var biiL_till_date = button.data('monthname') // Extract info from data-* attribute
           var modal = $(this)
           modal.find('#c_id').val(c_id);
           modal.find('#c_name').val(c_name);
           modal.find('#c_dueamount').val(c_dueamount);
-          if (c_prevdueamount) {
+          if (biiL_till_date === 1) {
+            modal.find('#c_payment').val(c_dueamount);
+            modal.find('#prevmonthdue').text('Due till date');
+          } else {
             modal.find('#c_payment').val(c_prevdueamount);
             modal.find('#prevmonthdue').text('Due till {{ previous_month_name }}');
-          } else {
-            modal.find('#c_payment').val(c_dueamount)
-            modal.find('#prevmonthdue').text('Due till date');
           }
         })
 
