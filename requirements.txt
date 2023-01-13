@@ -25,7 +25,7 @@ reportlab==3.5.55
 requests==2.25.0
 six==1.15.0
 sqlparse==0.3.1
-urllib3==1.26.2
+urllib3==1.26.11
 webencodings==0.5.1
 whitenoise==5.2.0
 xhtml2pdf==0.2.5
@@ -36,3 +36,4 @@ jsonfield==3.1.0
 pycryptodome==3.15.0
 numpy==1.23.1
 sentry-sdk==1.12.1
+python-barcode==0.14.0

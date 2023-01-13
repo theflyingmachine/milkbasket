@@ -8,7 +8,9 @@ from calendar import monthrange
 from datetime import datetime, date
 from io import BytesIO
 
+import barcode
 import requests
+from barcode.writer import ImageWriter
 from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.core.mail import EmailMessage
@@ -208,12 +210,12 @@ def render_to_pdf(template_src, context_dict={}):
 
 def get_base_64_barcode(barcode_text):
     """ Return base 64 bar code """
-    barcode = None
+    barcode_file_base64 = None
     if barcode_text:
-        url = f'https://mobiledemand-barcode.azurewebsites.net/barcode/image?content={barcode_text}&size=100&symbology=CODE_128&format=png&text=true'
-        barcode = base64.b64encode(requests.get(url).content).decode('utf-8')
-    return barcode
-
+        rv = BytesIO()
+        barcode.get('code128', barcode_text, writer=ImageWriter()).write(rv)
+        barcode_file_base64 = base64.b64encode(rv.getvalue()).decode()
+    return barcode_file_base64
 
 def send_sms_api(contact, sms_text, template_id):
     """ Send SMS api """
