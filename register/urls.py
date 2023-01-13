@@ -10,7 +10,7 @@ urlpatterns = [
     path('setting', views.setting, name='setting'),
     path('bill-views', views.bill_views, name='bill_views'),
     path('<int:year>/<int:month>/', views.index, name='view_register_month'),
-    path('profile/<int:id>/', views.customer_profile, name='customer_profile'),
+    path('profile/<int:cust_id>/', views.customer_profile, name='customer_profile'),
     path('print-bill/<int:id>/', views.GeneratePdf.as_view(), name='print_bill'),
     path('print-bill/<int:id>/<str:file_download>/', views.GeneratePdf.as_view(),
          name='share_bill'),
@@ -43,7 +43,7 @@ urlpatterns = [
          name='accept_payment'),
     path('revert-transaction', views.revert_transaction, name='revert_transaction'),
     path('send-sms', views.send_SMS, name='send_sms'),
-    path('send-email/<int:id>', views.send_EMAIL, name='send_email'),
+    path('send-email/<int:cust_id>', views.send_EMAIL, name='send_email'),
 
     #     API Alexa
     path('api/v1/register/last-entry', views.alexa_get_last_autopilot, name='get_last_autopilot'),

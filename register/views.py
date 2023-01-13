@@ -16,7 +16,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum, Q, F, FloatField
+from django.db.models import Sum, Q
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -40,7 +40,7 @@ from register.models import Payment
 from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
-    get_whatsapp_media_by_id, get_client_ip
+    get_whatsapp_media_by_id, get_client_ip, calculate_milk_price
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
@@ -667,23 +667,19 @@ def account(request, year=None, month=None):
         payment_due = Register.objects.filter(tenant_id=request.user.id,
                                               customer_id=customer['customer_id'],
                                               schedule__endswith='yes', paid=0)
-        payment_due_amount = 0
-        for due in payment_due:
-            payment_due_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+        payment_due_amount = calculate_milk_price(payment_due)
         balance_amount = Balance.objects.filter(tenant_id=request.user.id,
                                                 customer_id=customer['customer_id']).first()
         customer['adjusted_amount'] = getattr(balance_amount,
                                               'balance_amount') if balance_amount else 0
-        customer['payment_due'] = round(payment_due_amount, 2) - abs(customer['adjusted_amount'])
+        customer['payment_due'] = decimal.Decimal(payment_due_amount) - abs(
+            customer['adjusted_amount'])
         due_prev_month = Register.objects.filter(tenant_id=request.user.id,
                                                  customer_id=customer['customer_id'],
                                                  schedule__endswith='yes', paid=0).exclude(
             log_date__month=current_date.month, log_date__year=current_date.year)
-        due_prev_month_amount = 0
-        for due in due_prev_month:
-            due_prev_month_amount += (
-                due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
-        customer['payment_due_prev'] = round(due_prev_month_amount, 2) - abs(
+        due_prev_month_amount = calculate_milk_price(due_prev_month)
+        customer['payment_due_prev'] = decimal.Decimal(due_prev_month_amount) - abs(
             customer['adjusted_amount'])
 
         total_payment += payment_due_amount
@@ -708,9 +704,7 @@ def account(request, year=None, month=None):
         payment_done = Register.objects.filter(tenant_id=request.user.id,
                                                customer_id=customer['customer_id'],
                                                schedule__endswith='yes', paid=1)
-        accepted_amount = 0
-        for due in payment_done:
-            accepted_amount += (due.current_price / 1000 * decimal.Decimal(float(due.quantity)))
+        accepted_amount = calculate_milk_price(payment_done)
         balance_amount = Balance.objects.filter(tenant_id=request.user.id,
                                                 customer_id=customer['customer_id']).first()
         customer['adjusted_amount'] = getattr(balance_amount,
@@ -744,7 +738,7 @@ def account(request, year=None, month=None):
         'due_total': sum([float(entry['payment_due']) for entry in due_customer]),
         'due_total_prev': sum([float(entry['payment_due_prev']) for entry in due_customer]),
         'paid_customer': [cust for cust in paid_customer if cust['total_paid']],
-        'reveieved_total': sum(
+        'received_total': sum(
             [cust['total_paid'] for cust in paid_customer if cust['total_paid']]),
         'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
         'tenant': tenant,
@@ -832,7 +826,7 @@ def manage_income(request, year=None, month=None):
             template = 'register/errors/custom_error_page.html'
             context = {'page_title': 'Error - MilkBasket',
                        'error_code': 'Error!',
-                       'error_msg': 'Please fill all the fields before submitting'}
+                       'error_msg': f'Please fill all the fields before submitting - {e}'}
             return render(request, template, context)
     return redirect(formatted_url)
 
@@ -1028,17 +1022,14 @@ def report_data(request, poll_id=None):
                                                      log_date__month=graph_month.month,
                                                      log_date__year=graph_month.year,
                                                      schedule__in=milk_delivered)
-        for entry in month_income_entry:
-            month_income += float(entry.current_price / 1000) * entry.quantity
+        month_income += calculate_milk_price(month_income_entry)
 
         # Fetch due per month
-        month_due = 0
         month_due_entry = Register.objects.filter(tenant_id=request.user.id,
                                                   log_date__month=graph_month.month,
                                                   log_date__year=graph_month.year, paid=0,
                                                   schedule__in=milk_delivered)
-        for entry in month_due_entry:
-            month_due += float(entry.current_price / 1000) * entry.quantity
+        month_due = calculate_milk_price(month_due_entry)
 
         # Fetch paid per month
         month_paid = 0
@@ -1046,8 +1037,7 @@ def report_data(request, poll_id=None):
         month_paid_entry = Register.objects.filter(tenant_id=request.user.id,
                                                    log_date__month=graph_month.month,
                                                    log_date__year=graph_month.year, paid=1)
-        for entry in month_paid_entry:
-            month_paid += float(entry.current_price / 1000) * entry.quantity
+        month_paid += calculate_milk_price(month_paid_entry)
 
         # Calculate Profit and Loss value
         if month_paid > month_expense:
@@ -1197,18 +1187,18 @@ def logout_request(request):
 
 
 @login_required
-def customer_profile(request, id=None):
+def customer_profile(request, cust_id=None):
     template = 'register/profile.html'
     context = {
         'is_mobile': is_mobile(request),
         'page_title': 'Milk Basket - Profile',
     }
     current_date = date.today()
-    if id:
-        customer = Customer.objects.filter(tenant_id=request.user.id, id=id).first()
+    if cust_id:
+        customer = Customer.objects.filter(tenant_id=request.user.id, id=cust_id).first()
         if not customer:
             return render(request, template, context={'nocustomer': True})
-        transaction = Payment.objects.filter(tenant_id=request.user.id, customer_id=id)
+        transaction = Payment.objects.filter(tenant_id=request.user.id, customer_id=cust_id)
 
         if customer.morning and not customer.evening:
             customer.schedule = 'Morning'
@@ -1216,7 +1206,7 @@ def customer_profile(request, id=None):
             customer.schedule = 'Evening'
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
-        register = Register.objects.filter(tenant_id=request.user.id, customer_id=id,
+        register = Register.objects.filter(tenant_id=request.user.id, customer_id=cust_id,
                                            schedule__in=['morning-yes', 'evening-yes', 'e-morning',
                                                          'e-evening']).order_by(
             '-log_date').values()
@@ -1229,35 +1219,27 @@ def customer_profile(request, id=None):
             entry['display_log_date'] = entry['log_date'].strftime('%d-%b-%Y')
 
         # Get due table
-        due_cust = Register.objects.filter(tenant_id=request.user.id, customer_id=id, paid=0,
+        due_cust = Register.objects.filter(tenant_id=request.user.id, customer_id=cust_id, paid=0,
                                            schedule__in=['morning-yes', 'evening-yes', 'e-morning',
                                                          'e-evening']).order_by('-log_date')
         payment_due_amount_prev_month = 0
         payment_due_amount_till_date = 0
         if due_cust:
             # Check due till today
-            total_due = due_cust.annotate(
-                total_due=Sum(F('current_price') * F('quantity'),
-                              output_field=FloatField())).aggregate(
-                Sum('total_due'))['total_due__sum']
-            payment_due_amount_till_date = total_due / 1000 if total_due else 0
+            payment_due_amount_till_date = calculate_milk_price(due_cust)
 
             # Check due till last month
             due_cust_prev_month = due_cust.exclude(
                 log_date__month=current_date.month, log_date__year=current_date.year)
-            total_due = due_cust_prev_month.annotate(
-                total_due=Sum(F('current_price') * F('quantity'),
-                              output_field=FloatField())).aggregate(
-                Sum('total_due'))['total_due__sum']
-            payment_due_amount_prev_month = total_due / 1000 if total_due else 0
+            payment_due_amount_prev_month = calculate_milk_price(due_cust_prev_month)
 
         # Extract months which has due for calendar
-        active_months = get_active_month(id, all_active=True)
+        active_months = get_active_month(cust_id, all_active=True)
         calendar = [{'month': active_month.strftime('%B'),
                      'year': active_month.strftime('%Y'),
                      'week_start_day': [x for x in range(0, active_month.weekday())],
                      'days_in_month': [{'day': day,
-                                        'data': get_register_day_entry(id, day=day,
+                                        'data': get_register_day_entry(cust_id, day=day,
                                                                        month=active_month.month,
                                                                        year=active_month.year)
                                         } for day in range(1, (
@@ -1265,12 +1247,13 @@ def customer_profile(request, id=None):
                      } for active_month in active_months]
 
         # Extract only due months for bill
-        due_months = get_active_month(id, only_paid=False, only_due=True)
+        due_months = get_active_month(cust_id, only_paid=False, only_due=True)
         bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
-                         'desc': get_bill_summary(id, month=due_month.month, year=due_month.year)}
+                         'desc': get_bill_summary(cust_id, month=due_month.month,
+                                                  year=due_month.year)}
                         for due_month in due_months]
         bill_summary.reverse()
-        last_data_entry = customer_register_last_updated(id)
+        last_data_entry = customer_register_last_updated(cust_id)
         bill_sum_total = {
             'last_updated': last_data_entry.strftime("%d %B, %Y") if last_data_entry else '',
             'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
@@ -1278,7 +1261,7 @@ def customer_profile(request, id=None):
                 sum([bill.get('desc')[-1]['total'] for bill in bill_summary if bill.get('desc')]))}
 
         # Check for balance / Due amount
-        balance_amount = get_customer_balance_amount(id)
+        balance_amount = get_customer_balance_amount(cust_id)
         if balance_amount:
             bill_sum_total['balance'] = balance_amount
             bill_sum_total['sub_total'] = bill_sum_total['sum_total']
@@ -1297,7 +1280,7 @@ def customer_profile(request, id=None):
         else:
             sms_text = SMS_DUE_MESSAGE.format(customer.name, prev_month_name, due_till_prev_month)
 
-        # Check if last transaction is older that 30 days
+        # Check if last transaction is older than 30 days
         last_trans = get_last_transaction(request, customer)
         is_30_days_old = (datetime.now() - last_trans.log_date).days > 30 if last_trans else False
         # Get Tenant Preference
@@ -1331,7 +1314,7 @@ class GeneratePdf(View):
     def get(self, request, *args, **kwargs):
         cust_id = self.kwargs['id']
         no_download = True if 'file_download' in kwargs else False
-        # messages.add_message(request, messages.SUCCESS, 'PDF Bill has been sucessfully generated')
+        # messages.add_message(request, messages.SUCCESS, 'PDF Bill has been successfully generated')
         if no_download:
             return generate_bill(request, cust_id, no_download=True)
         else:
@@ -1348,18 +1331,18 @@ class GeneratePdf(View):
 @login_required
 def send_SMS(request):
     contact = request.POST.get("c_contact")
-    smstext = request.POST.get("smstextareabox")
+    sms_text = request.POST.get("smstextareabox")
     data = {'status': 'failed'}
-    if contact and smstext:
-        data = send_sms_api(contact, smstext, DUE_TEMPLATE_ID)
+    if contact and sms_text:
+        data = send_sms_api(contact, sms_text, DUE_TEMPLATE_ID)
     return HttpResponse(data, content_type='application/json')
 
 
 @login_required
-def send_EMAIL(request, id=None):
-    if id:
-        customer = Customer.objects.get(id=id)
-        data = generate_bill(request, id, raw_data=True)
+def send_EMAIL(request, cust_id=None):
+    if cust_id:
+        customer = Customer.objects.get(id=cust_id)
+        data = generate_bill(request, cust_id, raw_data=True)
         subject = f'🛍️🥛 Bill due for ₹ {data["raw_data"]["bill_summary"][-1]["sum_total"]} 🧾'
         status = send_email_api(customer.email, subject, data)
         return JsonResponse(status)
@@ -1369,7 +1352,7 @@ def send_EMAIL(request, id=None):
 
 @login_required
 def bill_views(request):
-    """ Fetch all bill views for a given tenent """
+    """ Fetch all bill views for a given tenant """
     # Fetch all clients belonging to the logged in tenant
     customers_list = list(
         Customer.objects.filter(tenant_id=request.user.id).values_list('id', flat=True))
@@ -1433,12 +1416,14 @@ def product(request):
     return render(request, template, context)
 
 
+@login_required()
 def broadcast_bulk_bill(request):
     template = 'register/broadcast.html'
     context = {'page_title': 'Generate Bills - Milk Basket', 'is_mobile': is_mobile(request)}
     return render(request, template, context)
 
 
+@login_required()
 def broadcast_metadata(request):
     context = {}
     if request.method == "GET":
@@ -1508,8 +1493,9 @@ def whatsapp_chat(request, wa_number=None):
             Q(sender_number__in=[910000000000 + int(c.contact) for c in all_known_contact]) |
             Q(message_type__in=('unsupported', 'reaction')) | Q(route__in=('API_INFO', 'API_OTP')))
         all_messages = all_messages | unknown_messages
-    customers = Customer.objects.filter(contact__isnull=False).values('contact', 'name')
-    contact_names = {c['contact']: c['name'] for c in customers}
+    customers_with_contact = Customer.objects.filter(contact__isnull=False).values('contact',
+                                                                                   'name')
+    contact_names = {c['contact']: c['name'] for c in customers_with_contact}
     distinct_users = {
         u.sender_number: contact_names.get(str(u.sender_number)[2:]) or u.sender_display_name for u
         in all_messages}

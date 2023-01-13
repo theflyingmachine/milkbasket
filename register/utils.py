@@ -579,6 +579,16 @@ def get_client_ip(request):
     return ip
 
 
+def calculate_milk_price(register_qs):
+    """ Takes Register queryset and returns the amount payable in float"""
+    total_due = 0
+    if register_qs:
+        total_due = register_qs.annotate(total_due=Sum(F('current_price') * F('quantity'),
+                                                       output_field=FloatField())).aggregate(
+            Sum('total_due'))['total_due__sum']
+    return total_due / 1000 if total_due else 0
+
+
 #  ===================== Custom Error Handler Views ==============================
 def error_403_view(request, *args, **argv):
     return render(request, 'register/errors/403.html', status=403)
