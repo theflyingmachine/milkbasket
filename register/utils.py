@@ -53,23 +53,27 @@ def get_active_month(customer_id, only_paid=False, only_due=False, all_active=Fa
     active_months = None
     if customer_id:
         if all_active:
-            active_months = Register.objects.filter(customer_id=customer_id).dates(
-                'log_date', 'month', order='DESC')
+            active_months = Register.objects.filter(customer_id=customer_id)
         if only_paid:
             active_months = Register.objects.filter(customer_id=customer_id,
-                                                    schedule__endswith='-yes', paid=1).dates(
-                'log_date', 'month', order='DESC')
+                                                    schedule__endswith='-yes', paid=1)
         if only_due:
             tenant = Tenant.objects.get(customer__id=customer_id)
-            active_months = Register.objects.filter(customer_id=customer_id,
-                                                    schedule__endswith='-yes', paid=0).dates(
-                'log_date', 'month',
-                order='DESC') if tenant.bill_till_date else Register.objects.filter(
-                customer_id=customer_id,
-                schedule__endswith='-yes', paid=0).dates(
-                'log_date', 'month', order='DESC').exclude(log_date__month=datetime.now().month)
+            prev_month_due = Register.objects.filter(customer_id=customer_id, paid=0,
+                                                     schedule__in=['morning-yes',
+                                                                   'evening-yes']).exclude(
+                log_date__month=datetime.now().month, log_date__year=datetime.now().year)
 
-    return active_months
+            if not prev_month_due or tenant.bill_till_date or is_last_day_of_month():
+
+                active_months = Register.objects.filter(customer_id=customer_id,
+                                                        schedule__endswith='-yes', paid=0)
+            else:
+                active_months = Register.objects.filter(customer_id=customer_id,
+                                                        schedule__endswith='-yes', paid=0).exclude(
+                    log_date__month=datetime.now().month, log_date__year=datetime.now().year)
+
+    return active_months.dates('log_date', 'month', order='DESC')
 
 
 def get_register_month_entry(customer_id, month=False, year=False):
@@ -234,7 +238,7 @@ def send_sms_api(contact, sms_text, template_id):
     return response
 
 
-def save_bill_to_mongo(bill_metadata, bill):
+def save_bill_to_mongo(bill_metadata, bill, bill_number):
     """ Upload bill metadata to cloud mongo db """
     # Upload Bill Metadata
     try:
@@ -242,10 +246,11 @@ def save_bill_to_mongo(bill_metadata, bill):
         bill_metadata_id = metadata.insert(bill_metadata)
         bill.mongo_id = str(bill_metadata_id)
         bill.save()
-        logger.info(f'MongoDB bill uploaded {str(bill_metadata_id)}')
+        logger.info(f'MongoDB bill uploaded {str(bill_metadata_id)} - Bill Number: {bill_number}')
         return bill_metadata_id
     except:
-        logger.critical(f'MongoDB bill upload failed : {bill_metadata}')
+        logger.critical(
+            f'MongoDB bill upload failed : {bill_metadata} - Bill Number: {bill_number}')
 
 
 def get_register_transactions(cust_id, only_paid=False, only_due=True):
@@ -254,25 +259,25 @@ def get_register_transactions(cust_id, only_paid=False, only_due=True):
     if cust_id:
         if only_due:
             tenant = Tenant.objects.get(customer__id=cust_id)
+            # Get all due Transactions till last month
             transactions = Register.objects.filter(customer_id=cust_id, paid=0,
                                                    schedule__in=['morning-yes',
-                                                                 'evening-yes']).values_list('id',
-                                                                                             flat=True) if tenant.bill_till_date else Register.objects.filter(
-                customer_id=cust_id, paid=0,
-                schedule__in=['morning-yes',
-                              'evening-yes']).exclude(
-                log_date__month=datetime.now().month).values_list('id',
-                                                                  flat=True)
+                                                                 'evening-yes']).exclude(
+                log_date__month=datetime.now().month, log_date__year=datetime.now().year)
+            # Get All Transactions if Settings Enabled OR Last date of the Month OR no previous due
+            if tenant.bill_till_date or is_last_day_of_month() or not transactions:
+                transactions = Register.objects.filter(customer_id=cust_id, paid=0,
+                                                       schedule__in=['morning-yes',
+                                                                     'evening-yes'])
+
         elif only_paid:
             transactions = Register.objects.filter(customer_id=cust_id, paid=1,
                                                    schedule__in=['morning-yes',
-                                                                 'evening-yes']).values_list('id',
-                                                                                             flat=True)
+                                                                 'evening-yes'])
         else:
-            transactions = Register.objects.filter(customer_id=cust_id).values_list('id',
-                                                                                    flat=True)
+            transactions = Register.objects.filter(customer_id=cust_id)
 
-    return transactions
+    return transactions.values_list('id', flat=True)
 
 
 def get_milk_current_price(tenant_id, description=False):
@@ -351,7 +356,8 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
                                                                                             'Rs.'),
             'transaction_ids': list(get_register_transactions(cust_id, only_due=True))}
     # Upload Bill metadata to Mongo
-    mongo_upload_thread = threading.Thread(target=save_bill_to_mongo, args=(data, bill))
+    mongo_upload_thread = threading.Thread(target=save_bill_to_mongo,
+                                           args=(data, bill, bill_number))
     mongo_upload_thread.start()
     if no_download:
         return JsonResponse(

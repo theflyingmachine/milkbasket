@@ -691,14 +691,15 @@ def account(request, year=None, month=None):
         # Due sms text
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
-        if customer['payment_due_prev'] > 0 and not last_day_of_month:
-            customer[
-                'sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
-                                                     prev_month_name, customer['payment_due_prev'])
+        if last_day_of_month or tenant.bill_till_date or not customer['payment_due_prev'] > 0:
+            customer['sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
+                                                          current_month_name,
+                                                          customer['payment_due'])
         else:
-            customer[
-                'sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
-                                                     current_month_name, customer['payment_due'])
+            customer['sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
+                                                          prev_month_name,
+                                                          customer['payment_due_prev'])
+
     # Get paid customer
     paid_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
                                             paid=1).values('customer_id',
@@ -747,6 +748,7 @@ def account(request, year=None, month=None):
             [cust['total_paid'] for cust in paid_customer if cust['total_paid']]),
         'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
         'tenant': tenant,
+        'is_last_day_of_month': is_last_day_of_month()
     }
 
     return render(request, template, context)
@@ -1288,11 +1290,12 @@ def customer_profile(request, id=None):
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
         last_day_of_month = is_last_day_of_month()
-        if due_till_prev_month > 0 and not last_day_of_month:
-            sms_text = SMS_DUE_MESSAGE.format(customer.name, prev_month_name, due_till_prev_month)
-        else:
+        if last_day_of_month or get_tenant_perf(
+            request).bill_till_date or not due_till_prev_month > 0:
             sms_text = SMS_DUE_MESSAGE.format(customer.name, current_month_name,
                                               due_till_current_month)
+        else:
+            sms_text = SMS_DUE_MESSAGE.format(customer.name, prev_month_name, due_till_prev_month)
 
         # Check if last transaction is older that 30 days
         last_trans = get_last_transaction(request, customer)
@@ -1318,6 +1321,7 @@ def customer_profile(request, id=None):
             'tenant': tenant,
             'balance_amount': balance_amount,
             'total_due_amount': payment_due_amount_till_date,
+            'is_last_day_of_month': is_last_day_of_month()
         })
         return render(request, template, context)
     return redirect('view_customers')
