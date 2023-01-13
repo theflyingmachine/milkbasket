@@ -58,6 +58,7 @@ def index(request, bill_number=None):
                     entry.display_schedule = 'Morning' if entry.schedule == 'morning-yes' else 'Evening'
                     entry.display_log_date = entry.log_date.strftime('%d-%b-%y')
                 context.update({'calendar': calendar,
+                                'bill_number': bill_number,
                                 'bill_access': True,
                                 'due_transactions': due_transactions,
                                 'milk_price': get_milk_current_price(tenant_id, description=True)})

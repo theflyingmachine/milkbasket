@@ -176,7 +176,8 @@
             <span>Last Updated on: {{ last_update }}</span><br>
           </td>
           <td>
-            <img src="data:image/png;base64, {{ barcode }}" alt="Red dot"/>
+            <img src="data:image/png;base64, {{ barcode }}" alt="{{ bill_number }}" width="254"
+                 height="100"/>
           </td>
         </tr>
       </table>
@@ -196,7 +197,7 @@
             {% for bill in bill_summary %}
               {% if forloop.last %}
                 <tr>
-                  <td class="p-2" colspan="2"><span style="color:red;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}. {{ milk_price }}</span>
+                  <td class="p-2" colspan="2"><span style="color:grey;font-size:10px;"> Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {{ bill.last_updated }}. This bill was generated on {{ bill.today }}. {{ milk_price }}</span>
                   </td>
                   <td colspan="1">
                     {% if bill.balance %}
