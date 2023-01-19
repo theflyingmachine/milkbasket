@@ -529,9 +529,14 @@ def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_nu
         logger.info(
             'WhatsApp Message Sent Cust_ID:{0}  resp_to:{1} payload_to:{2} response:{3} payload:{4}'.format(
                 cust_id, to_number, cust_number, payload, wa_body))
+    elif response.status_code == 400:
+        logger.warning(
+            'WhatsApp Message Undeliverable. Cust_ID:{0} payload_to:{1} response:{2} payload:{3}'.format(
+                cust_id, cust_number, response.json(), wa_body))
+
     else:
         logger.error(
-            'WhatsApp Message Failed Cust_ID:{0} payload_to:{1} response:{2} payload:{3}'.format(
+            'Sending WhatsApp Message Failed. Cust_ID:{0} payload_to:{1} response:{2} payload:{3}'.format(
                 cust_id, cust_number, response.json(), wa_body))
 
     return response.status_code == 200
