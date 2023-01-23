@@ -591,6 +591,11 @@
       if (!c_contact.isInteger && c_contact.toString().length !== 10) {
         let notifiacation_div = document.getElementById("payment_notification");
         notifiacation_div.style.display = "none";
+        modal.find('#sms-notification').val(0);
+      } else {
+        let notifiacation_div = document.getElementById("payment_notification");
+        notifiacation_div.style.display = "block";
+        modal.find('#sms-notification').val(1);
       }
     })
 

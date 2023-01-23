@@ -842,7 +842,7 @@ def accept_payment(request, year=None, month=None, return_url=None):
         formatted_url = reverse('account_month', args=[year, month])
 
     payment_amount = request.POST.get("c_payment", None)
-    sms_notification = request.POST.get("sms-notification", None)
+    sms_notification = int(request.POST.get("sms-notification", 0))
     if c_id and payment_amount:
         customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
         payment_amount = float(payment_amount)
@@ -894,7 +894,7 @@ def accept_payment(request, year=None, month=None, return_url=None):
                                  f'Rs. {payment_amount} is added as Balance')
 
         # Send SMS notification
-        if sms_notification:
+        if sms_notification and customer.contact:
             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
             sms_text = SMS_PAYMENT_MESSAGE.format(customer.name, new_payment.amount,
                                                   transaction_time, new_payment.id)
