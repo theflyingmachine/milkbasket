@@ -8,7 +8,6 @@ from register.models import Register
 from register.models import Tenant
 from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
-from register.utils import get_register_day_entry
 
 logger = logging.getLogger()
 
@@ -41,11 +40,8 @@ def index(request, bill_number=None):
                              'year': active_month.strftime('%Y'),
                              'week_start_day': [x for x in range(0, active_month.weekday())],
                              'days_in_month': [{'day': day,
-                                                'data': get_register_day_entry(
-                                                    bill_metadata['customer_id'], day=day,
-                                                    month=active_month.month,
-                                                    year=active_month.year,
-                                                    transaction_list=due_transactions)
+                                                'data': due_transactions.filter(
+                                                    log_date=active_month.replace(day=day))
                                                 } for day in range(1, (
                                  monthrange(active_month.year, active_month.month)[1]) + 1)]
                              } for active_month in active_months]

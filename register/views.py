@@ -54,7 +54,6 @@ from register.utils import get_last_autopilot
 from register.utils import get_last_transaction
 from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
-from register.utils import get_register_day_entry
 from register.utils import get_tenant_perf
 from register.utils import is_last_day_of_month
 from register.utils import is_mobile
@@ -1206,12 +1205,11 @@ def customer_profile(request, cust_id=None):
             customer.schedule = 'Evening'
         if customer.morning and customer.evening:
             customer.schedule = 'Morning and Evening'
-        register = Register.objects.filter(tenant_id=request.user.id, customer_id=cust_id,
-                                           schedule__in=['morning-yes', 'evening-yes', 'e-morning',
-                                                         'e-evening']).order_by(
-            '-log_date').values()
-
-        for entry in register:
+        register = Register.objects.filter(tenant_id=request.user.id,
+                                           customer_id=cust_id).order_by('-log_date')
+        register_entry = register.filter(schedule__in=['morning-yes', 'evening-yes', 'e-morning',
+                                                       'e-evening']).values()
+        for entry in register_entry:
             entry['billed_amount'] = float(entry['current_price'] / 1000) * entry['quantity']
             entry['display_paid'] = 'Paid' if entry['paid'] else 'Due'
             entry['display_schedule'] = 'Morning' if entry[
@@ -1239,9 +1237,8 @@ def customer_profile(request, cust_id=None):
                      'year': active_month.strftime('%Y'),
                      'week_start_day': [x for x in range(0, active_month.weekday())],
                      'days_in_month': [{'day': day,
-                                        'data': get_register_day_entry(cust_id, day=day,
-                                                                       month=active_month.month,
-                                                                       year=active_month.year)
+                                        'data': register.filter(
+                                            log_date=active_month.replace(day=day))
                                         } for day in range(1, (
                          monthrange(active_month.year, active_month.month)[1]) + 1)]
                      } for active_month in active_months]
@@ -1297,7 +1294,7 @@ def customer_profile(request, cust_id=None):
             'sms_text': sms_text,
             'transaction': transaction,
             'is_revertible': is_transaction_revertible(request, customer) and not is_30_days_old,
-            'register': register,
+            'register': register_entry,
             'payment_due_amount_prev_month': due_till_prev_month,
             'payment_due_amount_till_date': due_till_current_month,
             'previous_month_name': prev_month_name,
