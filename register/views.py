@@ -1488,7 +1488,8 @@ def whatsapp_chat(request, wa_number=None):
         unknown_messages = WhatsAppMessage.objects.filter(
             received_at__gt=show_message_date).exclude(
             Q(sender_number__in=[910000000000 + int(c.contact) for c in all_known_contact]) |
-            Q(message_type__in=('unsupported', 'reaction')) | Q(route__in=('API_INFO', 'API_OTP')))
+            Q(message_type__in=('unsupported', 'reaction')) | Q(
+                route__in=('API_INFO', 'API_OTP', 'API')))
         all_messages = all_messages | unknown_messages
     customers_with_contact = Customer.objects.filter(contact__isnull=False).values('contact',
                                                                                    'name')
