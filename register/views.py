@@ -952,7 +952,10 @@ def landing(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
+            logger.info(
+                'Seller Login Accepted. IP:{2}'.format(username, password, get_client_ip(request)))
             return redirect('view_register')
+
         else:
             logger.warning(
                 'Failed Seller Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(username,
