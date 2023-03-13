@@ -25,7 +25,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
-from customer.models import WhatsAppMessage
+from customer.models import WhatsAppMessage, LoginOTP
 from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
 from register.constant import DUE_TEMPLATE_ID, WA_DUE_MESSAGE, WA_DUE_MESSAGE_TEMPLATE, \
     SMS_DUE_MESSAGE, SMS_PAYMENT_MESSAGE
@@ -946,16 +946,42 @@ def landing(request):
         'is_mobile': is_mobile(request),
     }
     if request.method == "POST":
-        username = request.POST.get("username")
+        tenant = None
+        username = request.POST.get("username", '')
         username = username.lower()
         password = request.POST.get("password")
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            login(request, user)
-            logger.info(
-                'Seller Login Accepted. IP:{2}'.format(username, password, get_client_ip(request)))
-            return redirect('view_register')
+        if username and password:
+            auth_user = authenticate(username=username, password=password)
+            if auth_user:
+                tenant = Tenant.objects.get(tenant_id=auth_user.id)
+                request.session['seller_id'] = auth_user.id
 
+        otp_password = request.POST.get("otp_password")
+        if otp_password:
+            user_id = request.session.get('seller_id')
+            tenant = Tenant.objects.get(tenant_id=user_id)
+
+        if tenant is not None:
+            tenant.name = tenant.tenant.first_name
+            otp = LoginOTP.get_otp(tenant, 'seller')
+            context.update({'request_otp': otp.login_attempt < 3,
+                            'remaining_attempt': otp.login_attempt < 3,
+                            'current_username': username})
+            if otp and otp_password:
+                if otp_password == otp.otp_password and otp.login_attempt < 3:
+                    login(request, tenant.tenant)
+                    logger.info(
+                        'Seller Login Accepted. IP:{2}'.format(username, password,
+                                                               get_client_ip(request)))
+                    return redirect('view_register')
+                else:
+                    otp.login_attempt += 1
+                    otp.save()
+                    logger.warning(
+                        'Failed Seller Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(
+                            username, password, get_client_ip(request)))
+                    context.update({'message': 'Login Failed, {0}'.format(
+                        f'{3 - otp.login_attempt} attempt remaining' if otp.login_attempt < 3 else 'please try again later')})
         else:
             logger.warning(
                 'Failed Seller Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(username,

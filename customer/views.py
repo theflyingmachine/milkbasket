@@ -130,7 +130,7 @@ def customer_dashboard_login(request):
         password = request.POST.get("password")
         customer = Customer.objects.filter(contact=username).first()
         if customer:
-            otp = LoginOTP.get_otp(customer)
+            otp = LoginOTP.get_otp(customer, 'customer')
             context.update({'request_otp': otp.login_attempt < 3,
                             'remaining_attempt': otp.login_attempt < 3,
                             'current_username': username})

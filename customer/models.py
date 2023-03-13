@@ -1,11 +1,12 @@
 import random
 from datetime import datetime, timedelta
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from customer.constant import WA_OTP_MESSAGE_TEMPLATE, WA_OTP_MESSAGE
 from milkbasket.secret import DEV_NUMBER, RUN_ENVIRONMENT
-from register.models import Customer
+from register.models import Customer, Tenant
 
 
 class WhatsAppMessage(models.Model):
@@ -65,35 +66,46 @@ class WhatsAppMessage(models.Model):
 
 
 class LoginOTP(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
+    seller = models.ForeignKey(Tenant, on_delete=models.CASCADE, null=True, blank=True)
     otp_password = models.CharField(max_length=6)
     login_attempt = models.DecimalField(max_digits=1, decimal_places=0)
     generated_date = models.DateTimeField(null=False, default=datetime.now)
 
     @staticmethod
-    def get_otp(customer):
+    def get_otp(user, user_type):
         # Cleanup 24 hours old OTP
         time_threshold = datetime.now() - timedelta(hours=24)
         LoginOTP.objects.filter(generated_date__lt=time_threshold).delete()
 
         # Check if OPT exists, and attempt remaining
-        current_otp = LoginOTP.objects.filter(customer=customer).first()
+        if user_type == 'customer':
+            current_otp = LoginOTP.objects.filter(customer=user).first()
+        else:
+            current_otp = LoginOTP.objects.filter(seller=user).first()
+
         if not current_otp:
             # Generate New OPT and return
-            current_otp = LoginOTP(customer=customer,
-                                   otp_password=random.randrange(111111, 999999, 6),
-                                   login_attempt=0)
+            if user_type == 'customer':
+                current_otp = LoginOTP(customer=user,
+                                       otp_password=random.randrange(111111, 999999, 6),
+                                       login_attempt=0)
+            else:
+                current_otp = LoginOTP(seller=user,
+                                       otp_password=random.randrange(111111, 999999, 6),
+                                       login_attempt=0)
+
             current_otp.save()
 
             # send OTP Notification
             from register.utils import send_whatsapp_message
             wa_body = WA_OTP_MESSAGE_TEMPLATE
             wa_body[
-                'to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{customer.contact}"
-            wa_body['template']['components'][0]['parameters'][0]['text'] = customer.name.title()
+                'to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{user.contact}"
+            wa_body['template']['components'][0]['parameters'][0]['text'] = user.name.title()
             wa_body['template']['components'][0]['parameters'][1][
                 'text'] = current_otp.otp_password
-            wa_message = WA_OTP_MESSAGE.format(customer.name, current_otp.otp_password)
+            wa_message = WA_OTP_MESSAGE.format(user.name, current_otp.otp_password)
             send_whatsapp_message(wa_body, wa_message, route='API_OTP')
 
         return current_otp

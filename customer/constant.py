@@ -8,7 +8,7 @@ WA_OTP_MESSAGE_TEMPLATE = {
     "to": {0},
     "type": "template",
     "template": {
-        "name": "customer_login_v1",
+        "name": "login_otp_v1",
         "language": {
             "code": "en",
             "policy": "deterministic"
