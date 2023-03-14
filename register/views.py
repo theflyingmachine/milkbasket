@@ -40,7 +40,7 @@ from register.models import Payment
 from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
-    get_whatsapp_media_by_id, get_client_ip, calculate_milk_price
+    get_whatsapp_media_by_id, get_client_ip, calculate_milk_price, is_dev
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
@@ -1469,7 +1469,7 @@ def broadcast_send(request, cust_id=None):
         sms_body = SMS_DUE_MESSAGE.format(due[0]['name'], due[0]['due_month'],
                                           due[0]['to_be_paid'])
         wa_body = WA_DUE_MESSAGE_TEMPLATE
-        wa_body['to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}"
+        wa_body['to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{cust_number}"
         wa_body['template']['components'][0]['parameters'][0]['text'] = due[0]['to_be_paid']
         wa_body['template']['components'][1]['parameters'][0]['text'] = due[0]['name']
         wa_body['template']['components'][1]['parameters'][1]['text'] = due[0]['to_be_paid']
@@ -1483,7 +1483,7 @@ def broadcast_send(request, cust_id=None):
         res = {'sms': False, 'whatsapp': False}
 
         def proxy_send_sms_api():
-            res['sms'] = send_sms_api(DEV_NUMBER if RUN_ENVIRONMENT == 'dev' else cust_number,
+            res['sms'] = send_sms_api(DEV_NUMBER if is_dev() else cust_number,
                                       sms_body,
                                       DUE_TEMPLATE_ID)
 

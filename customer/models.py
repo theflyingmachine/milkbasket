@@ -5,8 +5,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from customer.constant import WA_OTP_MESSAGE_TEMPLATE, WA_OTP_MESSAGE
-from milkbasket.secret import DEV_NUMBER, RUN_ENVIRONMENT
+from milkbasket.secret import DEV_NUMBER
 from register.models import Customer, Tenant
+from register.utils import is_dev
 
 
 class WhatsAppMessage(models.Model):
@@ -79,21 +80,12 @@ class LoginOTP(models.Model):
         LoginOTP.objects.filter(generated_date__lt=time_threshold).delete()
 
         # Check if OPT exists, and attempt remaining
-        if user_type == 'customer':
-            current_otp = LoginOTP.objects.filter(customer=user).first()
-        else:
-            current_otp = LoginOTP.objects.filter(seller=user).first()
-
+        user_type_kwargs = {user_type: user}
+        current_otp = LoginOTP.objects.filter(**user_type_kwargs).first()
         if not current_otp:
             # Generate New OPT and return
-            if user_type == 'customer':
-                current_otp = LoginOTP(customer=user,
-                                       otp_password=random.randrange(111111, 999999, 6),
-                                       login_attempt=0)
-            else:
-                current_otp = LoginOTP(seller=user,
-                                       otp_password=random.randrange(111111, 999999, 6),
-                                       login_attempt=0)
+            current_otp = LoginOTP(otp_password=random.randrange(111111, 999999, 6),
+                                   login_attempt=0, **user_type_kwargs)
 
             current_otp.save()
 
@@ -101,7 +93,7 @@ class LoginOTP(models.Model):
             from register.utils import send_whatsapp_message
             wa_body = WA_OTP_MESSAGE_TEMPLATE
             wa_body[
-                'to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{user.contact}"
+                'to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{user.contact}"
             wa_body['template']['components'][0]['parameters'][0]['text'] = user.name.title()
             wa_body['template']['components'][0]['parameters'][1][
                 'text'] = current_otp.otp_password

@@ -22,6 +22,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from milkbasket.secret import EMAIL_PASSWORD, RUN_ENVIRONMENT
 from milkbasket.secret import ENV_DEBUG
 from milkbasket.secret import SENTRY_DSN_DEV, SENTRY_DSN_PROD
+from register.utils import is_dev
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -157,7 +158,7 @@ MAINTENANCE_MODE_STATUS_CODE = 503
 
 # Sentry Logging
 sentry_sdk.init(
-    dsn=SENTRY_DSN_DEV if RUN_ENVIRONMENT == 'dev' else SENTRY_DSN_PROD,
+    dsn=SENTRY_DSN_DEV if is_dev() else SENTRY_DSN_PROD,
     integrations=[
         DjangoIntegration(),
     ],
