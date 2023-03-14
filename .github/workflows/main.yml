@@ -19,9 +19,6 @@ jobs:
              sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" &&
              sudo apt update && sudo apt install octopuscli
              
-      - name: Get commit hash
-        id: commit_hash
-        run: echo "::set-output name=hash::$(git rev-parse --short HEAD)"
       - name: Create Octopus release
         run: |
           octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version ${{ steps.commit_hash.outputs.hash }}
