@@ -973,6 +973,7 @@ def landing(request):
                     logger.info(
                         'Seller Login Accepted. IP:{2}'.format(username, password,
                                                                get_client_ip(request)))
+                    otp.delete()
                     return redirect('view_register')
                 else:
                     otp.login_attempt += 1

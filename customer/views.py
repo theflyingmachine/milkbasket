@@ -144,6 +144,7 @@ def customer_dashboard_login(request):
                                                                                     password,
                                                                                     get_client_ip(
                                                                                         request)))
+                    otp.delete()
                     return redirect('customer_dashboard')
                 else:
                     otp.login_attempt += 1
