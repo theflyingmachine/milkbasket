@@ -947,10 +947,10 @@ def landing(request):
     }
     if request.method == "POST":
         tenant = None
-        username = request.POST.get("username", '')
-        username = username.lower()
+        username = request.POST.get("username")
         password = request.POST.get("password")
         if username and password:
+            username = username.lower()
             auth_user = authenticate(username=username, password=password)
             if auth_user:
                 tenant = Tenant.objects.get(tenant_id=auth_user.id)
