@@ -7,7 +7,6 @@ from django.db import models
 from customer.constant import WA_OTP_MESSAGE_TEMPLATE, WA_OTP_MESSAGE
 from milkbasket.secret import DEV_NUMBER
 from register.models import Customer, Tenant
-from register.utils import is_dev
 
 
 class WhatsAppMessage(models.Model):
@@ -91,6 +90,7 @@ class LoginOTP(models.Model):
 
             # send OTP Notification
             from register.utils import send_whatsapp_message
+            from register.utils import is_dev
             wa_body = WA_OTP_MESSAGE_TEMPLATE
             wa_body[
                 'to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{user.contact}"
