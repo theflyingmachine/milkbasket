@@ -24,17 +24,8 @@ jobs:
         run: echo "::set-output name=hash::$(git rev-parse --short HEAD)"
       - name: Create Octopus release
         run: |
-          octo create-release `
-          --server ${{ env.server }} `
-          --apiKey ${{ secrets.OCTOPUS_API_KEY }} `
-          --project ${{ env.project }} `
-          --version ${{ steps.commit_hash.outputs.hash }}
+          octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version ${{ steps.commit_hash.outputs.hash }}
 
       - name: Deploy to environment
         run: |
-          octo deploy-release `
-          --server ${{ env.server }} `
-          --apiKey ${{ secrets.OCTOPUS_API_KEY }} `
-          --project ${{ env.project }} `
-          --releaseNumber ${{ steps.commit_hash.outputs.hash }} `
-          --deployTo Production
+          octo deploy-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --releaseNumber ${{ steps.commit_hash.outputs.hash }} --deployTo Production
