@@ -3,6 +3,7 @@ name: MilkBasket Deploy
 env:
   project: MilkBasket
   server: https://cyberboy.octopus.app/
+  version: $(date +%Y.%m.%d).i
 
 on:
   push:
@@ -21,8 +22,8 @@ jobs:
              
       - name: Create Octopus release
         run: |
-          octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version $(date +%Y.%m.%d).i
+          octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version ${{ env.version }}
 
       - name: Deploy to environment
         run: |
-          octo deploy-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --releaseNumber $(date +%Y.%m.%d).i --deployTo Production
+          octo deploy-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --releaseNumber ${{ env.version }} --deployTo Production
