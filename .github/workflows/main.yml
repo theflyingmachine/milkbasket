@@ -21,7 +21,7 @@ jobs:
              
       - name: Create Octopus release
         run: |
-          octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version $(date +%Y.%m.%d)"
+          octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version $(date +%Y.%m.%d)
 
       - name: Deploy to environment
         run: |
