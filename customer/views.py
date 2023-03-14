@@ -13,11 +13,11 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
 
 from customer.models import WhatsAppMessage, LoginOTP
-from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT
+from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN, DEV_NUMBER
 from register.constant import WA_NEW_MESSAGE, WA_NEW_MESSAGE_TEMPLATE
 from register.models import Customer, Payment, Register, Tenant
 from register.utils import get_customer_due_amount, get_mongo_client, send_whatsapp_message, \
-    is_mobile, get_client_ip
+    is_mobile, get_client_ip, is_dev
 
 logger = logging.getLogger()
 
@@ -130,7 +130,7 @@ def customer_dashboard_login(request):
         password = request.POST.get("password")
         customer = Customer.objects.filter(contact=username).first()
         if customer:
-            otp = LoginOTP.get_otp(customer)
+            otp = LoginOTP.get_otp(customer, 'customer')
             context.update({'request_otp': otp.login_attempt < 3,
                             'remaining_attempt': otp.login_attempt < 3,
                             'current_username': username})
@@ -144,6 +144,7 @@ def customer_dashboard_login(request):
                                                                                     password,
                                                                                     get_client_ip(
                                                                                         request)))
+                    otp.delete()
                     return redirect('customer_dashboard')
                 else:
                     otp.login_attempt += 1
@@ -282,6 +283,6 @@ def send_new_message_notification(from_sender):
         wa_message = WA_NEW_MESSAGE.format(sender.name)
         wa_body = WA_NEW_MESSAGE_TEMPLATE
         wa_body[
-            'to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{sender.tenant.contact}"
+            'to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{sender.tenant.contact}"
         wa_body['template']['components'][0]['parameters'][0]['text'] = sender.name
         send_whatsapp_message(wa_body, wa_message, route='API_INFO')

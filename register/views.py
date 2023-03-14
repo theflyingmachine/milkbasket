@@ -25,7 +25,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import View
 
-from customer.models import WhatsAppMessage
+from customer.models import WhatsAppMessage, LoginOTP
 from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
 from register.constant import DUE_TEMPLATE_ID, WA_DUE_MESSAGE, WA_DUE_MESSAGE_TEMPLATE, \
     SMS_DUE_MESSAGE, SMS_PAYMENT_MESSAGE
@@ -40,7 +40,7 @@ from register.models import Payment
 from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
-    get_whatsapp_media_by_id, get_client_ip, calculate_milk_price
+    get_whatsapp_media_by_id, get_client_ip, calculate_milk_price, is_dev
 from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
@@ -946,16 +946,43 @@ def landing(request):
         'is_mobile': is_mobile(request),
     }
     if request.method == "POST":
+        tenant = None
         username = request.POST.get("username")
-        username = username.lower()
         password = request.POST.get("password")
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            login(request, user)
-            logger.info(
-                'Seller Login Accepted. IP:{2}'.format(username, password, get_client_ip(request)))
-            return redirect('view_register')
+        if username and password:
+            username = username.lower()
+            auth_user = authenticate(username=username, password=password)
+            if auth_user:
+                tenant = Tenant.objects.get(tenant_id=auth_user.id)
+                request.session['seller_id'] = auth_user.id
 
+        otp_password = request.POST.get("otp_password")
+        if otp_password:
+            user_id = request.session.get('seller_id')
+            tenant = Tenant.objects.get(tenant_id=user_id)
+
+        if tenant is not None:
+            tenant.name = tenant.tenant.first_name
+            otp = LoginOTP.get_otp(tenant, 'seller')
+            context.update({'request_otp': otp.login_attempt < 3,
+                            'remaining_attempt': otp.login_attempt < 3,
+                            'current_username': username})
+            if otp and otp_password:
+                if otp_password == otp.otp_password and otp.login_attempt < 3:
+                    login(request, tenant.tenant)
+                    logger.info(
+                        'Seller Login Accepted. IP:{2}'.format(username, password,
+                                                               get_client_ip(request)))
+                    otp.delete()
+                    return redirect('view_register')
+                else:
+                    otp.login_attempt += 1
+                    otp.save()
+                    logger.warning(
+                        'Failed Seller Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(
+                            username, password, get_client_ip(request)))
+                    context.update({'message': 'Login Failed, {0}'.format(
+                        f'{3 - otp.login_attempt} attempt remaining' if otp.login_attempt < 3 else 'please try again later')})
         else:
             logger.warning(
                 'Failed Seller Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(username,
@@ -1443,7 +1470,7 @@ def broadcast_send(request, cust_id=None):
         sms_body = SMS_DUE_MESSAGE.format(due[0]['name'], due[0]['due_month'],
                                           due[0]['to_be_paid'])
         wa_body = WA_DUE_MESSAGE_TEMPLATE
-        wa_body['to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}"
+        wa_body['to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{cust_number}"
         wa_body['template']['components'][0]['parameters'][0]['text'] = due[0]['to_be_paid']
         wa_body['template']['components'][1]['parameters'][0]['text'] = due[0]['name']
         wa_body['template']['components'][1]['parameters'][1]['text'] = due[0]['to_be_paid']
@@ -1457,7 +1484,7 @@ def broadcast_send(request, cust_id=None):
         res = {'sms': False, 'whatsapp': False}
 
         def proxy_send_sms_api():
-            res['sms'] = send_sms_api(DEV_NUMBER if RUN_ENVIRONMENT == 'dev' else cust_number,
+            res['sms'] = send_sms_api(DEV_NUMBER if is_dev() else cust_number,
                                       sms_body,
                                       DUE_TEMPLATE_ID)
 

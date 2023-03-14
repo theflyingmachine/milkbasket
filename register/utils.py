@@ -566,7 +566,7 @@ def send_wa_payment_notification(cust_number, cust_name, payment_amount, payment
                                  transaction_number):
     """ Send WA notification for Payment received """
     wa_body = WA_PAYMENT_MESSAGE_TEMPLATE
-    wa_body['to'] = f"91{DEV_NUMBER}" if RUN_ENVIRONMENT == 'dev' else f"91{cust_number}"
+    wa_body['to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{cust_number}"
     wa_body['template']['components'][0]['parameters'][0]['text'] = cust_name
     wa_body['template']['components'][0]['parameters'][1]['text'] = payment_amount
     wa_body['template']['components'][0]['parameters'][2]['text'] = payment_time
@@ -594,6 +594,11 @@ def calculate_milk_price(register_qs):
                                                        output_field=FloatField())).aggregate(
             Sum('total_due'))['total_due__sum']
     return total_due / 1000 if total_due else 0
+
+
+def is_dev():
+    """ Helper function to check the current environment. Reruns Boolean"""
+    return RUN_ENVIRONMENT == 'dev'
 
 
 #  ===================== Custom Error Handler Views ==============================

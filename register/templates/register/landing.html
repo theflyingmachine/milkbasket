@@ -132,7 +132,7 @@
           transform: scale(0.95);
       }
 
-      input[type=password], input[type=text] {
+      input[type=password], input[type=text], input[type=number] {
           background-color: #f6f6f6;
           border: none;
           color: #0d0d0d;
@@ -140,7 +140,6 @@
           text-align: center;
           text-decoration: none;
           display: inline-block;
-          font-size: 16px;
           margin: 5px;
           width: 85%;
           border: 2px solid #f6f6f6;
@@ -160,6 +159,10 @@
 
       input[type=text]:placeholder {
           color: #cccccc;
+      }
+
+      input[type=number]:placeholder {
+          color: #3babff;
       }
 
 
@@ -363,11 +366,19 @@
     {% if message %}
       <h5 class="text-danger">{{ message }}</h5>
     {% endif %}
-    <input autofocus type="text" id="username" class="fadeIn third" name="username"
-           placeholder="Enter username">
-    <input type="password" id="password" class="fadeIn third" name="password"
-           placeholder="Enter password">
-    <input type="submit" class="fadeIn fourth" value="Log In">
+
+    {% if not request_otp and not current_username %}
+      <input autofocus type="text" id="username" class="fadeIn third" name="username"
+             placeholder="Enter username">
+      <input type="password" id="password" class="fadeIn third" name="password"
+             placeholder="Enter password">
+      <input type="submit" class="fadeIn fourth" value="Request OTP">
+    {% else %}
+      <input type="number" id="otp_password" class="fadeIn third h2 text-center"
+             name="otp_password"
+             placeholder="Enter OTP">
+      <input type="submit" class="fadeIn fourth" value="Login">
+    {% endif %}
   </form>
 </div>
 
