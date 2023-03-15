@@ -408,11 +408,7 @@ def is_transaction_revertible(request, customer):
 def is_mobile(request):
     """Return True if the request comes from a mobile device."""
     MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
-    if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-        return True
-    else:
-        return False
-
+    return MOBILE_AGENT_RE.match(request.META.get('HTTP_USER_AGENT', '')) is not None
 
 def authenticate_alexa(request):
     """ Authenticates the key for get request from Alexa """
