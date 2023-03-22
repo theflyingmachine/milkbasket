@@ -28,8 +28,7 @@ from django.views.generic import View
 from customer.models import WhatsAppMessage, LoginOTP
 from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
 from register.constant import DUE_TEMPLATE_ID, WA_DUE_MESSAGE, WA_DUE_MESSAGE_TEMPLATE, \
-    SMS_DUE_MESSAGE, SMS_PAYMENT_MESSAGE
-from register.constant import PAYMENT_TEMPLATE_ID
+    SMS_DUE_MESSAGE
 from register.forms import CustomerForm
 from register.forms import RegisterForm
 from register.models import Balance
@@ -895,9 +894,13 @@ def accept_payment(request, year=None, month=None, return_url=None):
         # Send SMS notification
         if sms_notification and customer.contact:
             transaction_time = datetime.now().strftime('%d-%m-%Y %I:%M:%p')
-            sms_text = SMS_PAYMENT_MESSAGE.format(customer.name, new_payment.amount,
-                                                  transaction_time, new_payment.id)
-            send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
+            # --------------------------------------------------------
+            # Temporarily disable Payment received SMS notification
+            # --------------------------------------------------------
+            # sms_text = SMS_PAYMENT_MESSAGE.format(customer.name, new_payment.amount,
+            #                                       transaction_time, new_payment.id)
+            # send_sms_api(customer.contact, sms_text, PAYMENT_TEMPLATE_ID)
+            # --------------------------------------------------------
             send_wa_payment_notification(customer.contact, customer.name, new_payment.amount,
                                          transaction_time, new_payment.id)
 
