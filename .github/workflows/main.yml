@@ -32,11 +32,12 @@ jobs:
         uses: actions/create-release@v1
         with:
           tag_name: Prod
-          name: 2023.03.31.2
+          release_name: 2023.03.31.2
+          body: MilkBasket release
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ env.GIT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 #
 #  release:
 #    runs-on: ubuntu-latest
