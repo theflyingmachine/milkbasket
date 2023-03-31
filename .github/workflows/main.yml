@@ -37,12 +37,8 @@ jobs:
       - name: Get latest release metadata from Octopus
         id: status
         run: |
-          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json)
-          data=$(echo $release_metadata | tail -n +2 | jq -r '.[0]')
-          echo "::set-output name=release-metadata::$data"
-
-      - name: Print release-metadata value
-        run: echo ${{ steps.status.outputs.release-metadata }}
+          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json | tail -n +2 | jq -r '.[0]')
+          echo "release_metadata=$release_metadata" >> $GITHUB_ENV
 
       - name: Create GitHub release
         uses: actions/create-release@v1
@@ -52,9 +48,7 @@ jobs:
           body: |
             MilkBasket Release Version 
             ${{ steps.octopus.outputs.release-version }}
-            
-            
-            ${{ steps.status.outputs.release-metadata }}
+            ${{ env.release_metadata }}
           draft: false
           prerelease: false
         env:
