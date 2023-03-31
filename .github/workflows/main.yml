@@ -61,6 +61,7 @@ jobs:
             ${{ steps.octopus.outputs.release-version }}
             ${{ steps.octopus_meta.outputs.release-metadata }}
             ${{ steps.extract-data.outputs.data }}
+            "${{ steps.extract-data.outputs.data }}"
             ${{ env.testing }}
           draft: false
           prerelease: false
