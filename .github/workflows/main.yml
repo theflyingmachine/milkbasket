@@ -41,6 +41,13 @@ jobs:
           data=$(echo $release_metadata | tail -n +2 | jq -r '.[0]')
           echo "::set-output name=release-metadata::$data"
 
+      - name: Get JSON response and extract data
+        id: extract-data
+        run: |
+          response=$(curl -s https://raw.githubusercontent.com/Ovi/DummyJSON/master/src/data/carts.json)
+          data=$(echo $response | jq -r '.data')
+          echo "::set-output name=data::$data"
+
       - name: Create GitHub release
         uses: actions/create-release@v1
         with:
@@ -49,6 +56,7 @@ jobs:
           body: |
             MilkBasket Release Version ${{ steps.octopus.outputs.release-version }}
             ${{ steps.octopus_meta.outputs.release-metadata }}
+            ${{ steps.extract-data.outputs.data }}
           draft: false
           prerelease: false
         env:
