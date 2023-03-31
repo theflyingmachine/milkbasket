@@ -48,7 +48,7 @@ jobs:
         id: extract-data
         run: |
           response=$(curl -s https://raw.githubusercontent.com/Ovi/DummyJSON/master/src/data/carts.json)
-          data=$(echo $response | jq -r '.data')
+          data=$(echo $response | jq -r '.[0]')
           echo "::set-output name=data::$data"
 
       - name: Create GitHub release
