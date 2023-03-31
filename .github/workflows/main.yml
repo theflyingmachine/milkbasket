@@ -4,6 +4,9 @@ env:
   project: MilkBasket
   server: https://cyberboy.octopus.app/
   version: $(date +%Y.%m.%d).i
+  testing: |
+    This is a test string
+    it is used to test multiline
 
 on:
   push:
@@ -54,9 +57,11 @@ jobs:
           tag_name: ${{ steps.octopus.outputs.release-version }}
           release_name: MilkBasket-${{ steps.octopus.outputs.release-version }}
           body: |
-            MilkBasket Release Version ${{ steps.octopus.outputs.release-version }}
+            MilkBasket Release Version 
+            ${{ steps.octopus.outputs.release-version }}
             ${{ steps.octopus_meta.outputs.release-metadata }}
             ${{ steps.extract-data.outputs.data }}
+            ${{ env.testing }}
           draft: false
           prerelease: false
         env:
