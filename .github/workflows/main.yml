@@ -35,9 +35,8 @@ jobs:
           echo "::set-output name=release-version::$release_version"
 
       - name: Get latest release metadata from Octopus
-        id: octopus
         run: |
-          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json)
+          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json | tail -n +2 | jq -r '.[0]')
           echo "::set-output name=release-metadata::$release_metadata"
 
       - name: Create GitHub release
