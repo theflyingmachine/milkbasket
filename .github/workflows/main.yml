@@ -4,9 +4,6 @@ env:
   project: MilkBasket
   server: https://cyberboy.octopus.app/
   version: $(date +%Y.%m.%d).i
-  testing: |
-    This is a test string
-    it is used to test multiline
 
 on:
   push:
@@ -38,30 +35,11 @@ jobs:
           echo "::set-output name=release-version::$release_version"
 
       - name: Get latest release metadata from Octopus
-        id: octopus_meta
+        id: status
         run: |
           release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json)
           data=$(echo $release_metadata | tail -n +2 | jq -r '.[0]')
           echo "::set-output name=release-metadata::$data"
-
-      - name: Get JSON response and extract data
-        id: extract-data
-        run: |
-          response=$(curl -s https://raw.githubusercontent.com/Ovi/DummyJSON/master/src/data/carts.json)
-          data=$(echo $response | jq -r '.[0]')
-          echo "::set-output name=data::$data"
-
-      - name: Get JSON from URL
-        id: get-json
-        run: |
-          json=$(curl -s https://raw.githubusercontent.com/Ovi/DummyJSON/master/src/data/carts.json | jq -r '.')
-          echo "::set-output name=json::$json"
-
-      - name: Use JSON variable
-        run: |
-          my_json="${{ steps.get-json.outputs.json }}"
-          echo "My JSON is:"
-          echo "$my_json"
 
       - name: Create GitHub release
         uses: actions/create-release@v1
@@ -71,10 +49,7 @@ jobs:
           body: |
             MilkBasket Release Version 
             ${{ steps.octopus.outputs.release-version }}
-            ${{ steps.octopus_meta.outputs.release-metadata }}
-            ${{ steps.extract-data.outputs.data }}
-            "${{ steps.extract-data.outputs.data }}"
-            ${{ env.testing }}
+            ${{ steps.status.outputs.release-metadata }}
           draft: false
           prerelease: false
         env:
