@@ -2,6 +2,8 @@
 
 [![Build Status](https://github.com/theflyingmachine/milkbasket/actions/workflows/main.yml/badge.svg)](https://github.com/theflyingmachine/milkbasket/actions/workflows/main.yml)
 
+[![Latest Release](https://img.shields.io/github/release/theflyingmachine/milkbasket.svg)](https://github.com/theflyingmachine/milkbasket/releases/latest)
+
 Welcome to the MilkBasket GitHub repository! MilkBasket is a software program designed to manage
 milk delivery and subscriptions for dairy farms and customers. Please note that MilkBasket is
 protected by a proprietary license, which means that any use, modification, or distribution of the

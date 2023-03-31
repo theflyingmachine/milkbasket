@@ -18,8 +18,8 @@ jobs:
         run: sudo apt update && sudo apt install --no-install-recommends gnupg curl ca-certificates apt-transport-https &&
              curl -sSfL https://apt.octopus.com/public.key | sudo apt-key add - &&
              sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" &&
-             sudo apt update && sudo apt install octopuscli
-             
+          sudo apt update && sudo apt install octopuscli
+
       - name: Create Octopus release
         run: |
           octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version ${{ env.version }}
@@ -27,3 +27,26 @@ jobs:
       - name: Deploy to environment
         run: |
           octo deploy-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version=latest --deployTo Production
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get latest release version from Octopus
+        id: octopus
+        uses: OctopusDeploy/Get-OctopusRelease-Version@v2
+        with:
+          octopus-url: ${{ env.server }}
+          octopus-apikey: ${{ secrets.OCTOPUS_API_KEY }}
+          project-name: ${{ env.project }}
+          channel-name: Default
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.octopus.outputs.release-version }}
+          name: ${{ steps.octopus.outputs.release-version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ env.GIT_TOKEN }}
