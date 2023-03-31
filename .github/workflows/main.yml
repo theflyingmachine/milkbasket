@@ -47,6 +47,7 @@ jobs:
           tag_name: ${{ steps.octopus.outputs.release-version }}
           release_name: MilkBasket-${{ steps.octopus.outputs.release-version }}
           body: |
+            MilkBasket Release Version ${{ steps.octopus.outputs.release-version }}
             ${{ steps.octopus_meta.outputs.release-metadata }}
           draft: false
           prerelease: false
