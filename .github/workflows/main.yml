@@ -38,7 +38,7 @@ jobs:
         id: status
         run: |
           release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json | tail -n +2 | jq -r '.[0]')
-          echo "release_metadata=$release_metadata" >> $GITHUB_ENV
+          printf "release_metadata=%s\n" "$release_metadata" >> $GITHUB_ENV
 
       - name: Create GitHub release
         uses: actions/create-release@v1
