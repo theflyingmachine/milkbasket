@@ -31,7 +31,7 @@ jobs:
       - name: Create GitHub release
         uses: actions/create-release@v1
         with:
-          tag_name: Prod
+          tag_name: 2023.03.31.2
           release_name: 2023.03.31.2
           body: MilkBasket release
           draft: false
