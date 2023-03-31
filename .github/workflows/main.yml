@@ -51,6 +51,18 @@ jobs:
           data=$(echo $response | jq -r '.[0]')
           echo "::set-output name=data::$data"
 
+      - name: Get JSON from URL
+        id: get-json
+        run: |
+          json=$(curl -s https://raw.githubusercontent.com/Ovi/DummyJSON/master/src/data/carts.json | jq -r '.')
+          echo "::set-output name=json::$json"
+
+      - name: Use JSON variable
+        run: |
+          my_json="${{ steps.get-json.outputs.json }}"
+          echo "My JSON is:"
+          echo "$my_json"
+
       - name: Create GitHub release
         uses: actions/create-release@v1
         with:
