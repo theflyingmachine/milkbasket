@@ -35,15 +35,18 @@ jobs:
       - name: Get latest release version from Octopus
         id: octopus
         run: |
-          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json)
-          data=$(echo $release_metadata | tail -n +2 | jq -r '.[0].Version')
-          echo "::set-output name=release-version::$data"
-          data=$(echo $release_metadata | tail -n +2 | jq -r '.[0].Assembled')
-          echo "::set-output name=assembled::$data"
-          data=$(echo $release_metadata | tail -n +2 | jq -r '.[0].State')
-          echo "::set-output name=state::$data"
-          data=$(echo $release_metadata | tail -n +2 | jq -r '.[0].Duration')
-          echo "::set-output name=duration::$data"
+          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].Version')
+          echo "::set-output name=release-version::$release_metadata"
+          
+          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].Assembled')
+          echo "::set-output name=assembled::$release_metadata"
+          
+          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].State')
+          echo "::set-output name=state::$release_metadata"
+          
+          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].Duration')
+          echo "::set-output name=duration::$release_metadata"
+      
 
       - name: Create GitHub release
         uses: actions/create-release@v1
