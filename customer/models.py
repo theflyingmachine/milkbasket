@@ -40,8 +40,12 @@ class WhatsAppMessage(models.Model):
                                        payload=payload, sent_payload=sent_payload)
 
     @staticmethod
-    def update_status(message_id, status):
-        WhatsAppMessage.objects.filter(message_id=message_id).update(status=status)
+    def update_status(message_id, status, payload=None):
+        if payload is None:
+            WhatsAppMessage.objects.filter(message_id=message_id).update(status=status)
+        else:
+            WhatsAppMessage.objects.filter(message_id=message_id).update(status=status,
+                                                                         payload=payload)
 
     @staticmethod
     def get_related_message(message_id):
