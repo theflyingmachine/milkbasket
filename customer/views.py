@@ -163,6 +163,7 @@ def customer_dashboard_login(request):
 def process_wa_payload(pl):
     try:
         # API Sent message status update
+        logger.debug('Payload :{0}'.format(pl))
         status = pl['entry'][0]['changes'][0]['value']['statuses'][0]['status']
         related_message_id = pl['entry'][0]['changes'][0]['value']['statuses'][0]['id']
         if status in ['sent', 'delivered', 'read'] and related_message_id:
