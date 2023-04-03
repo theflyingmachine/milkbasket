@@ -168,7 +168,6 @@ def process_wa_payload(pl):
         if status in ['sent', 'delivered', 'read' 'failed'] and related_message_id:
             WhatsAppMessage.update_status(related_message_id, status,
                                           payload=pl if status == 'failed' else None)
-            logger.error('Delivering WhatsApp Message Failed. Payload :{0}'.format(pl))
             return 'API Status Update'
     except (KeyError):
         pass
