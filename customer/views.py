@@ -165,25 +165,13 @@ def process_wa_payload(pl):
         # API Sent message status update
         status = pl['entry'][0]['changes'][0]['value']['statuses'][0]['status']
         related_message_id = pl['entry'][0]['changes'][0]['value']['statuses'][0]['id']
-        if status in ['sent', 'delivered', 'read'] and related_message_id:
-            WhatsAppMessage.update_status(related_message_id, status)
-            return 'API Status Update'
-    except (KeyError, TypeError):
-        try:
-            # API Sent message status update try to get failed status. Need to separate since the json
-            # field 'value' contains dict as a sting. so need to further process it.
-            import ast
-            if isinstance(pl['entry'][0]['changes'][0], str):
-                value = ast.literal_eval(pl['entry'][0]['changes'][0])['value']
-            else:
-                value = ast.literal_eval(pl['entry'][0]['changes'][0]['value'])
-            status = value['statuses'][0]['status']
-            related_message_id = value['statuses'][0]['id']
-            WhatsAppMessage.update_status(related_message_id, status, payload=pl)
+        if status in ['sent', 'delivered', 'read' 'failed'] and related_message_id:
+            WhatsAppMessage.update_status(related_message_id, status,
+                                          payload=pl if status == 'failed' else None)
             logger.error('Delivering WhatsApp Message Failed. Payload :{0}'.format(pl))
             return 'API Status Update'
-        except KeyError:
-            logger.error('Payload :{0}'.format(pl))
+    except (KeyError):
+        pass
 
     to_number = pl['entry'][0]['changes'][0]['value']['metadata']['phone_number_id']
     sender_name = pl['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name']
