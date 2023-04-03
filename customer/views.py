@@ -163,7 +163,6 @@ def customer_dashboard_login(request):
 def process_wa_payload(pl):
     try:
         # API Sent message status update
-        logger.debug('Payload :{0}'.format(pl))
         status = pl['entry'][0]['changes'][0]['value']['statuses'][0]['status']
         related_message_id = pl['entry'][0]['changes'][0]['value']['statuses'][0]['id']
         if status in ['sent', 'delivered', 'read'] and related_message_id:
@@ -184,7 +183,7 @@ def process_wa_payload(pl):
             logger.error('Delivering WhatsApp Message Failed. Payload :{0}'.format(pl))
             return 'API Status Update'
         except KeyError:
-            pass
+            logger.error('Payload :{0}'.format(pl))
 
     to_number = pl['entry'][0]['changes'][0]['value']['metadata']['phone_number_id']
     sender_name = pl['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name']
