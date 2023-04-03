@@ -173,7 +173,10 @@ def process_wa_payload(pl):
             # API Sent message status update try to get failed status. Need to separate since the json
             # field 'value' contains dict as a sting. so need to further process it.
             import ast
-            value = ast.literal_eval(pl['entry'][0]['changes'][0]['value'])
+            if isinstance(pl['entry'][0]['changes'][0], str):
+                value = ast.literal_eval(pl['entry'][0]['changes'][0])['value']
+            else:
+                value = ast.literal_eval(pl['entry'][0]['changes'][0]['value'])
             status = value['statuses'][0]['status']
             related_message_id = value['statuses'][0]['id']
             WhatsAppMessage.update_status(related_message_id, status, payload=pl)
