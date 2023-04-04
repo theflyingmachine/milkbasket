@@ -165,9 +165,9 @@ def process_wa_payload(pl):
         # API Sent message status update
         status = pl['entry'][0]['changes'][0]['value']['statuses'][0]['status']
         related_message_id = pl['entry'][0]['changes'][0]['value']['statuses'][0]['id']
-        if status in ['sent', 'delivered', 'read' 'failed'] and related_message_id:
+        if status in ('sent', 'delivered', 'read', 'failed') and related_message_id:
             WhatsAppMessage.update_status(related_message_id, status,
-                                          payload=pl if status == 'failed' else None)
+                                          payload=pl if status in ('failed', 'warning') else None)
             return 'API Status Update'
     except (KeyError):
         pass
