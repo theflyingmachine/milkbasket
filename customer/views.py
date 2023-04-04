@@ -254,6 +254,7 @@ def whatsapp_webhook(request):
         # ).delete()
         # signature = request.headers.get("X-Hub-Signature-256", "")
         payload = json.loads(request.body)
+        logger.info('Webhook Payload :{0}'.format(payload))
         # print(payload)
         # mac = hmac.new(bytes(WHATSAPP_WEBHOOK_TOKEN.encode(), 'UTF-8'), payload, digestmod=hashlib.sha256)
         # secret = WHATSAPP_WEBHOOK_TOKEN.encode()
