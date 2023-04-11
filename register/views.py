@@ -910,6 +910,7 @@ def accept_payment(request, year=None, month=None, return_url=None):
 @login_required
 @transaction.atomic
 def revert_transaction(request):
+    """ This function is used to revert the last transaction within 30 days. """
     c_id = request.POST.get("c_id")
     customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
     bal = Balance.objects.filter(customer=customer).exclude(last_balance_amount=None).first()
@@ -1600,6 +1601,7 @@ def customer_settle_up(request):
 @login_required()
 @transaction.atomic()
 def customer_refund(request):
+    """ This function is used to refund the balance amount if the customer has paid advance """
     c_id = request.POST.get("c_id", None)
     customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
     if customer:
