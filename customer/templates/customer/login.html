@@ -171,7 +171,7 @@
 
         <span class="text-warning text-center">{{ message }}</span>
         <div class="container-login100-form-btn">
-          <button class="login100-form-btn">
+          <button class="login100-form-btn" onclick="checkLoginFn(this);">
             {% if not request_otp %} Request OTP {% else %} Login {% endif %}
           </button>
         </div>
@@ -188,6 +188,15 @@
 
 
 <div id="dropDownSelect1"></div>
+
+<script>
+  function checkLoginFn(login) {
+    //Showing please wait... when login button is clicked
+    login.disabled = true;
+    login.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
+    login.form.submit();
+  }
+</script>
 
 <!--===============================================================================================-->
 <script src="{% static "/customer/login/vendor/jquery/jquery-3.2.1.min.js" %}"></script>

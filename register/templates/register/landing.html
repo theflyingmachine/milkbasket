@@ -372,15 +372,25 @@
              placeholder="Enter username">
       <input type="password" id="password" class="fadeIn third" name="password"
              placeholder="Enter password">
-      <input type="submit" class="fadeIn fourth" value="Request OTP">
+      <input type="submit" class="fadeIn fourth" value="Request OTP" onclick="checkLoginFn(this);">
     {% else %}
       <input type="number" id="otp_password" class="fadeIn third h2 text-center"
              name="otp_password"
              placeholder="Enter OTP">
-      <input type="submit" class="fadeIn fourth" value="Login">
+      <input type="submit" class="fadeIn fourth" value="Login" onclick="checkLoginFn(this);">
     {% endif %}
   </form>
 </div>
+
+<script>
+  function checkLoginFn(login) {
+    //Showing please wait... when login button is clicked
+    login.disabled = true;
+    login.style.backgroundColor = 'gray';
+    login.value = 'Please Wait…';
+    login.form.submit();
+  }
+</script>
 
 <!-- Footer -->
 {% include "register/footer.html" %}
