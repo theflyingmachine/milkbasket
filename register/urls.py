@@ -68,6 +68,10 @@ urlpatterns = [
     path('whatsapp/<int:wa_number>', views.whatsapp_chat, name='whatsapp_number_chat'),
     path('whatsapp/media/<int:media_id>', views.get_whatsapp_media, name='whatsapp_media'),
 
+    # V1 API
+    path('api/v1/register/<int:year>/<int:month>/', views.get_register_api,
+         name='get_register_api'),
+
 ]
 
 # handler403 = 'register.utils.error_403_view'

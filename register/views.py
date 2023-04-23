@@ -1,4 +1,5 @@
 import ast
+import calendar
 import decimal
 import json
 import logging
@@ -16,7 +17,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Prefetch
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -38,6 +39,7 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
+from register.serializer import CustomerSerializer
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
     get_whatsapp_media_by_id, get_client_ip, calculate_milk_price, is_dev
 from register.utils import check_customer_is_active
@@ -71,7 +73,9 @@ def index(request, year=None, month=None):
     tenant = get_tenant_perf(request)
     if tenant is None:
         return redirect('setting')
-    template = 'register/register.html'
+    # template = 'register/register.html'
+    template = 'register/react_register.html'
+
     context = {
         'page_title': 'Milk Basket - Register',
         'menu_register': True,
@@ -456,12 +460,12 @@ def addentry(request, year=None, month=None):
 
             # check if entry exists for give day and schedule
 
-            check_record = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
-                                                   log_date=full_log_date,
-                                                   schedule__startswith=schedule).first()
+            entry = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
+                                            log_date=full_log_date,
+                                            schedule__startswith=schedule).first()
             cust = Customer.objects.get(id=customer)
             extended_data = {'customer_name': cust.name}
-            if not check_record:
+            if not entry:
                 entry = Register(tenant_id=request.user.id, customer_id=customer,
                                  log_date=full_log_date,
                                  schedule=full_schedule,
@@ -469,10 +473,10 @@ def addentry(request, year=None, month=None):
                 entry.save()
                 entry_status = True if entry.id else False
             else:
-                check_record.schedule = full_schedule
-                check_record.quantity = quantity
-                check_record.save()
-                entry_status = True if check_record.id else False
+                entry.schedule = full_schedule
+                entry.quantity = quantity
+                entry.save()
+                entry_status = True if entry.id else False
 
             if full_schedule.endswith("-yes"):
                 extended_data.update({'quantity': f'{quantity} ML'})
@@ -486,6 +490,15 @@ def addentry(request, year=None, month=None):
             'classnameRemove': 'cal-no' if 'yes' in yes_or_no else 'cal-yes',
             'logDate': full_log_date.strftime('%d %b'),
             'reload': reload_status,
+            'customer_id': int(customer),
+            'entry': {
+                'id': entry.id,
+                'log_date': entry.log_date,
+                'schedule': entry.schedule,
+                'paid': entry.paid,
+                'quantity': entry.quantity,
+                'current_price': current_price,
+            }
         }
         if extended_data:
             data.update(extended_data)
@@ -1620,3 +1633,61 @@ def customer_refund(request):
 
     profile_url = reverse('customer_profile', args=[customer.id])
     return redirect(profile_url)
+
+
+# @login_required()
+def get_register_api(request, year, month):
+    """ This function returns JSON data for the register entry in a month."""
+    # Get Tenant Preference
+    tenant = get_tenant_perf(request)
+    if tenant is None:
+        return redirect('setting')
+    custom_month = None
+    if year and month:
+        date_time_str = f'01/{month}/{year} 01:01:01'
+        custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
+    register_date = custom_month if custom_month else date.today()
+
+    register_filter = {
+        'tenant_id': request.user.id,
+        'log_date__month': register_date.month,
+        'log_date__year': register_date.year
+    }
+    m_schedule = Q(schedule__in=['morning-yes', 'morning-no'])
+    e_schedule = Q(schedule__in=['evening-yes', 'evening-no'])
+
+    cust_register_filter = {
+        'tenant_id': request.user.id,
+        'register__log_date__month': register_date.month,
+        'register__log_date__year': register_date.year
+    }
+    cust_m_schedule = Q(register__schedule__in=['morning-yes', 'morning-no'])
+    cust_e_schedule = Q(register__schedule__in=['evening-yes', 'evening-no'])
+
+    # Get morning register for given month
+    m_cust = Customer.objects.prefetch_related(
+        Prefetch('register_set',
+                 queryset=Register.objects.filter(
+                     m_schedule, **register_filter).order_by('log_date'))
+    ).filter(cust_m_schedule, **cust_register_filter).distinct()
+
+    e_cust = Customer.objects.prefetch_related(
+        Prefetch('register_set',
+                 queryset=Register.objects.filter(
+                     e_schedule, **register_filter).order_by('log_date'))
+    ).filter(cust_e_schedule, **cust_register_filter).distinct()
+
+    # plot calendar days
+    import datetime as dt
+    # Get the number of days in the month
+    days_in_month = calendar.monthrange(register_date.year, register_date.month)[1]
+    # Create a list of date objects in the month
+    date_list = [dt.date(register_date.year, register_date.month, day) for day in
+                 range(1, days_in_month + 1)]
+
+    return JsonResponse({'status': 'success',
+                         'default_price': tenant.milk_price,
+                         'dates': date_list,
+                         'm_register': CustomerSerializer(instance=m_cust, many=True).data,
+                         'e_register': CustomerSerializer(instance=e_cust, many=True).data,
+                         })

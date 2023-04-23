@@ -1,0 +1,646 @@
+{% include "register/header.html" %}
+
+{# PROD Bundle #}
+{#<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>#}
+{#<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>#}
+
+{#<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>#}
+
+{# Dev Bundle #}
+<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+
+
+<script
+ src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+
+<!-- Babel CDN link -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+<style>
+    .cal-yes {
+        border: 1px solid green;
+        background-color: #80ced6;
+    }
+
+    .cal-no {
+        border: 1px solid red;
+        background-color: #f18973;
+    }
+
+    .cel-tab {
+        padding: 0.4rem !important;
+        vertical-align: inherit !important;
+    }
+
+    #showQuantity {
+        height: 25px;
+        width: 25px;
+    }
+
+    .vertical-center {
+        vertical-align: middle !important;
+    }
+
+    .cal-nodata {
+        border: 1px solid grey;
+    }
+
+    td a {
+        display: block;
+        width: 100%;
+    }
+
+    td.sticky {
+        position: sticky;
+        left: 0;
+        background-color: whitesmoke;
+    }
+
+    .modal-xl {
+        max-width: 80% !important;
+    }
+
+    /* The container */
+    .container {
+        display: block;
+        position: relative;
+        padding-left: 35px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        font-size: 22px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    /* Hide the browser's default checkbox */
+    .container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    /* Create a custom checkbox */
+    .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 25px;
+        width: 25px;
+        background-color: #eee;
+    }
+
+    /* On mouse-over, add a grey background color */
+    .container:hover input ~ .checkmark {
+        background-color: #ccc;
+    }
+
+    /* When the checkbox is checked, add a blue background */
+    .container input:checked ~ .checkmark {
+        background-color: #2196F3;
+    }
+
+    /* Create the checkmark/indicator (hidden when not checked) */
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    /* Show the checkmark when checked */
+    .container input:checked ~ .checkmark:after {
+        display: block;
+    }
+
+    /* Style the checkmark/indicator */
+    .container .checkmark:after {
+        left: 9px;
+        top: 5px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+
+    .pilotimg {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .popover {
+        top: 10px !important;
+        background: yellowgreen;
+        text-align: center;
+    }
+
+    @media (max-width: 480px) {
+        .autopilot-modal-size-mobile {
+            max-width: 120% !important;
+        }
+
+        .autopilot-modal-content-mobile {
+            font-size: 12px !important;
+        }
+    }
+
+    .quantity-input {
+        font-size: 30px;
+    }
+
+    {# Attendance box CSS #}
+    .wrapper {
+        display: inline-flex;
+        background: #fff;
+        height: 100px;
+        width: 100%;
+        align-items: center;
+        justify-content: space-evenly;
+        border-radius: 5px;
+        padding: 15px 15px;
+    {#box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.2);#}
+    }
+
+    .wrapper .option {
+        background: #fff;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        margin: 0 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 0 10px;
+        border: 2px solid lightgrey;
+        transition: all 0.3s ease;
+    }
+
+    input[type="radio"] {
+        display: none;
+    }
+
+    #option-1:checked:checked ~ .option-1 {
+        background: green;
+    }
+
+    #option-2:checked:checked ~ .option-2 {
+        background: red;
+    }
+
+    .wrapper .option span {
+        font-size: 20px;
+        color: #808080;
+    }
+
+    #option-1:checked:checked ~ .option-1 span,
+    #option-2:checked:checked ~ .option-2 span {
+        color: #fff;
+    }
+
+    .register-button {
+    {#background-color: #EDEDED !important;#} border-color: #FFE6B9;
+        border-width: medium;
+    }
+</style>
+
+{% block content %}
+  <div>
+
+
+  {% load mathfilters %}
+  <div class="row bd-highlight mb-3">
+    <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
+      {% if active_customers_not_in_register %}
+        <button type="button" class="btn mt-2 ml-2 btn-primary" data-toggle="modal"
+                data-target="#exampleModal1"
+                data-whatever="@fat"><i class="far fa-address-book"></i> | Add New Entry
+        </button>
+      {% endif %}
+      <button type="button" class="btn mt-2 ml-2 btn-primary" data-toggle="modal"
+              data-target="#autopilot"
+              data-whatever="@fat"><i class="fa fa-plane"></i> | Auto-Pilot Mode
+      </button>
+      <select class="inline mt-2 ml-2 bd-highlight" id="effect-selector"
+              onchange="leaveChange()">
+        <option value="none">No Effect</option>
+        <option value="quantity">Show Quantity</option>
+        <option value="difference">Show Difference</option>
+      </select>
+
+    </div>
+    <div class="justify-content-end inline p-2 bd-highlight">
+      <form name="view_select_record" action="{% url 'view_select_record' %}"
+            method="post">{% csrf_token %}
+        <label for="myDate" class="col-form-label">Select Register:</label>
+        <input type="hidden" name="nav-type" value="register" id="nav">
+        <input class="inline" type="month" name="register_month" id="mydate"
+               value="{% now 'Y-m' %}">
+        <button type="submit" class="btn btn-primary">GO</button>
+      </form>
+    </div>
+  </div>
+  <h2 class="text-center">Register - {{ month_year }}</h2>
+  <hr>
+
+
+  {# React Report Starts #}
+
+  <script type="text/babel">
+
+    class Register extends React.Component {
+      filteredArray;
+
+      constructor(props) {
+        super(props);
+        // this.findDateEntry = this.findDateEntry.bind(this);
+        this.handler = this.handler.bind(this)
+        this.openModal = this.openModal.bind(this);
+        this.markAttendance = this.markAttendance.bind(this);
+
+
+        this.state = {
+          m_register: null,
+          e_register: null,
+          last_entry_day: null,
+          is_loading: true,
+          month_year: null,
+          dates: null,
+          default_price: null,
+          active_customers_not_in_register: [],
+          is_error: false,
+
+          att_customer_id: '',
+          att_log_date: '',
+          att_schedule: '',
+          att_attendance: '',
+          att_quantity: '',
+          att_name: '',
+
+          ajax_loading: false,
+          show_modal: false,
+
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal(obj) {
+        let default_quantity = null;
+        if (obj.schedule === 'Morning')
+          default_quantity = obj.customer.m_quantity;
+        if (obj.schedule === 'Evening')
+          default_quantity = obj.customer.e_quantity;
+
+        const options = {day: 'numeric', month: 'long', year: 'numeric'};
+        const formattedDate = new Date(obj.date).toLocaleDateString('en-US', options);
+        const dateArr = formattedDate.split(' ');
+        const day = dateArr[1].substring(0, 3);
+
+        const finalDateStr = `${day.replace(/,/g, "")} ${dateArr[0]},  ${dateArr[2]}`
+
+        this.setState({att_customer_id: obj.customer.id})
+        this.setState({att_name: obj.customer.name})
+        this.setState({att_quantity: obj.entry.length ? obj.entry[0].quantity : default_quantity})
+        this.setState({att_schedule: obj.schedule})
+        this.setState({att_log_date: finalDateStr})
+        this.setState({show_modal: true})
+
+
+      }
+
+      async markAttendance(event) {
+        this.setState({ajax_loading: true})
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch('{% url 'view_add_entry' %}', requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            const current_state = data.entry.schedule.startsWith('morning')
+              ? this.state.m_register
+              : this.state.e_register;
+
+// Update state
+            const updatedRegister = current_state.map((customer) => {
+              if (customer.id === data.customer_id) {
+                const existingEntry = customer.register_entry.find((entry) => entry.id === data.entry.id);
+
+                if (existingEntry) {
+                  return {
+                    ...customer,
+                    register_entry: customer.register_entry.map((entry) => {
+                      if (entry.id === data.entry.id) {
+                        return {...entry, ...data.entry};
+                      }
+                      return entry;
+                    }),
+                  };
+                }
+
+                return {
+                  ...customer,
+                  register_entry: [...customer.register_entry, data.entry],
+                };
+              }
+
+              return customer;
+            });
+
+            if (data.entry.schedule.startsWith('morning')) {
+              this.setState({m_register: updatedRegister});
+            } else if (data.entry.schedule.startsWith('evening')) {
+              this.setState({e_register: updatedRegister});
+            }
+
+            show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success');
+
+          })
+          .catch(error => {
+            if (error) {
+              show_toast('Error', error.message, 'danger')
+            } else {
+              show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
+            }
+          })
+        $('#exampleModal').modal('hide');
+        this.setState({show_modal: false})
+        this.setState({ajax_loading: false})
+      }
+
+      async componentDidMount() {
+        // GET request using fetch with async/await
+        // const response = await fetch('https://run.mocky.io/v3/3d252b24-7089-4d48-803b-dea5df6b4fdd');
+        try {
+          const response = await fetch('http://127.0.0.1:8000/milkbasket/api/v1/register/2023/03/');
+          // const response = await fetch('https://run.mocky.io/v3/3d252b24-7089-4d48-803b-dea5df6b4fdd');
+          const data = await response.json();
+          this.setState({m_register: data.m_register})
+          this.setState({e_register: data.e_register})
+          this.setState({dates: data.dates})
+          this.setState({default_price: data.default_price})
+          this.setState({is_loading: false})
+        } catch (e) {
+          this.setState({is_error: 'Something went wrong, please try again later. ' + e})
+          this.setState({is_loading: false})
+        }
+      }
+
+
+      render() {
+
+        const stickyHeader = {
+          position: 'sticky',
+          left: 0,
+          zIndex: '10',
+          background: 'white',
+        }
+        const loadingComp = <div className="text-center m-xl-5 p-xl-5">
+
+          <div className="spinner-grow text-primary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-secondary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-success spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-danger spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-warning spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-info spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-dark spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+        return (
+          <div>
+            <div className='p-2'>
+              <div>
+                {this.state.is_loading ? loadingComp
+                  : (
+                    <div>
+                      {this.state.m_register ? (
+                        <div>
+                          <h3 className="text-center mt-2">Morning Register</h3>
+                          <div>
+
+                            <table className='table table-hover'>
+                              <tbody>
+
+                              {this.state.m_register.map((customer, i) => (
+                                <tr key={customer.id + '_morning_' + i}>
+                                  <td
+                                    className='sticky text-nowrap font-weight-bold vertical-center'
+                                    style={stickyHeader}>
+                                    {customer.name}
+                                  </td>
+                                  {this.state.dates.map((date, i) => {
+                                    const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
+                                    const current_obj = {
+                                      entry: filteredArray,
+                                      date: date,
+                                      customer: customer,
+                                      schedule: 'Morning',
+                                    };
+
+                                    // Return the JSX element
+                                    return (
+                                      <td key={customer.id + '_morning_cel_' + i + 1}
+                                          className={`text-center cel-tab ${filteredArray.length ? filteredArray[0].schedule === 'morning-yes' ? 'cal-yes' : 'cal-no' : ''}`}
+                                          data-toggle="popover"
+                                          title={`${customer.name} - ${filteredArray.length ? filteredArray[0].quantity : ''}`}
+                                          data-trigger="hover"
+                                          data-placement="top"
+                                          data-content={filteredArray.length ? filteredArray[0].quantity : ''}
+                                      >
+
+                                        <button type="button"
+                                                className={`btn register-button q-${filteredArray.length ? filteredArray[0].quantity : ''}`} // Use the filtered array to get the quantity
+                                                data-toggle="modal"
+                                                data-target="#exampleModal"
+                                                onClick={() => this.openModal(current_obj)}
+                                        >{i + 1}
+                                          <span
+                                            id={`quantity_${filteredArray.length ? filteredArray[0].quantity + "_" + i + 1 : ''}`}
+                                            className="milk-quantity text-secondary small d-none">
+                                            {filteredArray.length ? filteredArray[0].schedule.endsWith('yes') ? filteredArray[0].quantity : 'Absent' : ''}
+                                          </span>
+                                        </button>
+                                      </td>
+                                    );
+                                  })}
+
+
+                                </tr>
+                              ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ) : ''}
+                    </div>
+                  )}
+              </div>
+            </div>
+
+            {this.state.show_modal ?
+              <div className="modal fade" id="exampleModal" tabIndex="-1" role="dialog"
+                   aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title"
+                          id="exampleModalLabel">{this.state.att_name} - {this.state.att_log_date} - {this.state.att_schedule}</h5>
+                      <button type="button" className="close" data-dismiss="modal"
+                              aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form onSubmit={this.markAttendance} name="addnewentry">
+                      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                      <div className="modal-body">
+                        <input type="hidden" className="form-control"
+                               value={this.state.att_customer_id} name="id" id="recipient-id"/>
+                        <input type="hidden" className="form-control"
+                               value={this.state.att_log_date || ''}
+                               name="log_date" id="date_log"/>
+                        <input type="hidden" className="form-control"
+                               value={this.state.att_schedule || ''}
+                               name="schedule"
+                               id="recipient_schedule"/>
+                        <div className="form-group">
+                          <label htmlFor="recipient-price1" className="col-form-label">Price /
+                            L:</label>
+                          <input type="text" className="form-control" disabled
+                                 name="selling_price"
+                                 id="recipient-price1" value={this.state.default_price || ''}/>
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="recipient-quantity"
+                                 className="col-form-label">Quantity:</label>
+                          <input type="number"
+                                 className="form-control quantity-input font-weight-bold"
+                                 step='0'
+                                 defaultValue={this.state.att_quantity || ''}
+                                 name="quantity" id="recipient-quantity" required/>
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="yn">Attendance:</label>
+                          <div className="wrapper">
+                            <input type="radio" name="attendance" id="option-1" value="1"
+                                   defaultChecked/>
+                            <input type="radio" name="attendance" id="option-2" value="0"/>
+                            <label htmlFor="option-1" className="option option-1">
+                              <span>✅ Present</span>
+                            </label>
+                            <label htmlFor="option-2" className="option option-2">
+                              <span>❌ Absent</span>
+                            </label>
+                          </div>
+                        </div>
+                        {this.state.ajax_loading ?
+                          loadingComp
+                          : ''}
+                      </div>
+                      <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary"
+                                data-dismiss="modal">Close
+                        </button>
+                        <button type="submit" className="btn btn-primary"
+                                autoFocus>Add Entry
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div> : ''}
+
+
+          </div>
+        );
+      }
+    }
+
+    ReactDOM.render(
+      <Register/>
+      , document.getElementById("report"));
+
+  </script>
+  <div id="report"></div>
+
+  <script>
+    function leaveChange() {
+      let colorCode = {
+        'q-Absent': '',
+        'q-250': '#F9F871',
+        'q-500': '#FFC75F',
+        'q-750': '#FF9671',
+        'q-1000': '#ff93ab',
+        'q-1250': '#d57bb5',
+        'q-1500': '#c9b5ef',
+        'q-1750': '#AFA060',
+        'q-2000': '#00FFFF',
+
+      }
+      let divsToHide = document.getElementsByClassName("milk-quantity");
+      var elements;
+      if (document.getElementById("effect-selector").value === "none") {
+        for (let i = 0; i < divsToHide.length; i++) {
+          divsToHide[i].style.display = "none";
+          divsToHide[i].style.backgroundColor = 'white';
+        }
+      } else if (document.getElementById("effect-selector").value === "quantity") {
+        for (let i = 0; i < divsToHide.length; i++) {
+          divsToHide[i].style.display = "block";
+          divsToHide[i].classList.remove('d-none');
+          $(divsToHide[i]).parent().css({"padding": "0 !important"});
+        }
+        for (let key of Object.keys(colorCode)) {
+          elements = document.getElementsByClassName(key);
+          for (let i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('d-none');
+            elements[i].style.backgroundColor = 'white';
+          }
+        }
+      } else if (document.getElementById("effect-selector").value === "difference") {
+
+        for (let i = 0; i < divsToHide.length; i++) {
+          divsToHide[i].style.display = "block";
+        }
+        for (let key of Object.keys(colorCode)) {
+          elements = document.getElementsByClassName(key);
+          for (let i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('d-none');
+            elements[i].style.backgroundColor = colorCode[key];
+          }
+        }
+      }
+    }
+
+
+  </script>
+
+{% endblock %}
+{% include "register/footer.html" %}
