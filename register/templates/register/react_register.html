@@ -765,11 +765,11 @@
                 {% if m_register %}
                   <h3 class="mb-4">Morning Register</h3>
                   {% for entry in m_register %}
-                    {% if entry.is_active %}
+                    {% if entry.status %}
                       <label
-                       class="container autopilot-modal-content-mobile">{{ entry.customer_name }}
-                        | {{ entry.customer_m_quantity }} ML
-                        <input name="{{ entry.customer_id }}-morning" type="checkbox"
+                       class="container autopilot-modal-content-mobile">{{ entry.name }}
+                        | {{ entry.m_quantity }} ML
+                        <input name="{{ entry.id }}-morning" type="checkbox"
                                checked="checked">
                         <span class="checkmark"></span>
                       </label>
@@ -779,9 +779,9 @@
                   <h3 class="mb-4 text-success">Add Customer to Morning Register</h3>
                   {% for entry in autopilot_morning_register %}
                     <label
-                     class="container autopilot-modal-content-mobile text-success">{{ entry.customer_name }}
-                      | {{ entry.customer_m_quantity }} ML
-                      <input name="{{ entry.customer_id }}-morning" type="checkbox"
+                     class="container autopilot-modal-content-mobile text-success">{{ entry.name }}
+                      | {{ entry.m_quantity }} ML
+                      <input name="{{ entry.id }}-morning" type="checkbox"
                              checked="checked">
                       <span class="checkmark"></span>
                     </label>
@@ -792,11 +792,11 @@
                 {% if e_register %}
                   <h3 class="mb-4">Evening Register</h3>
                   {% for entry in e_register %}
-                    {% if entry.is_active %}
+                    {% if entry.status %}
                       <label
-                       class="container autopilot-modal-content-mobile">{{ entry.customer_name }}
-                        | {{ entry.customer_e_quantity }} ML
-                        <input name="{{ entry.customer_id }}-evening" type="checkbox"
+                       class="container autopilot-modal-content-mobile">{{ entry.name }}
+                        | {{ entry.e_quantity }} ML
+                        <input name="{{ entry.id }}-evening" type="checkbox"
                                checked="checked">
                         <span class="checkmark"></span>
                       </label>
@@ -806,9 +806,9 @@
                   <h3 class="mb-4 text-success">Add Customer to Evening Register</h3>
                   {% for entry in autopilot_evening_register %}
                     <label
-                     class="container autopilot-modal-content-mobile text-success">{{ entry.customer_name }}
-                      | {{ entry.customer_e_quantity }} ML
-                      <input name="{{ entry.customer_id }}-evening" type="checkbox"
+                     class="container autopilot-modal-content-mobile text-success">{{ entry.name }}
+                      | {{ entry.e_quantity }} ML
+                      <input name="{{ entry.id }}-evening" type="checkbox"
                              checked="checked">
                       <span class="checkmark"></span>
                     </label>

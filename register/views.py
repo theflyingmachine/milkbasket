@@ -42,7 +42,6 @@ from register.models import Tenant
 from register.serializer import CustomerSerializer
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
     get_whatsapp_media_by_id, get_client_ip, calculate_milk_price, is_dev
-from register.utils import check_customer_is_active
 from register.utils import customer_register_last_updated
 from register.utils import generate_bill
 from register.utils import get_active_month
@@ -88,50 +87,41 @@ def index(request, year=None, month=None):
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     register_date = custom_month if custom_month else date.today()
     # Get morning register for given month
-    register = Register.objects.filter(tenant_id=request.user.id,
-                                       log_date__month=register_date.month,
-                                       log_date__year=register_date.year,
-                                       schedule__in=['morning-yes', 'morning-no',
-                                                     'e-morning']).values('customer_id',
-                                                                          'customer__name',
-                                                                          'customer__m_quantity').distinct()
-    m_register = [{
-        'customer_name': customer['customer__name'],
-        'customer_id': customer['customer_id'],
-        'customer_m_quantity': customer['customer__m_quantity'],
-        'default_price': tenant.milk_price,
-        'is_active': check_customer_is_active(customer['customer_id']),
-    } for customer in register]
-    # Get evening register for given month
-    register = Register.objects.filter(tenant_id=request.user.id,
-                                       log_date__month=register_date.month,
-                                       log_date__year=register_date.year,
-                                       schedule__in=['evening-yes', 'evening-no',
-                                                     'e-evening']).values('customer_id',
-                                                                          'customer__name',
-                                                                          'customer__e_quantity').distinct()
-    e_register = [{
-        'customer_name': customer['customer__name'],
-        'customer_id': customer['customer_id'],
-        'customer_e_quantity': customer['customer__e_quantity'],
-        'default_price': tenant.milk_price,
-        'is_active': check_customer_is_active(customer['customer_id']),
-    } for customer in register]
+    register_filter = {
+        'tenant_id': request.user.id,
+        'log_date__month': register_date.month,
+        'log_date__year': register_date.year
+    }
+    m_schedule = Q(schedule__in=['morning-yes', 'morning-no'])
+    e_schedule = Q(schedule__in=['evening-yes', 'evening-no'])
+
+    cust_register_filter = {
+        'tenant_id': request.user.id,
+        'register__log_date__month': register_date.month,
+        'register__log_date__year': register_date.year
+    }
+    cust_m_schedule = Q(register__schedule__in=['morning-yes', 'morning-no'])
+    cust_e_schedule = Q(register__schedule__in=['evening-yes', 'evening-no'])
+
+    # Get morning register for given month
+    m_register = Customer.objects.prefetch_related(
+        Prefetch('register_set',
+                 queryset=Register.objects.filter(
+                     m_schedule, **register_filter))
+    ).filter(cust_m_schedule, **cust_register_filter).distinct()
+
+    e_register = Customer.objects.prefetch_related(
+        Prefetch('register_set',
+                 queryset=Register.objects.filter(
+                     e_schedule, **register_filter))
+    ).filter(cust_e_schedule, **cust_register_filter).distinct()
 
     # Get All customers if no entry is added - will be used in autopilot mode
     autopilot_morning_register, autopilot_evening_register = [], []
     if not e_register or not m_register:
         all_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
-        autopilot_morning_register = [{
-            'customer_name': customer.name,
-            'customer_id': customer.id,
-            'customer_m_quantity': customer.m_quantity,
-        } for customer in all_customers if customer.morning]
-        autopilot_evening_register = [{
-            'customer_name': customer.name,
-            'customer_id': customer.id,
-            'customer_e_quantity': customer.e_quantity,
-        } for customer in all_customers if customer.evening]
+        autopilot_morning_register = all_customers.filter(m_quantity__gt=0)
+        autopilot_evening_register = all_customers.filter(e_quantity__gt=0)
 
     # plot calendar days
     days = monthrange(register_date.year, register_date.month)
@@ -149,10 +139,8 @@ def index(request, year=None, month=None):
         last_entry_date = 1
 
     # Get only active customers not added on register
-    all_register = m_register + e_register
-    customer_in_register = set([c['customer_id'] for c in all_register])
-    active_customers_not_in_register = [cust for cust in active_customers if
-                                        cust.id not in customer_in_register]
+    all_register = m_register.union(e_register)
+    active_customers_not_in_register = active_customers.exclude(id__in=all_register.values('id'))
 
     context.update({
         'month_year': month_year,
