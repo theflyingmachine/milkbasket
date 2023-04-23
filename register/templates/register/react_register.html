@@ -849,7 +849,7 @@
 
   <script>
     function leaveChange() {
-      let colorCode = {
+      const colorCode = {
         'q-Absent': '',
         'q-250': '#F9F871',
         'q-500': '#FFC75F',
@@ -859,39 +859,60 @@
         'q-1500': '#c9b5ef',
         'q-1750': '#AFA060',
         'q-2000': '#00FFFF',
+        'q-2250': '#FF69B4',
+        'q-2500': '#F08080',
+        'q-2750': '#ADD8E6',
+        'q-3000': '#D8BFD8',
+        'q-3250': '#E0FFFF',
+        'q-3500': '#FFA07A',
+        'q-3750': '#FFE4E1',
+        'q-4000': '#B0C4DE',
+        'q-4250': '#DDA0DD',
+        'q-4500': '#EEE8AA',
+        'q-4750': '#7B68EE',
+        'q-5000': '#BDB76B',
+      };
 
-      }
-      let divsToHide = document.getElementsByClassName("milk-quantity");
-      var elements;
-      if (document.getElementById("effect-selector").value === "none") {
-        for (let i = 0; i < divsToHide.length; i++) {
+      const effectSelector = document.getElementById("effect-selector");
+      const selectedValue = effectSelector.value;
+      const divsToHide = document.querySelectorAll(".milk-quantity");
+      const length = divsToHide.length;
+
+      if (selectedValue === "none") {
+        for (let i = 0; i < length; i++) {
           divsToHide[i].style.display = "none";
         }
-      } else if (document.getElementById("effect-selector").value === "quantity") {
-        for (let i = 0; i < divsToHide.length; i++) {
-          divsToHide[i].style.display = "block";
-          divsToHide[i].classList.remove('d-none');
-          $(divsToHide[i]).parent().css({"padding": "0 !important"});
+      } else if (selectedValue === "quantity") {
+        for (let i = 0; i < length; i++) {
+          const divToHide = divsToHide[i];
+          divToHide.style.display = "block";
+          divToHide.classList.remove('d-none');
+          divToHide.parentElement.style.padding = "0 !important";
         }
-        for (let key of Object.keys(colorCode)) {
-          elements = document.getElementsByClassName(key);
-          for (let i = 0; i < elements.length; i++) {
-            elements[i].classList.remove('d-none');
-            elements[i].style.backgroundColor = 'white';
+        Object.keys(colorCode).forEach(key => {
+          const elements = document.querySelectorAll(`.${key}`);
+          const elementsLength = elements.length;
+          for (let i = 0; i < elementsLength; i++) {
+            const element = elements[i];
+            element.classList.remove('d-none');
+            element.style.backgroundColor = 'white';
           }
+        });
+      } else if (selectedValue === "difference") {
+        for (let i = 0; i < length; i++) {
+          const divToHide = divsToHide[i];
+          divToHide.style.display = "block";
+          divToHide.classList.remove('d-none');
         }
-      } else if (document.getElementById("effect-selector").value === "difference") {
-
-        for (let i = 0; i < divsToHide.length; i++) {
-          divsToHide[i].style.display = "block";
-        }
-        for (let key of Object.keys(colorCode)) {
-          elements = document.getElementsByClassName(key);
-          for (let i = 0; i < elements.length; i++) {
-            elements[i].classList.remove('d-none');
-            elements[i].style.backgroundColor = colorCode[key];
+        Object.keys(colorCode).forEach(key => {
+          const elements = document.querySelectorAll(`.${key}`);
+          const elementsLength = elements.length;
+          for (let i = 0; i < elementsLength; i++) {
+            const element = elements[i];
+            element.classList.remove('d-none');
+            element.style.backgroundColor = colorCode[key];
           }
-        }
+        });
       }
     }
 

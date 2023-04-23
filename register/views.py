@@ -95,16 +95,9 @@ def index(request, year=None, month=None):
                                                      'e-morning']).values('customer_id',
                                                                           'customer__name',
                                                                           'customer__m_quantity').distinct()
-    register_entry = Register.objects.filter(tenant_id=request.user.id,
-                                             log_date__month=register_date.month,
-                                             log_date__year=register_date.year,
-                                             schedule__in=['morning-yes', 'morning-no',
-                                                           'e-morning'])
     m_register = [{
         'customer_name': customer['customer__name'],
         'customer_id': customer['customer_id'],
-        'register_entry': [re for re in register_entry if
-                           re.customer_id == customer['customer_id']],
         'customer_m_quantity': customer['customer__m_quantity'],
         'default_price': tenant.milk_price,
         'is_active': check_customer_is_active(customer['customer_id']),
@@ -117,16 +110,9 @@ def index(request, year=None, month=None):
                                                      'e-evening']).values('customer_id',
                                                                           'customer__name',
                                                                           'customer__e_quantity').distinct()
-    register_entry = Register.objects.filter(tenant_id=request.user.id,
-                                             log_date__month=register_date.month,
-                                             log_date__year=register_date.year,
-                                             schedule__in=['evening-yes', 'evening-no',
-                                                           'e-evening'])
     e_register = [{
         'customer_name': customer['customer__name'],
         'customer_id': customer['customer_id'],
-        'register_entry': [re for re in register_entry if
-                           re.customer_id == customer['customer_id']],
         'customer_e_quantity': customer['customer__e_quantity'],
         'default_price': tenant.milk_price,
         'is_active': check_customer_is_active(customer['customer_id']),
