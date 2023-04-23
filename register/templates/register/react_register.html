@@ -402,7 +402,7 @@
         const stickyHeader = {
           position: 'sticky',
           left: 0,
-          zIndex: '10',
+          zIndex: '2',
           background: 'white',
         }
         const fullWidth = {
@@ -435,7 +435,7 @@
         </div>
         return (
           <div>
-            <div className='p-2'>
+            <div className='p-0'>
               <div>
                 {this.state.is_loading ? loadingComp
                   : (
@@ -453,7 +453,8 @@
                                   <td
                                     className='sticky text-nowrap font-weight-bold vertical-center'
                                     style={stickyHeader}>
-                                    {customer.name}
+                                    <a
+                                      href={`profile/${customer.id}`}>{customer.name}</a>
                                   </td>
                                   {this.state.dates.map((date, i) => {
                                     const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
@@ -499,6 +500,68 @@
                           </div>
                         </div>
                       ) : ''}
+                      {this.state.e_register ? (
+                        <div>
+                          <h3 className="text-center mt-2">Evening Register</h3>
+                          <div className="overflow-auto">
+
+                            <table className='table table-hover'>
+                              <tbody>
+
+                              {this.state.e_register.map((customer, i) => (
+                                <tr key={customer.id + 'evening' + i}>
+                                  <td
+                                    className='sticky text-nowrap font-weight-bold vertical-center'
+                                    style={stickyHeader}>
+                                    <a
+                                      href={`profile/${customer.id}`}>{customer.name}</a>
+                                  </td>
+                                  {this.state.dates.map((date, i) => {
+                                    const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
+                                    const current_obj = {
+                                      entry: filteredArray,
+                                      date: date,
+                                      customer: customer,
+                                      schedule: 'Evening',
+                                    };
+
+                                    // Return the JSX element
+                                    return (
+                                      <td key={customer.id + '_evening_cel_' + i + 1}
+                                          className={`text-center cel-tab ${filteredArray.length ? filteredArray[0].schedule === 'evening-yes' ? 'cal-yes' : 'cal-no' : ''}`}
+                                          data-toggle="popover"
+                                          title={`${customer.name} - ${filteredArray.length ? filteredArray[0].quantity : ''}`}
+                                          data-trigger="hover"
+                                          data-placement="top"
+                                          data-content={filteredArray.length ? filteredArray[0].quantity : ''}
+                                      >
+
+                                        <button type="button"
+                                                className={`btn register-button q-${filteredArray.length ? filteredArray[0].schedule.endsWith('yes') ? filteredArray[0].quantity : '' : ''}`} // Use the filtered array to get the quantity
+                                                data-toggle="modal"
+                                                data-target="#exampleModal"
+                                                onClick={() => this.openModal(current_obj)}
+                                        >{i + 1}
+                                          <span
+                                            id={`quantity_${filteredArray.length ? filteredArray[0].quantity + "_" + i + 1 : ''}`}
+                                            className="milk-quantity text-secondary small d-none">
+                                            {filteredArray.length ? filteredArray[0].schedule.endsWith('yes') ? filteredArray[0].quantity : 'Absent' : ''}
+                                          </span>
+                                        </button>
+                                      </td>
+                                    );
+                                  })}
+
+
+                                </tr>
+                              ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ) : ''}
+
+                      <p class="text-center mb-5"> --- END OF PAGE ---</p>
                     </div>
                   )}
               </div>
@@ -803,7 +866,6 @@
       if (document.getElementById("effect-selector").value === "none") {
         for (let i = 0; i < divsToHide.length; i++) {
           divsToHide[i].style.display = "none";
-          divsToHide[i].style.backgroundColor = 'white';
         }
       } else if (document.getElementById("effect-selector").value === "quantity") {
         for (let i = 0; i < divsToHide.length; i++) {
