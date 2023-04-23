@@ -181,6 +181,8 @@ def index(request, year=None, month=None):
         'autopilot_morning_register': autopilot_morning_register,
         'autopilot_evening_register': autopilot_evening_register,
         'active_customers_not_in_register': active_customers_not_in_register,
+        'register_date_month': register_date.month,
+        'register_date_year': register_date.year,
     })
     return render(request, template, context)
 
@@ -1635,7 +1637,7 @@ def customer_refund(request):
     return redirect(profile_url)
 
 
-# @login_required()
+@login_required()
 def get_register_api(request, year, month):
     """ This function returns JSON data for the register entry in a month."""
     # Get Tenant Preference
