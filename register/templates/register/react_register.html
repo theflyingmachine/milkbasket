@@ -43,10 +43,6 @@
         vertical-align: middle !important;
     }
 
-    .cal-nodata {
-        border: 1px solid grey;
-    }
-
     td a {
         display: block;
         width: 100%;
@@ -136,12 +132,6 @@
         margin-right: auto;
     }
 
-    .popover {
-        top: 10px !important;
-        background: yellowgreen;
-        text-align: center;
-    }
-
     @media (max-width: 480px) {
         .autopilot-modal-size-mobile {
             max-width: 120% !important;
@@ -207,7 +197,7 @@
     }
 
     .register-button {
-    {#background-color: #EDEDED !important;#} border-color: #FFE6B9;
+        border-color: #FFE6B9;
         border-width: medium;
     }
 </style>
@@ -266,16 +256,12 @@
         this.openModal = this.openModal.bind(this);
         this.markAttendance = this.markAttendance.bind(this);
 
-
         this.state = {
           m_register: null,
           e_register: null,
-          last_entry_day: null,
           is_loading: true,
-          month_year: null,
           dates: null,
           default_price: null,
-          active_customers_not_in_register: [],
           is_error: false,
 
           att_customer_id: '',
@@ -334,7 +320,7 @@
               ? this.state.m_register
               : this.state.e_register;
 
-// Update state
+            // Update state
             const updatedRegister = current_state.map((customer) => {
               if (customer.id === data.customer_id) {
                 const existingEntry = customer.register_entry.find((entry) => entry.id === data.entry.id);
@@ -366,7 +352,6 @@
               this.setState({e_register: updatedRegister});
             }
             show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success');
-
           })
           .catch(error => {
             if (error) {
@@ -375,7 +360,7 @@
               show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
             }
           })
-        $('#exampleModal').modal('hide');
+        $('#autopilotModal').modal('hide');
         leaveChange()
         this.setState({show_modal: false})
         this.setState({ajax_loading: false})
@@ -383,7 +368,9 @@
 
       async componentDidMount() {
         try {
-          const response = await fetch('http://127.0.0.1:8000/milkbasket/api/v1/register/{{ register_date_year }}/{{ register_date_month }}/');
+          let hostname = window.location.hostname === '127.0.0.1' ? window.location.hostname + ':8000' : window.location.hostname;
+          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/register/{{ register_date_year }}/{{ register_date_month }}/";
+          const response = await fetch(url);
           const data = await response.json();
           this.setState({m_register: data.m_register})
           this.setState({e_register: data.e_register})
@@ -398,7 +385,6 @@
 
 
       render() {
-
         const stickyHeader = {
           position: 'sticky',
           left: 0,
@@ -410,7 +396,6 @@
         }
 
         const loadingComp = <div className="text-center m-xl-5 p-xl-5">
-
           <div className="spinner-grow text-primary spinner-size-big" role="status">
             <span className="sr-only">Loading...</span>
           </div>
@@ -433,6 +418,7 @@
             <span className="sr-only">Loading...</span>
           </div>
         </div>
+
         return (
           <div>
             <div className='p-0'>
@@ -440,59 +426,57 @@
                 {this.state.is_loading ? loadingComp
                   : (
                     <div>
-                      {this.state.m_register ? (
+
+                      {this.state.is_error ?
+                        <div className="alert alert-danger text-center" role="alert">
+                          {this.state.is_error}
+                        </div> : ''}
+
+                      {this.state.m_register.length ? (
                         <div>
                           <h3 className="text-center mt-2">Morning Register</h3>
                           <div className="overflow-auto">
-
                             <table className='table table-hover'>
                               <tbody>
-
-                              {this.state.m_register.map((customer, i) => (
-                                <tr key={customer.id + '_morning_' + i}>
+                              {this.state.m_register.map((customer) => (
+                                <tr key={customer.id + 'morning'}>
                                   <td
                                     className='sticky text-nowrap font-weight-bold vertical-center'
                                     style={stickyHeader}>
-                                    <a
-                                      href={`profile/${customer.id}`}>{customer.name}</a>
+                                    <a href={`profile/${customer.id}`}>{customer.name}</a>
                                   </td>
                                   {this.state.dates.map((date, i) => {
                                     const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
                                     const current_obj = {
                                       entry: filteredArray,
-                                      date: date,
-                                      customer: customer,
+                                      date,
+                                      customer,
                                       schedule: 'Morning',
                                     };
+                                    const filteredArrayLength = filteredArray.length;
+                                    const filteredArraySchedule = filteredArrayLength ? filteredArray[0].schedule : '';
+                                    const isCalYes = filteredArrayLength && filteredArraySchedule.endsWith('yes');
 
-                                    // Return the JSX element
                                     return (
-                                      <td key={customer.id + '_morning_cel_' + i + 1}
-                                          className={`text-center cel-tab ${filteredArray.length ? filteredArray[0].schedule === 'morning-yes' ? 'cal-yes' : 'cal-no' : ''}`}
-                                          data-toggle="popover"
-                                          title={`${customer.name} - ${filteredArray.length ? filteredArray[0].quantity : ''}`}
-                                          data-trigger="hover"
+                                      <td key={`${customer.id}_morning_cel_${i + 1}`}
+                                          className={`text-center cel-tab ${filteredArray.length ? isCalYes ? 'cal-yes' : 'cal-no' : ''}`}
+                                          data-toggle={filteredArrayLength && 'tooltip'}
                                           data-placement="top"
-                                          data-content={filteredArray.length ? filteredArray[0].quantity : ''}
-                                      >
-
+                                          data-original-title={`${customer.name} - ${isCalYes ? filteredArray[0].quantity : 'Absent'}`}>
                                         <button type="button"
-                                                className={`btn register-button q-${filteredArray.length ? filteredArray[0].schedule.endsWith('yes') ? filteredArray[0].quantity : '' : ''}`} // Use the filtered array to get the quantity
+                                                className={`btn register-button q-${isCalYes ? filteredArray[0].quantity : ''}`}
                                                 data-toggle="modal"
-                                                data-target="#exampleModal"
-                                                onClick={() => this.openModal(current_obj)}
-                                        >{i + 1}
+                                                data-target="#autopilotModal"
+                                                onClick={() => this.openModal(current_obj)}>
+                                          {i + 1}
                                           <span
-                                            id={`quantity_${filteredArray.length ? filteredArray[0].quantity + "_" + i + 1 : ''}`}
                                             className="milk-quantity text-secondary small d-none">
-                                            {filteredArray.length ? filteredArray[0].schedule.endsWith('yes') ? filteredArray[0].quantity : 'Absent' : ''}
+                                            {filteredArrayLength ? isCalYes ? filteredArray[0].quantity : 'Absent' : ''}
                                           </span>
                                         </button>
                                       </td>
                                     );
                                   })}
-
-
                                 </tr>
                               ))}
                               </tbody>
@@ -500,59 +484,51 @@
                           </div>
                         </div>
                       ) : ''}
-                      {this.state.e_register ? (
+                      {this.state.e_register.length ? (
                         <div>
                           <h3 className="text-center mt-2">Evening Register</h3>
                           <div className="overflow-auto">
-
                             <table className='table table-hover'>
                               <tbody>
-
-                              {this.state.e_register.map((customer, i) => (
-                                <tr key={customer.id + 'evening' + i}>
+                              {this.state.e_register.map((customer) => (
+                                <tr key={customer.id + 'evening'}>
                                   <td
                                     className='sticky text-nowrap font-weight-bold vertical-center'
                                     style={stickyHeader}>
-                                    <a
-                                      href={`profile/${customer.id}`}>{customer.name}</a>
+                                    <a href={`profile/${customer.id}`}>{customer.name}</a>
                                   </td>
                                   {this.state.dates.map((date, i) => {
                                     const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
                                     const current_obj = {
                                       entry: filteredArray,
-                                      date: date,
-                                      customer: customer,
+                                      date,
+                                      customer,
                                       schedule: 'Evening',
                                     };
+                                    const filteredArrayLength = filteredArray.length;
+                                    const filteredArraySchedule = filteredArrayLength ? filteredArray[0].schedule : '';
+                                    const isCalYes = filteredArrayLength && filteredArraySchedule.endsWith('yes');
 
-                                    // Return the JSX element
                                     return (
-                                      <td key={customer.id + '_evening_cel_' + i + 1}
-                                          className={`text-center cel-tab ${filteredArray.length ? filteredArray[0].schedule === 'evening-yes' ? 'cal-yes' : 'cal-no' : ''}`}
-                                          data-toggle="popover"
-                                          title={`${customer.name} - ${filteredArray.length ? filteredArray[0].quantity : ''}`}
-                                          data-trigger="hover"
+                                      <td key={`${customer.id}_evening_cel_${i + 1}`}
+                                          className={`text-center cel-tab ${filteredArray.length ? isCalYes ? 'cal-yes' : 'cal-no' : ''}`}
+                                          data-toggle={filteredArrayLength && 'tooltip'}
                                           data-placement="top"
-                                          data-content={filteredArray.length ? filteredArray[0].quantity : ''}
-                                      >
-
+                                          data-original-title={`${customer.name} - ${isCalYes ? filteredArray[0].quantity : 'Absent'}`}>
                                         <button type="button"
-                                                className={`btn register-button q-${filteredArray.length ? filteredArray[0].schedule.endsWith('yes') ? filteredArray[0].quantity : '' : ''}`} // Use the filtered array to get the quantity
+                                                className={`btn register-button q-${isCalYes ? filteredArray[0].quantity : ''}`}
                                                 data-toggle="modal"
-                                                data-target="#exampleModal"
-                                                onClick={() => this.openModal(current_obj)}
-                                        >{i + 1}
+                                                data-target="#autopilotModal"
+                                                onClick={() => this.openModal(current_obj)}>
+                                          {i + 1}
                                           <span
-                                            id={`quantity_${filteredArray.length ? filteredArray[0].quantity + "_" + i + 1 : ''}`}
                                             className="milk-quantity text-secondary small d-none">
-                                            {filteredArray.length ? filteredArray[0].schedule.endsWith('yes') ? filteredArray[0].quantity : 'Absent' : ''}
+                                            {filteredArrayLength ? isCalYes ? filteredArray[0].quantity : 'Absent' : ''}
                                           </span>
                                         </button>
                                       </td>
                                     );
                                   })}
-
-
                                 </tr>
                               ))}
                               </tbody>
@@ -561,14 +537,15 @@
                         </div>
                       ) : ''}
 
-                      <p class="text-center mb-5"> --- END OF PAGE ---</p>
+
+                      <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
                     </div>
                   )}
               </div>
             </div>
 
             {this.state.show_modal ?
-              <div className="modal fade" id="exampleModal" tabIndex="-1" role="dialog"
+              <div className="modal fade" id="autopilotModal" tabIndex="-1" role="dialog"
                    aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div className="modal-dialog" role="document">
                   <div className="modal-content">
@@ -654,7 +631,14 @@
       , document.getElementById("report"));
 
   </script>
+
   <div id="report"></div>
+  {% if not e_register or not m_register %}
+    <div class="alert alert-primary text-center" role="alert">
+      No Register Entry to display
+    </div>
+  {% endif %}
+
 
   {#  React Component ends here #}
   {# Add new Register Modal #}
@@ -916,19 +900,6 @@
       }
     }
 
-
-    {#  PopOver #}
-    $(function () {
-      $('[data-toggle="popover"]').popover()
-    })
-
-    {# Hide modal progressbar on page load#}
-    $(document).ready(function () {
-      $(".progress").hide();
-      $("#autoimg").hide();
-    });
-
-
     $('#exampleModal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget) // Button that triggered the modal
       var recipient = button.data('whatever') // Extract info from data-* attributes
@@ -984,6 +955,15 @@
           }
         }, 'json')
       })
+
+      $("body").tooltip({
+        selector: "[data-toggle='tooltip']",
+        container: "body"
+      })
+
+      $(".progress").hide();
+      $("#autoimg").hide();
+
     });
 
   </script>
