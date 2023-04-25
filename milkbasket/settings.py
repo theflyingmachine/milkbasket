@@ -172,6 +172,7 @@ sentry_sdk.init(
     send_default_pii=True,
     # Sentry Env Config
     environment="production",
+    auto_session_tracking=False,
     # environment="dev" if RUN_ENVIRONMENT == 'dev' else "production",
     # Profiling
     _experiments={
