@@ -72,7 +72,6 @@ def index(request, year=None, month=None):
     tenant = get_tenant_perf(request)
     if tenant is None:
         return redirect('setting')
-    # template = 'register/register.html'
     template = 'register/react_register.html'
 
     context = {
@@ -119,9 +118,8 @@ def index(request, year=None, month=None):
     # Get All customers if no entry is added - will be used in autopilot mode
     autopilot_morning_register, autopilot_evening_register = [], []
     if not e_register or not m_register:
-        all_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
-        autopilot_morning_register = all_customers.filter(m_quantity__gt=0)
-        autopilot_evening_register = all_customers.filter(e_quantity__gt=0)
+        autopilot_morning_register = active_customers.filter(m_quantity__gt=0)
+        autopilot_evening_register = active_customers.filter(e_quantity__gt=0)
 
     # plot calendar days
     days = monthrange(register_date.year, register_date.month)

@@ -1,14 +1,14 @@
 {% include "register/header.html" %}
 
 {# PROD Bundle #}
-{#<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>#}
-{#<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>#}
+<script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
 
 {# Dev Bundle #}
-<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+{#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
+{#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
 
 <script
  src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
@@ -432,7 +432,7 @@
                               {this.state.m_register.map((customer) => (
                                 <tr key={customer.id + 'morning'}>
                                   <td
-                                    className='sticky text-nowrap font-weight-bold vertical-center'
+                                    className='sticky text-nowrap px-1 font-weight-bold vertical-center'
                                     style={stickyHeader}>
                                     <a href={`profile/${customer.id}`}>{customer.name}</a>
                                   </td>
@@ -484,7 +484,7 @@
                               {this.state.e_register.map((customer) => (
                                 <tr key={customer.id + 'evening'}>
                                   <td
-                                    className='sticky text-nowrap font-weight-bold vertical-center'
+                                    className='sticky text-nowrap px-1 font-weight-bold vertical-center'
                                     style={stickyHeader}>
                                     <a href={`profile/${customer.id}`}>{customer.name}</a>
                                   </td>
