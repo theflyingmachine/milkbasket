@@ -4,19 +4,14 @@
 {#<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>#}
 {#<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>#}
 
-{#<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>#}
-{#<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>#}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
 
 {# Dev Bundle #}
 <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
 
-
 <script
  src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
-
-<!-- Babel CDN link -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
 
 <style>
     .cal-yes {
@@ -32,11 +27,6 @@
     .cel-tab {
         padding: 0.4rem !important;
         vertical-align: inherit !important;
-    }
-
-    #showQuantity {
-        height: 25px;
-        width: 25px;
     }
 
     .vertical-center {
@@ -126,7 +116,7 @@
         transform: rotate(45deg);
     }
 
-    .pilotimg {
+    .pilot-img {
         display: block;
         margin-left: auto;
         margin-right: auto;
@@ -232,7 +222,7 @@
             method="post">{% csrf_token %}
         <label for="myDate" class="col-form-label">Select Register:</label>
         <input type="hidden" name="nav-type" value="register" id="nav">
-        <input class="inline" type="month" name="register_month" id="mydate"
+        <input class="inline" type="month" name="register_month" id="my-date"
                value="{% now 'Y-m' %}">
         <button type="submit" class="btn btn-primary">GO</button>
       </form>
@@ -558,7 +548,7 @@
                         <span aria-hidden="true">&times;</span>
                       </button>
                     </div>
-                    <form onSubmit={this.markAttendance} name="addnewentry">
+                    <form onSubmit={this.markAttendance} name="add-new-entry">
                       <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
                       <div className="modal-body">
                         <input type="hidden" className="form-control"
@@ -572,7 +562,7 @@
                                id="recipient_schedule"/>
                         <div className="form-group">
                           <label htmlFor="recipient-price1" className="col-form-label">Price /
-                            L:</label>
+                            L </label>
                           <input type="text" className="form-control" disabled
                                  name="selling_price"
                                  id="recipient-price1" value={this.state.default_price || ''}/>
@@ -634,7 +624,7 @@
   </script>
 
   <div id="report"></div>
-  {% if not e_register or not m_register %}
+  {% if not e_register and not m_register %}
     <div class="alert alert-primary text-center" role="alert">
       No Register Entry to display
     </div>
@@ -653,7 +643,8 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form name="addnewentry" action="{% url 'view_add_entry' %}" method="post">{% csrf_token %}
+        <form name="add-new-entry" action="{% url 'view_add_entry' %}"
+              method="post">{% csrf_token %}
           <div class="modal-body">
             <input type="hidden" value='True' class="form-control" name="add-new-entry"
                    id="add-new">
@@ -671,17 +662,16 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="recipient-price" class="col-form-label">Price / L:</label>
+              <label for="recipient-price" class="col-form-label">Price / L </label>
               <input type="text" class="form-control" disabled name="selling_price"
                      id="recipient-price" value="{{ default_price }}">
             </div>
 
             <div class="form-group">
               <label for="myDate1" class="col-form-label">Date:</label>
-              <input class="form-control" type="date" name="log_date" id="mydate1"
+              <input class="form-control" type="date" name="log_date" id="my-date-1"
                      min="{% now 'Y-m-01' %}" max="{{ max_date }}"
-                     value="{% now 'Y-m-d' %}">
-            </div>
+                     value="{% now 'Y-m-d' %}"></div>
           </div>
           <div class="progress">
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
@@ -716,14 +706,15 @@
 
         <!-- Modal body -->
 
-        <form id="autopilotform" action="{% url 'view_autopilot' %}" method="post">{% csrf_token %}
+        <form id="auto-pilot-form" action="{% url 'view_autopilot' %}"
+              method="post">{% csrf_token %}
           <div class="modal-body">
             <input type="hidden" class="form-control" name="log_month" id="log_month"
                    value="{{ month_year }}">
             <div class="row justify-content-center">
               <div class="col-sm-3">
                 <div class="form-group">
-                  <select name='start' class="form-control custom-select-lg">
+                  <select name="start" class="form-control custom-select-lg">
                     {% for day in days %}
                       <option {% if day == last_entry_day %} selected {% endif %}
                                                              value="{{ day }}">{{ day }} {{ month_year }}</option>
@@ -734,7 +725,7 @@
               <h3> to </h3>
               <div class="col-sm-3">
                 <div class="form-group">
-                  <select name='end' class="form-control custom-select-lg">
+                  <select name="end" class="form-control custom-select-lg">
                     {% for day in days %}
                       <option {% if day == today_day %} selected {% endif %}
                                                         value="{{ day }}">{{ day }} {{ month_year }}</option>
@@ -813,7 +804,7 @@
           </div>
         </form>
 
-        <img class="pilotimg" style="width:40%" id='autoimg'
+        <img class="pilot-img" style="width:40%" id="auto-img"
              src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
              alt="HTML5 Icon">
         <br>
@@ -901,27 +892,6 @@
       }
     }
 
-    $('#exampleModal').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget) // Button that triggered the modal
-      var recipient = button.data('whatever') // Extract info from data-* attributes
-      var date_log = button.data('date_log') // Extract info from data-* attributes
-      var recipient_quantity = button.data('quantity') // Extract info from data-* attributes
-      var recipient_price = button.data('price') // Extract info from data-* attributesc
-      var recipient_schedule = button.data('schedule') // Extract info from data-* attributesc
-      var recipient_id = button.data('id') // Extract info from data-* attributesc
-      // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-      // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-      var modal = $(this)
-      modal.find('.modal-title').text(recipient + ' - ' + date_log + ' - ' + recipient_schedule)
-      modal.find('#recipient-quantity').val(recipient_quantity)
-      modal.find('#recipient-price').val(recipient_price)
-      modal.find('#recipient-price1').val(recipient_price)
-      modal.find('#recipient-id').val(recipient_id)
-      modal.find('#date_log').val(date_log)
-      modal.find('#recipient_schedule').val(recipient_schedule)
-    })
-
-
     $('.modal').on('shown.bs.modal', function () {
       $(this).find('[autofocus]').focus();
     });
@@ -931,8 +901,8 @@
       $('.modal form').on('submit', function (event) {
         $(".progress").show();
         $(".modal-footer").hide();
-        $("#autopilotform").hide();
-        $("#autoimg").show();
+        $("#auto-pilot-form").hide();
+        $("#auto-img").show();
 
 
         event.preventDefault()
@@ -948,6 +918,12 @@
             }
           } else {
             // Error code here
+            $('#autopilot').modal('hide');
+            $("#auto-img").hide();
+            $(".modal-backdrop").remove();
+            $(".progress").hide();
+            $(".modal-footer").show();
+            $("#auto-pilot-form").show();
             if (data.showmessage === true) {
               show_toast('Error', data.message, 'danger')
             } else {
@@ -963,7 +939,7 @@
       })
 
       $(".progress").hide();
-      $("#autoimg").hide();
+      $("#auto-img").hide();
 
     });
 
