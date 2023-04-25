@@ -154,7 +154,8 @@
         return <div className="report">
           {component}
           {this.state.isLoading ? loading_component : ''}
-          {this.state.isLoading ? '' : <p className="p-5 text-center"> --- END OF PAGE ---</p>}
+          {this.state.isLoading ? '' :
+            <p className="p-5 text-center text-secondary"> --- END OF PAGE ---</p>}
         </div>;
       }
     }
