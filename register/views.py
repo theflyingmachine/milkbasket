@@ -157,7 +157,8 @@ def index(request, year=None, month=None):
         'active_customers_not_in_register': active_customers_not_in_register,
         'register_date_month': register_date.month,
         'register_date_year': register_date.year,
-        'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http'
+        'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
+        'show_tooltip': str(not is_mobile(request)).lower(),
     })
     return render(request, template, context)
 

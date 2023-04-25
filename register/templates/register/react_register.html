@@ -263,6 +263,7 @@
           dates: null,
           default_price: null,
           is_error: false,
+          show_tooltip: {{ show_tooltip }},
 
           att_customer_id: '',
           att_log_date: '',
@@ -460,7 +461,7 @@
                                     return (
                                       <td key={`${customer.id}_morning_cel_${i + 1}`}
                                           className={`text-center cel-tab ${filteredArray.length ? isCalYes ? 'cal-yes' : 'cal-no' : ''}`}
-                                          data-toggle={filteredArrayLength && 'tooltip'}
+                                          data-toggle={this.state.show_tooltip && filteredArrayLength && 'tooltip'}
                                           data-placement="top"
                                           data-original-title={`${customer.name} - ${isCalYes ? filteredArray[0].quantity : 'Absent'}`}>
                                         <button type="button"
@@ -512,7 +513,7 @@
                                     return (
                                       <td key={`${customer.id}_evening_cel_${i + 1}`}
                                           className={`text-center cel-tab ${filteredArray.length ? isCalYes ? 'cal-yes' : 'cal-no' : ''}`}
-                                          data-toggle={filteredArrayLength && 'tooltip'}
+                                          data-toggle={this.state.show_tooltip && filteredArrayLength && 'tooltip'}
                                           data-placement="top"
                                           data-original-title={`${customer.name} - ${isCalYes ? filteredArray[0].quantity : 'Absent'}`}>
                                         <button type="button"
