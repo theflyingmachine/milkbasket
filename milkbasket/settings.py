@@ -171,7 +171,7 @@ sentry_sdk.init(
     # django.contrib.auth) you may enable sending PII data.
     send_default_pii=True,
     # Sentry Env Config
-    # environment="production",
+    environment="production",
     # environment="dev" if RUN_ENVIRONMENT == 'dev' else "production",
     # Profiling
     _experiments={
