@@ -21,10 +21,7 @@
 </style>
 
 {% block content %}
-  <div>
 
-
-  {% load mathfilters %}
   <div class="row bd-highlight">
     <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
       <button type="button" class="btn mt-2 mr-2 btn-primary" data-toggle="modal"
@@ -47,8 +44,8 @@
       </form>
     </div>
   </div>
-  <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
-  <hr>
+  <h5 class="p-0 m-0 text-center">Income and Expenses - {{ month_year }}</h5>
+  <hr class="mt-1">
 
 
   <div id="report"></div>
@@ -65,7 +62,6 @@
     }
 
     class IncomeExpense extends React.Component {
-
       render() {
         return (
           <div>
@@ -82,7 +78,6 @@
               </thead>
               <tbody>
               {this.props.entry.map((expense, index) => (
-                {#                            {% for entry in expenses %}#}
                 <tr key={expense.id} className="">
                   <th className="py-2 col-1" scope="row">{index + 1}</th>
                   <td className="py-2 col-5">{expense.description}</td>
@@ -90,12 +85,12 @@
                   <td className="py-2 col-2">{formatDate(expense.log_date)}</td>
                   <td className="py-2 col-2">
                     <button type="button" className="btn-sm btn-danger"
-                     {#data-toggle="modal"#}
-                     {#data-target="#exampleModal"#}
-                     {#data-id="{{ entry.id }}"#}
-                     {#data-desc="{{ entry.description }}"#}
-                     {#data-cost="{{ entry.cost }}"#}
-                     {#data-log_date="{{ entry.log_date }}"#}
+                            data-toggle="modal"
+                            data-target="#exampleModal"
+                            data-id="{{ expense.id }}"
+                            data-desc="{{ expense.description }}"
+                            data-cost="{{ expense.cost }}"
+                            data-log_date="{{ expense.log_date }}"
                     >Delete
                     </button>
                   </td>
@@ -103,8 +98,7 @@
               ))}
               <tr className="info-row">
                 <td colSpan="5" className="py-2 font-weight-bold"><i
-                  className="fas fa-calculator text-info"></i> Total
-                  {this.props.title}:
+                  className="fas fa-calculator text-info"></i> Total {this.props.title}:
                   Rs {this.props.entry.reduce((acc, expense) => acc + parseFloat(expense.amount), 0)}
                 </td>
               </tr>
@@ -127,34 +121,103 @@
                 <th className="p-1 col-1" scope="col">#</th>
                 <th className="p-1 col-5" scope="col">Name</th>
                 <th className="p-1 col-3" scope="col">Adjusted Amount</th>
-                {#                <th className="p-2 col-2" scope="col">Accepted Amount</th>#}
                 <th className="p-1 col-3" scope="col">Paid Amount</th>
               </tr>
               </thead>
               <tbody>
-              {% for entry in paid_customer %}
-                <tr className="">
-                  <th className="py-2  col-1" scope="row">{{ forloop.counter }}</th>
+              {this.props.entry.map((entry, index) => (
+                <tr key={index}>
+                  <th className="py-2  col-1" scope="row">{index + 1}</th>
                   <th className="py-2  col-5" scope="row"><a
-                    href="{% url 'customer_profile'  entry.customer_id %}">{{ entry.customer__name }}</a>
+                    href="#">{entry.name}</a>
+                    {#href="{% url 'customer_profile'  entry.customer_id %}">{entry.name}</a>#}
                   </th>
-                  {% if entry.adjusted_amount < 0 %}
+                  {entry.balance_amount < 0 ?
                     <td
-                      className=" text-success col-3 font-weight-bold">{{ entry.adjusted_amount|abs }}
-                      (Adv)
-                    </td>
-                  {% else %}
-                    <td className="py-2  col-3">{{ entry.adjusted_amount }}</td>
-                  {% endif %}
-                  {#                  <td className="p-2 col-2">{{ entry.payment_done }}</td>#}
-                  <td className="py-2  col-3"><b>{{ entry.total_paid }}</b></td>
+                      className="text-success col-3 font-weight-bold">{Math.abs(entry.balance_amount)}
+                      &nbsp;(Adv)</td> :
+                    entry.balance_amount > 0 ?
+                      <td className="col-3">{entry.balance_amount}</td> :
+                      <td className="col-3"></td>
+                  }
+                  <td className="py-2  col-3"><b>{entry.paid_amount}</b></td>
+
                 </tr>
-              {% endfor %}
+
+              ))}
               <tr className="info-row">
                 <td colSpan="4" className="py-2 font-weight-bold"><i
+                  className="fas fa-calculator text-info"></i> Total {this.props.title}:
+                  Rs {this.props.entry.reduce((acc, paid) => acc + parseFloat(paid.paid_amount), 0)}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+    }
+
+    class DueCustomers extends React.Component {
+      render() {
+        return (
+          <div>
+            <h3 className="pt-2 mt-2 text-center">{this.props.title}</h3>
+            <table className="table mb-5 table-sm table-striped">
+              <thead>
+              <tr className="bg-info text-white">
+                <th className="p-1 col-1" scope="col">#</th>
+                <th className="p-1 col-3" scope="col">Name</th>
+                <th className="p-1 col-2" scope="col">Total Due</th>
+                <th className="p-1 col-2" scope="col">Due (till {this.props.previous_month_name})
+                </th>
+                <th className="p-1 col-4" scope="col">Action</th>
+              </tr>
+              </thead>
+              <tbody>
+              {this.props.entry.map((entry, index) => (
+                <tr key={index}>
+                  <th className="py-2 col-1" scope="row">{index + 1}</th>
+                  <th className="py-2 col-3" scope="row"><a
+                    href="#">{entry.name}</a>
+                    {#href="{% url 'customer_profile'  entry.customer_id %}">{{ entry.customer__name }}</a>#}
+                  </th>
+                  <td className="py-2 col-2">{entry.due_amount}</td>
+                  <td className="py-2 col-2">
+                    {entry.due_prev_amount > 0 ?
+                      <div>
+                        <span className="font-weight-bold">{entry.due_prev_amount}</span> &nbsp;
+                        <span className="text-info">{this.props.previous_month_name}</span>
+                      </div> : ''}</td>
+                  <td className="py-2 col-4">
+                    <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
+                            data-toggle="modal"
+                            data-target="#exampleModal2"
+                            data-cid="{{ entry.customer_id }}"
+                            data-cname="{{ entry.customer__name }}"
+                            data-c_contact="{{ entry.customer__contact }}"
+                            data-dueamount="{{ entry.payment_due }}"
+                     {% if not entry.payment_due_prev or is_last_day_of_month or tenant.bill_till_date %}
+                            data-prevdueamount="{{ entry.payment_due }}"
+                            data-monthname="1"
+                     {% else %}
+                            data-prevdueamount="{{ entry.payment_due_prev }}"
+                            data-monthname="0"
+                     {% endif %}
+                    >Make Payment
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              <tr className="info-row">
+                <td colSpan="5" className="py-2 font-weight-bold"><i
                   className="fas fa-calculator text-info"></i> Total
-                  Received:
-                  Rs {{ received_total }}</td>
+                  Due :
+                  Rs {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_amount), 0)}
+                  &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+                  <i className="fas fa-calculator text-info"></i> Due
+                  ({this.props.previous_month_name}):{this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_prev_amount), 0)}
+                </td>
               </tr>
               </tbody>
             </table>
@@ -175,6 +238,8 @@
           expenses: null,
           income: null,
           paid_customers: null,
+          due_customers: null,
+          previous_month_name: null,
           is_loading: true,
           is_error: false,
 
@@ -198,6 +263,8 @@
           this.setState({expenses: data.expenses})
           this.setState({income: data.income})
           this.setState({paid_customers: data.paid_customers})
+          this.setState({due_customers: data.due_customers})
+          this.setState({previous_month_name: data.previous_month_name})
           this.setState({is_loading: false})
         } catch (e) {
           this.setState({is_error: 'Something went wrong, please try again later. ' + e})
@@ -207,16 +274,6 @@
 
 
       render() {
-        const stickyHeader = {
-          position: 'sticky',
-          left: 0,
-          zIndex: '2',
-          background: 'white',
-        }
-        const fullWidth = {
-          width: 100 + '%',
-        }
-
         const loadingComp = <div className="text-center m-xl-5 p-xl-5">
           <div className="spinner-grow text-primary spinner-size-big" role="status">
             <span className="sr-only">Loading...</span>
@@ -249,8 +306,8 @@
                   : (
                     <div>
 
-                      {!this.state.expenses.length && !this.state.income.length ?
-                        <div class="alert alert-primary text-center" role="alert">
+                      {!this.state.expenses.length && !this.state.income.length && !this.state.paid_customers.length && !this.state.due_customers.length ?
+                        <div className="alert alert-primary text-center" role="alert">
                           Nothing to display at the moment
                         </div>
                         : ''}
@@ -260,8 +317,14 @@
                           {this.state.is_error}
                         </div> : ''}
 
+                      {# Due Customers #}
+                      {this.state.due_customers.length ? (
+                        <DueCustomers entry={this.state.due_customers} title="Due Customers"
+                                      previous_month_name={this.state.previous_month_name}/>
+                      ) : ''}
+
                       {# Paid Customers #}
-                      {this.state.expenses.length ? (
+                      {this.state.paid_customers.length ? (
                         <PaidCustomers entry={this.state.paid_customers} title="Paid Customers"/>
                       ) : ''}
 
@@ -283,8 +346,7 @@
           </div>
 
 
-        )
-          ;
+        );
       }
     }
 
@@ -297,9 +359,89 @@
 
   {#  React Component ends here #}
 
-  <script>
+  {#  Add expense Modal #}
+  <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add New Expense - {{ month_year }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addexp" action="{% url 'manage_expense' %}" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="month_year"
+                 value="{{ month_year }}">
 
-  </script>
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="modal_desc">Description</label>
+                <textarea id="modal_desc" class="form-control"
+                          placeholder="Narration of the expense" name="exp_desc"
+                          rows="4" cols="50"></textarea>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Cost</label>
+                <input autofocus type="number" step="0.01" class="form-control" id="exp_cost"
+                       name="cost_amount"
+                       placeholder="Amount">
+              </div>
+            </div>
+
+            <button onclick="submitFormFn(this);" type="submit"
+                    class="btn btn-primary justify-content-center">Add Expense
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  {#  Add income Modal #}
+  <div class="modal fade" id="addIncomeModal" tabindex="-1" role="dialog"
+       aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Add New Income - {{ month_year }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form name="addexp" action="{% url 'manage_income' %}" method="post">{% csrf_token %}
+          <input type="hidden" class="form-control" id="modal_id" name="month_year"
+                 value="{{ month_year }}">
+          <div class="p-4">
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="modal_desc">Description</label>
+                <textarea id="modal_desc" class="form-control"
+                          placeholder="Narration of the Income" name="exp_desc"
+                          rows="4" cols="50"></textarea>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="name">Amount</label>
+                <input autofocus type="number" step="0.01" class="form-control" id="exp_cost"
+                       name="income_amount"
+                       placeholder="Amount">
+              </div>
+            </div>
+            <button onclick="submitFormFn(this);" type="submit"
+                    class="btn btn-primary justify-content-center">Add Income
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
 {% endblock %}
 {% include "register/footer.html" %}

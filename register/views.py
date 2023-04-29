@@ -625,105 +625,20 @@ def account(request, year=None, month=None):
         return redirect('setting')
     template = 'register/react_account.html'
     custom_month = None
-    last_day_of_month = is_last_day_of_month()
-    current_date = date.today()
     if year and month:
         date_time_str = f'01/{month}/{year} 01:01:01'
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     register_date = custom_month if custom_month else date.today()
-
-    # Get expenses
-    total_expense = 0
-    expenses = Expense.objects.filter(tenant_id=request.user.id, log_date__year=register_date.year,
-                                      log_date__month=register_date.month)
-    for exp in expenses:
-        exp.log_date = exp.log_date.strftime("%b %d")
-        total_expense += exp.cost
     month_year = register_date.strftime("%B, %Y")
-
-    # Get Payment Due
-    total_payment = 0
-    due_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
-                                           paid=0).values('customer_id',
-                                                          'customer__name',
-                                                          'customer__contact',
-                                                          'customer__email').distinct()
-    for customer in due_customer:
-        payment_due = Register.objects.filter(tenant_id=request.user.id,
-                                              customer_id=customer['customer_id'],
-                                              schedule__endswith='yes', paid=0)
-        payment_due_amount = calculate_milk_price(payment_due)
-        balance_amount = Balance.objects.filter(tenant_id=request.user.id,
-                                                customer_id=customer['customer_id']).first()
-        customer['adjusted_amount'] = getattr(balance_amount,
-                                              'balance_amount') if balance_amount else 0
-        customer['payment_due'] = decimal.Decimal(payment_due_amount) - abs(
-            customer['adjusted_amount'])
-        due_prev_month = Register.objects.filter(tenant_id=request.user.id,
-                                                 customer_id=customer['customer_id'],
-                                                 schedule__endswith='yes', paid=0).exclude(
-            log_date__month=current_date.month, log_date__year=current_date.year)
-        due_prev_month_amount = calculate_milk_price(due_prev_month)
-        customer['payment_due_prev'] = decimal.Decimal(due_prev_month_amount) - abs(
-            customer['adjusted_amount'])
-
-        total_payment += payment_due_amount
-
-        # Due sms text
-        prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
-        current_month_name = current_date.strftime("%B")
-        if last_day_of_month or tenant.bill_till_date or not customer['payment_due_prev'] > 0:
-            customer['sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
-                                                          current_month_name,
-                                                          customer['payment_due'])
-        else:
-            customer['sms_text'] = SMS_DUE_MESSAGE.format(customer['customer__name'],
-                                                          prev_month_name,
-                                                          customer['payment_due_prev'])
-
-    # Get paid customer
-    paid_customer = Register.objects.filter(tenant_id=request.user.id, schedule__endswith='yes',
-                                            paid=1).values('customer_id',
-                                                           'customer__name').distinct()
-    for customer in paid_customer:
-        payment_done = Register.objects.filter(tenant_id=request.user.id,
-                                               customer_id=customer['customer_id'],
-                                               schedule__endswith='yes', paid=1)
-        accepted_amount = calculate_milk_price(payment_done)
-        balance_amount = Balance.objects.filter(tenant_id=request.user.id,
-                                                customer_id=customer['customer_id']).first()
-        customer['adjusted_amount'] = getattr(balance_amount,
-                                              'balance_amount') if balance_amount else 0
-        paid_amount = Payment.objects.filter(tenant_id=request.user.id,
-                                             customer_id=customer['customer_id'],
-                                             log_date__month=register_date.month,
-                                             log_date__year=register_date.year).aggregate(
-            Sum('amount'))
-        customer['payment_done'] = accepted_amount
-        customer['total_paid'] = paid_amount['amount__sum']
-
-    # Get extra income
-    income = Income.objects.filter(tenant_id=request.user.id, log_date__year=register_date.year,
-                                   log_date__month=register_date.month)
-    for inc in income:
-        inc.log_date = inc.log_date.strftime("%b %d")
-
     context = {
         'page_title': 'Milk Basket - Accounts',
         'is_mobile': is_mobile(request),
         'month_year': month_year,
         'menu_account': True,
-        'total_payment': total_payment,
-        'due_total': sum([float(entry['payment_due']) for entry in due_customer]),
-        'due_total_prev': sum([float(entry['payment_due_prev']) for entry in due_customer]),
-        'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
-        'tenant': tenant,
-        'is_last_day_of_month': is_last_day_of_month(),
         'register_date_month': register_date.month,
         'register_date_year': register_date.year,
         'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
     }
-
     return render(request, template, context)
 
 
