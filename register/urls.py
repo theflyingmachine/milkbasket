@@ -1,5 +1,6 @@
 from django.urls import path
 
+from . import api_views
 from . import views
 
 urlpatterns = [
@@ -69,8 +70,10 @@ urlpatterns = [
     path('whatsapp/media/<int:media_id>', views.get_whatsapp_media, name='whatsapp_media'),
 
     # V1 API
-    path('api/v1/register/<int:year>/<int:month>/', views.get_register_api,
+    path('api/v1/register/<int:year>/<int:month>/', api_views.RegisterAPI.get_register_api,
          name='get_register_api'),
+    path('api/v1/accounts/<int:year>/<int:month>/', api_views.RegisterAPI.get_account_api,
+         name='get_account_api'),
 
 ]
 

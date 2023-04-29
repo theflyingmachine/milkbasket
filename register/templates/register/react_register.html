@@ -231,6 +231,13 @@
   <h2 class="text-center">Register - {{ month_year }}</h2>
   <hr>
 
+  {% if not e_register and not m_register %}
+    <div class="alert alert-primary text-center" role="alert">
+      No Register Entry to display
+    </div>
+  {% endif %}
+
+  <div id="report"></div>
 
   {# React Report Starts #}
 
@@ -622,13 +629,6 @@
       , document.getElementById("report"));
 
   </script>
-
-  <div id="report"></div>
-  {% if not e_register and not m_register %}
-    <div class="alert alert-primary text-center" role="alert">
-      No Register Entry to display
-    </div>
-  {% endif %}
 
 
   {#  React Component ends here #}

@@ -1,5 +1,4 @@
 import ast
-import calendar
 import decimal
 import json
 import logging
@@ -39,7 +38,6 @@ from register.models import Income
 from register.models import Payment
 from register.models import Register
 from register.models import Tenant
-from register.serializer import CustomerSerializer
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
     get_whatsapp_media_by_id, get_client_ip, calculate_milk_price, is_dev
 from register.utils import customer_register_last_updated
@@ -625,7 +623,7 @@ def account(request, year=None, month=None):
     tenant = get_tenant_perf(request)
     if tenant is None:
         return redirect('setting')
-    template = 'register/account.html'
+    template = 'register/react_account.html'
     custom_month = None
     last_day_of_month = is_last_day_of_month()
     current_date = date.today()
@@ -715,21 +713,15 @@ def account(request, year=None, month=None):
         'is_mobile': is_mobile(request),
         'month_year': month_year,
         'menu_account': True,
-        'expenses': expenses,
-        'entry_expense_total': sum([float(entry.cost) for entry in expenses]),
-        'income': income,
-        'entry_income_total': sum([float(entry.amount) for entry in income]),
         'total_payment': total_payment,
-        'total_expense': total_expense,
-        'due_customer': due_customer,
         'due_total': sum([float(entry['payment_due']) for entry in due_customer]),
         'due_total_prev': sum([float(entry['payment_due_prev']) for entry in due_customer]),
-        'paid_customer': [cust for cust in paid_customer if cust['total_paid']],
-        'received_total': sum(
-            [cust['total_paid'] for cust in paid_customer if cust['total_paid']]),
         'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
         'tenant': tenant,
-        'is_last_day_of_month': is_last_day_of_month()
+        'is_last_day_of_month': is_last_day_of_month(),
+        'register_date_month': register_date.month,
+        'register_date_year': register_date.year,
+        'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
     }
 
     return render(request, template, context)
@@ -1609,61 +1601,3 @@ def customer_refund(request):
 
     profile_url = reverse('customer_profile', args=[customer.id])
     return redirect(profile_url)
-
-
-@login_required()
-def get_register_api(request, year, month):
-    """ This function returns JSON data for the register entry in a month."""
-    # Get Tenant Preference
-    tenant = get_tenant_perf(request)
-    if tenant is None:
-        return redirect('setting')
-    custom_month = None
-    if year and month:
-        date_time_str = f'01/{month}/{year} 01:01:01'
-        custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
-    register_date = custom_month if custom_month else date.today()
-
-    register_filter = {
-        'tenant_id': request.user.id,
-        'log_date__month': register_date.month,
-        'log_date__year': register_date.year
-    }
-    m_schedule = Q(schedule__in=['morning-yes', 'morning-no'])
-    e_schedule = Q(schedule__in=['evening-yes', 'evening-no'])
-
-    cust_register_filter = {
-        'tenant_id': request.user.id,
-        'register__log_date__month': register_date.month,
-        'register__log_date__year': register_date.year
-    }
-    cust_m_schedule = Q(register__schedule__in=['morning-yes', 'morning-no'])
-    cust_e_schedule = Q(register__schedule__in=['evening-yes', 'evening-no'])
-
-    # Get morning register for given month
-    m_cust = Customer.objects.prefetch_related(
-        Prefetch('register_set',
-                 queryset=Register.objects.filter(
-                     m_schedule, **register_filter).order_by('log_date'))
-    ).filter(cust_m_schedule, **cust_register_filter).distinct()
-
-    e_cust = Customer.objects.prefetch_related(
-        Prefetch('register_set',
-                 queryset=Register.objects.filter(
-                     e_schedule, **register_filter).order_by('log_date'))
-    ).filter(cust_e_schedule, **cust_register_filter).distinct()
-
-    # plot calendar days
-    import datetime as dt
-    # Get the number of days in the month
-    days_in_month = calendar.monthrange(register_date.year, register_date.month)[1]
-    # Create a list of date objects in the month
-    date_list = [dt.date(register_date.year, register_date.month, day) for day in
-                 range(1, days_in_month + 1)]
-
-    return JsonResponse({'status': 'success',
-                         'default_price': tenant.milk_price,
-                         'dates': date_list,
-                         'm_register': CustomerSerializer(instance=m_cust, many=True).data,
-                         'e_register': CustomerSerializer(instance=e_cust, many=True).data,
-                         })

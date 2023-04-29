@@ -1,0 +1,305 @@
+{% include "register/header.html" %}
+
+{# PROD Bundle #}
+{#<script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>#}
+{#<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>#}
+
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>#}
+
+{# Dev Bundle #}
+<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+<script
+ src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+
+<style>
+    .info-row {
+        background-color: #F8D79B !important;
+    }
+</style>
+
+{% block content %}
+  <div>
+
+
+  {% load mathfilters %}
+  <div class="row bd-highlight">
+    <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
+      <button type="button" class="btn mt-2 mr-2 btn-primary" data-toggle="modal"
+              data-target="#exampleModal1"
+              data-whatever="@fat"><i class="fas fa-dollar-sign"></i> | Add Expense
+      </button>
+      <button type="button" class="btn mt-2  btn-primary" data-toggle="modal"
+              data-target="#addIncomeModal"
+              data-whatever="@fat"><i class="fas fa-rupee-sign"></i> | Add Income
+      </button>
+    </div>
+    <div class="justify-content-end inline p-2 bd-highlight">
+      <form name="view_select_record" action="{% url 'view_select_record' %}"
+            method="post">{% csrf_token %}
+        <label for="myDate" class="col-form-label">Select Report:</label>
+        <input type="hidden" name="nav-type" value="account" id="nav">
+        <input class="inline" type="month" name="register_month" id="mydate"
+               value="{% now 'Y-m' %}">
+        <button type="submit" class="btn btn-primary">GO</button>
+      </form>
+    </div>
+  </div>
+  <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
+  <hr>
+
+
+  <div id="report"></div>
+
+  {# React Report Starts #}
+
+  <script type="text/babel">
+
+    function formatDate(log_date) {
+      return new Date(log_date).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short'
+      });
+    }
+
+    class IncomeExpense extends React.Component {
+
+      render() {
+        return (
+          <div>
+            <h3 className="pt-2 mt-2 text-center">{this.props.title}</h3>
+            <table className="table mb-5 table-sm table-striped">
+              <thead>
+              <tr className=" bg-info text-white">
+                <th className="p-1 col-1" scope="col">#</th>
+                <th className="p-1 col-5" scope="col">Description</th>
+                <th className="p-1 col-2" scope="col">Amount</th>
+                <th className="p-1 col-2" scope="col">Date</th>
+                <th className="p-1 col-2" scope="col">Action</th>
+              </tr>
+              </thead>
+              <tbody>
+              {this.props.entry.map((expense, index) => (
+                {#                            {% for entry in expenses %}#}
+                <tr key={expense.id} className="">
+                  <th className="py-2 col-1" scope="row">{index + 1}</th>
+                  <td className="py-2 col-5">{expense.description}</td>
+                  <td className="py-2 col-2">{parseFloat(expense.amount).toFixed(1)}</td>
+                  <td className="py-2 col-2">{formatDate(expense.log_date)}</td>
+                  <td className="py-2 col-2">
+                    <button type="button" className="btn-sm btn-danger"
+                     {#data-toggle="modal"#}
+                     {#data-target="#exampleModal"#}
+                     {#data-id="{{ entry.id }}"#}
+                     {#data-desc="{{ entry.description }}"#}
+                     {#data-cost="{{ entry.cost }}"#}
+                     {#data-log_date="{{ entry.log_date }}"#}
+                    >Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              <tr className="info-row">
+                <td colSpan="5" className="py-2 font-weight-bold"><i
+                  className="fas fa-calculator text-info"></i> Total
+                  {this.props.title}:
+                  Rs {this.props.entry.reduce((acc, expense) => acc + parseFloat(expense.amount), 0)}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+    }
+
+
+    class PaidCustomers extends React.Component {
+      render() {
+        return (
+          <div>
+            <h3 className="pt-2 mt-2 text-center">{this.props.title}</h3>
+            <table className="table mb-5 table-sm table-striped">
+              <thead>
+              <tr className="bg-info text-white">
+                <th className="p-1 col-1" scope="col">#</th>
+                <th className="p-1 col-5" scope="col">Name</th>
+                <th className="p-1 col-3" scope="col">Adjusted Amount</th>
+                {#                <th className="p-2 col-2" scope="col">Accepted Amount</th>#}
+                <th className="p-1 col-3" scope="col">Paid Amount</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for entry in paid_customer %}
+                <tr className="">
+                  <th className="py-2  col-1" scope="row">{{ forloop.counter }}</th>
+                  <th className="py-2  col-5" scope="row"><a
+                    href="{% url 'customer_profile'  entry.customer_id %}">{{ entry.customer__name }}</a>
+                  </th>
+                  {% if entry.adjusted_amount < 0 %}
+                    <td
+                      className=" text-success col-3 font-weight-bold">{{ entry.adjusted_amount|abs }}
+                      (Adv)
+                    </td>
+                  {% else %}
+                    <td className="py-2  col-3">{{ entry.adjusted_amount }}</td>
+                  {% endif %}
+                  {#                  <td className="p-2 col-2">{{ entry.payment_done }}</td>#}
+                  <td className="py-2  col-3"><b>{{ entry.total_paid }}</b></td>
+                </tr>
+              {% endfor %}
+              <tr className="info-row">
+                <td colSpan="4" className="py-2 font-weight-bold"><i
+                  className="fas fa-calculator text-info"></i> Total
+                  Received:
+                  Rs {{ received_total }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+    }
+
+
+    class Accounts extends React.Component {
+
+      constructor(props) {
+        super(props);
+        // this.findDateEntry = this.findDateEntry.bind(this);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          expenses: null,
+          income: null,
+          paid_customers: null,
+          is_loading: true,
+          is_error: false,
+
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+
+      async componentDidMount() {
+        try {
+          let hostname = window.location.hostname === '127.0.0.1' ? window.location.hostname + ':8000' : window.location.hostname;
+          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/accounts/{{ register_date_year }}/{{ register_date_month }}/";
+          const response = await fetch(url);
+          const data = await response.json();
+          this.setState({expenses: data.expenses})
+          this.setState({income: data.income})
+          this.setState({paid_customers: data.paid_customers})
+          this.setState({is_loading: false})
+        } catch (e) {
+          this.setState({is_error: 'Something went wrong, please try again later. ' + e})
+          this.setState({is_loading: false})
+        }
+      }
+
+
+      render() {
+        const stickyHeader = {
+          position: 'sticky',
+          left: 0,
+          zIndex: '2',
+          background: 'white',
+        }
+        const fullWidth = {
+          width: 100 + '%',
+        }
+
+        const loadingComp = <div className="text-center m-xl-5 p-xl-5">
+          <div className="spinner-grow text-primary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-secondary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-success spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-danger spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-warning spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-info spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-dark spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+
+        return (
+          <div>
+            <div className='p-0'>
+              <div>
+                {this.state.is_loading ? loadingComp
+                  : (
+                    <div>
+
+                      {!this.state.expenses.length && !this.state.income.length ?
+                        <div class="alert alert-primary text-center" role="alert">
+                          Nothing to display at the moment
+                        </div>
+                        : ''}
+
+                      {this.state.is_error ?
+                        <div className="alert alert-danger text-center" role="alert">
+                          {this.state.is_error}
+                        </div> : ''}
+
+                      {# Paid Customers #}
+                      {this.state.expenses.length ? (
+                        <PaidCustomers entry={this.state.paid_customers} title="Paid Customers"/>
+                      ) : ''}
+
+                      {# Expense Table #}
+                      {this.state.expenses.length ? (
+                        <IncomeExpense entry={this.state.expenses} title="Expenses"/>
+                      ) : ''}
+
+                      {# Income Table #}
+                      {this.state.income.length ? (
+                        <IncomeExpense entry={this.state.income} title="Income"/>
+                      ) : ''}
+                      <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
+                    </div>
+
+                  )}
+              </div>
+            </div>
+          </div>
+
+
+        )
+          ;
+      }
+    }
+
+    ReactDOM.render(
+      <Accounts/>
+      , document.getElementById("report"));
+
+  </script>
+
+
+  {#  React Component ends here #}
+
+  <script>
+
+  </script>
+
+{% endblock %}
+{% include "register/footer.html" %}
