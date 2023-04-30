@@ -15,7 +15,7 @@ from register.models import Income
 from register.models import Register
 from register.serializer import CustomerSerializer, DueCustomerSerializer, ExpenseSerializer, \
     IncomeSerializer, PaidCustomerSerializer
-from register.utils import get_tenant_perf
+from register.utils import get_tenant_perf, is_last_day_of_month
 
 logger = logging.getLogger()
 
@@ -158,6 +158,7 @@ class RegisterAPI(BaseRegister):
         return JsonResponse({
             'month_year': month_year,
             'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
+            'is_last_day_of_month': is_last_day_of_month(),
             'due_customers': DueCustomerSerializer(instance=due_customers, many=True).data,
             'paid_customers': PaidCustomerSerializer(instance=paid_customers, many=True).data,
             'income': IncomeSerializer(instance=income, many=True).data,

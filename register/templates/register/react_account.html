@@ -159,6 +159,31 @@
     }
 
     class DueCustomers extends React.Component {
+
+      constructor(props) {
+        super(props);
+        // this.findDateEntry = this.findDateEntry.bind(this);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          mod_entry: null,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e) => {
+        console.log(e);
+        console.log(this.state.previous_month_name);
+        this.setState({mod_entry: e});
+        this.setState({showModal: true});
+      };
+
       render() {
         return (
           <div>
@@ -192,21 +217,12 @@
                       </div> : ''}</td>
                   <td className="py-2 col-4">
                     <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
-                            data-toggle="modal"
-                            data-target="#exampleModal2"
-                            data-cid="{{ entry.customer_id }}"
-                            data-cname="{{ entry.customer__name }}"
-                            data-c_contact="{{ entry.customer__contact }}"
-                            data-dueamount="{{ entry.payment_due }}"
-                     {% if not entry.payment_due_prev or is_last_day_of_month or tenant.bill_till_date %}
-                            data-prevdueamount="{{ entry.payment_due }}"
-                            data-monthname="1"
-                     {% else %}
-                            data-prevdueamount="{{ entry.final_due_prev_amount }}"
-                            data-monthname="0"
-                     {% endif %}
+
+
                     >Make Payment
                     </button>
+                    <button onClick={() => this.openModal(entry)}>Open Modal</button>
+
                   </td>
                 </tr>
               ))}
@@ -223,6 +239,75 @@
               </tr>
               </tbody>
             </table>
+            {this.state.showModal ?
+              <div className="modal fade" id="exampleModal2" tabIndex="-1" role="dialog"
+                   aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title" id="exampleModalLabel">Accept Payment
+                        - {{ month_year }}</h5>
+                      <button type="button" className="close" data-dismiss="modal"
+                              aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form name="addexp" action="{% url 'accept_payment' %}"
+                          method="post">
+                      <input type="hidden" className="form-control" id="c_id" name="c_id"
+                             value={this.state.mod_entry.id}/>
+                      <div className="p-4">
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="c_name">Name</label>
+                            <input autoFocus type="text" className="form-control" id="c_name"
+                                   name="c_name"
+                                   defaultValue={this.state.mod_entry.name}
+                                   disabled/>
+                          </div>
+                        </div>
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="c_dueamount">Due Amount</label>
+                            <input type="text" className="form-control" id="c_dueamount"
+                                   name="c_dueamount"
+                                   defaultValue={this.state.mod_entry.final_due_amount}
+                                   disabled placeholder="Due Amount"/>
+                          </div>
+                        </div>
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="c_payment">Payment Amount (<span
+                              id="prevmonthdue">Till date</span>)</label>
+                            <input type="number" step="0.01"
+                                   className="form-control font-weight-bold"
+                                   id="c_payment"
+                                   name="c_payment"
+                                   defaultValue={this.state.mod_entry.final_due_prev_amount}
+                                   placeholder="Amount"/>
+                          </div>
+                        </div>
+
+                        <div id='payment_notification' className="form-row">
+                          <div className="form-group col-md-12 send-sms-checkbox">
+                            <label htmlFor="sms-notification">Send SMS Notification </label>
+                            <input type="checkbox" id="sms-notification" name="sms-notification"
+                                   defaultChecked
+                                   value="1"/>
+                          </div>
+                        </div>
+
+                        <button type="submit" className="btn btn-primary justify-content-center">
+                          {#onClick="submitFormFn(this);">#}
+                          Accept
+                          Payment
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div> : 'NO MOD'}
+
           </div>
         );
       }
@@ -267,6 +352,8 @@
           this.setState({paid_customers: data.paid_customers})
           this.setState({due_customers: data.due_customers})
           this.setState({previous_month_name: data.previous_month_name})
+          this.setState({is_last_day_of_month: data.is_last_day_of_month})
+          this.setState({month_year: data.month_year})
           this.setState({is_loading: false})
         } catch (e) {
           this.setState({is_error: 'Something went wrong, please try again later. ' + e})
@@ -322,7 +409,9 @@
                       {# Due Customers #}
                       {this.state.due_customers.length ? (
                         <DueCustomers entry={this.state.due_customers} title="Due Customers"
-                                      previous_month_name={this.state.previous_month_name}/>
+                                      previous_month_name={this.state.previous_month_name}
+                                      is_last_day_of_month={this.state.is_last_day_of_month}
+                                      month_year={this.state.month_year}/>
                       ) : ''}
 
                       {# Paid Customers #}
@@ -444,6 +533,13 @@
       </div>
     </div>
   </div>
-
+  <script>
+    function submitFormFn(submitForm) {
+      {# Showing please wait spinner while accepting payment #}
+      submitForm.disabled = true;
+      submitForm.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
+      submitForm.form.submit();
+    }
+  </script>
 {% endblock %}
 {% include "register/footer.html" %}

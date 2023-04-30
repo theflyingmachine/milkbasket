@@ -291,10 +291,12 @@
               <tr class="d-flex">
                 <td class="p-2 col-2">#{{ entry.id }}</td>
                 <td class="p-2 col-6">{{ entry.log_date }}
-                  {% if entry.payment_mode == 'ONLINE' %}
-                    <a target="_blank"
-                       href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% else %}
-                    <span class="text-info">{{ entry.payment_mode }}{% endif %}</span></td>
+                  {#                  {% if entry.payment_mode == 'ONLINE' %}#}
+                  {#                    <a target="_blank"#}
+                  {#                       href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% else %}#}
+                  <span class="text-info">{{ entry.payment_mode }}
+{#      {% endif %}#}
+                  </span></td>
                 <td class="p-2 col-4">{{ entry.amount }}
                   {% if entry.refund_notes %}
                     <span class="text-info">{{ entry.refund_notes }}</span>
