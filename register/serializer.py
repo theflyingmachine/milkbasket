@@ -1,3 +1,5 @@
+import decimal
+
 from rest_framework import serializers
 
 from .models import Customer, Register, Expense, Income
@@ -42,10 +44,30 @@ class PaidCustomerSerializer(serializers.ModelSerializer):
 
 
 class DueCustomerSerializer(serializers.ModelSerializer):
-    due_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    due_prev_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    due_amount = serializers.SerializerMethodField()
+    due_prev_amount = serializers.SerializerMethodField()
+    final_due_amount = serializers.SerializerMethodField()
+    final_due_prev_amount = serializers.SerializerMethodField()
     balance_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    @staticmethod
+    def get_due_amount(obj):
+        return decimal.Decimal(obj.due_amount) / 1000
+
+    @staticmethod
+    def get_due_prev_amount(obj):
+        return decimal.Decimal(obj.due_prev_amount) / 1000
+
+    @staticmethod
+    def get_final_due_amount(obj):
+        return decimal.Decimal(obj.due_amount / 1000) - abs(obj.balance_amount or 0)
+
+    @staticmethod
+    def get_final_due_prev_amount(obj):
+        return decimal.Decimal(obj.due_prev_amount / 1000) - abs(obj.balance_amount or 0)
 
     class Meta:
         model = Customer
-        fields = ('id', 'name', 'due_amount', 'balance_amount', 'due_prev_amount')
+        fields = (
+        'id', 'name', 'due_amount', 'balance_amount', 'due_prev_amount', 'final_due_amount',
+        'final_due_prev_amount')

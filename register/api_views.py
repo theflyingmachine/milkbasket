@@ -146,20 +146,20 @@ class RegisterAPI(BaseRegister):
             register__paid=0,
             register__schedule__endswith='yes',
         ).annotate(
-            due_amount=Sum(F('register__current_price') * F('register__quantity') / 1000,
+            due_amount=Sum(F('register__current_price') * F('register__quantity'),
                            output_field=FloatField()),
             due_prev_amount=Coalesce(
-                Sum(F('register__current_price') * F('register__quantity') / 1000,
+                Sum(F('register__current_price') * F('register__quantity'),
                     filter=Q(register__log_date__lt=first_day_of_month),
                     output_field=FloatField()), 0),
-            balance_amount=F('balance__balance_amount')
-        ).filter(due_amount__gt=0).order_by('name')
+            balance_amount=F('balance__balance_amount'),
+        ).order_by('name')
 
         return JsonResponse({
             'month_year': month_year,
-            'expenses': ExpenseSerializer(instance=expenses, many=True).data,
-            'income': IncomeSerializer(instance=income, many=True).data,
-            'paid_customers': PaidCustomerSerializer(instance=paid_customers, many=True).data,
-            'due_customers': DueCustomerSerializer(instance=due_customers, many=True).data,
             'previous_month_name': (current_date + relativedelta(months=-1)).strftime("%B"),
+            'due_customers': DueCustomerSerializer(instance=due_customers, many=True).data,
+            'paid_customers': PaidCustomerSerializer(instance=paid_customers, many=True).data,
+            'income': IncomeSerializer(instance=income, many=True).data,
+            'expenses': ExpenseSerializer(instance=expenses, many=True).data,
         })

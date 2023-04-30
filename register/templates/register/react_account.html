@@ -129,7 +129,7 @@
                 <tr key={index}>
                   <th className="py-2  col-1" scope="row">{index + 1}</th>
                   <th className="py-2  col-5" scope="row"><a
-                    href="#">{entry.name}</a>
+                    href={`profile/${entry.id}`}>{entry.name}</a>
                     {#href="{% url 'customer_profile'  entry.customer_id %}">{entry.name}</a>#}
                   </th>
                   {entry.balance_amount < 0 ?
@@ -179,14 +179,15 @@
                 <tr key={index}>
                   <th className="py-2 col-1" scope="row">{index + 1}</th>
                   <th className="py-2 col-3" scope="row"><a
-                    href="#">{entry.name}</a>
+                    href={`profile/${entry.id}`}>{entry.name}</a>
                     {#href="{% url 'customer_profile'  entry.customer_id %}">{{ entry.customer__name }}</a>#}
                   </th>
-                  <td className="py-2 col-2">{entry.due_amount}</td>
+                  <td className="py-2 col-2">{entry.final_due_amount}</td>
                   <td className="py-2 col-2">
-                    {entry.due_prev_amount > 0 ?
+                    {entry.final_due_prev_amount > 0 || entry.final_due_prev_amount < 0 ?
                       <div>
-                        <span className="font-weight-bold">{entry.due_prev_amount}</span> &nbsp;
+                        <span
+                          className="font-weight-bold">{entry.final_due_prev_amount}</span> &nbsp;
                         <span className="text-info">{this.props.previous_month_name}</span>
                       </div> : ''}</td>
                   <td className="py-2 col-4">
@@ -201,7 +202,7 @@
                             data-prevdueamount="{{ entry.payment_due }}"
                             data-monthname="1"
                      {% else %}
-                            data-prevdueamount="{{ entry.payment_due_prev }}"
+                            data-prevdueamount="{{ entry.final_due_prev_amount }}"
                             data-monthname="0"
                      {% endif %}
                     >Make Payment
@@ -213,10 +214,11 @@
                 <td colSpan="5" className="py-2 font-weight-bold"><i
                   className="fas fa-calculator text-info"></i> Total
                   Due :
-                  Rs {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_amount), 0)}
+                  Rs {(this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_amount), 0)) - (this.props.entry.reduce((total, customer) => total + parseFloat(customer.balance_amount), 0))}
                   &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
                   <i className="fas fa-calculator text-info"></i> Due
-                  ({this.props.previous_month_name}):{this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_prev_amount), 0)}
+                  ({this.props.previous_month_name})
+                  : {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_prev_amount), 0) - this.props.entry.reduce((total, customer) => total + parseFloat(customer.balance_amount), 0)}
                 </td>
               </tr>
               </tbody>
