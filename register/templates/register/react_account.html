@@ -304,11 +304,11 @@
                 <td colSpan="5" className="py-2 font-weight-bold"><i
                   className="fas fa-calculator text-info"></i> Total
                   Due :
-                  Rs {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_amount), 0)}
+                  Rs {this.props.entry.reduce((total, customer) => total + parseFloat(customer.final_due_amount), 0)}
                   &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
                   <i className="fas fa-calculator text-info"></i> Due
                   ({this.props.previous_month_name})
-                  : {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_prev_amount), 0)}
+                  : {this.props.entry.reduce((total, customer) => total + parseFloat(customer.final_due_prev_amount), 0)}
                 </td>
               </tr>
               </tbody>

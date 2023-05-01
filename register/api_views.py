@@ -5,7 +5,7 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q, Prefetch, F, FloatField
+from django.db.models import Sum, Q, Prefetch, F, FloatField, Func
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 
@@ -152,8 +152,11 @@ class RegisterAPI(BaseRegister):
                 Sum(F('register__current_price') * F('register__quantity'),
                     filter=Q(register__log_date__lt=first_day_of_month),
                     output_field=FloatField()), 0),
-            balance_amount=F('balance__balance_amount'),
+            balance_amount=Coalesce(F('balance__balance_amount'), 0),
         ).order_by('name')
+        due_customers = due_customers.annotate(
+            abs_balance_amount=Func(F('balance_amount'), function='ABS')
+        ).exclude(abs_balance_amount__gt=F('due_amount') / 1000)
 
         return JsonResponse({
             'month_year': month_year,
