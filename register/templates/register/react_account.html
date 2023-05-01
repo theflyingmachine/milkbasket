@@ -234,7 +234,6 @@
 
       constructor(props) {
         super(props);
-        // this.findDateEntry = this.findDateEntry.bind(this);
         this.handler = this.handler.bind(this)
 
         this.state = {
@@ -251,8 +250,10 @@
       }
 
       openModal = (e) => {
-        this.setState({mod_entry: e});
-        this.setState({showModal: true});
+        this.setState({
+          mod_entry: e,
+          showModal: true
+        });
       };
 
       makePayment = () => {
@@ -395,7 +396,6 @@
 
       constructor(props) {
         super(props);
-        // this.findDateEntry = this.findDateEntry.bind(this);
         this.handler = this.handler.bind(this)
 
         this.state = {
@@ -424,17 +424,21 @@
           const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/accounts/{{ register_date_year }}/{{ register_date_month }}/";
           const response = await fetch(url);
           const data = await response.json();
-          this.setState({expenses: data.expenses})
-          this.setState({income: data.income})
-          this.setState({paid_customers: data.paid_customers})
-          this.setState({due_customers: data.due_customers})
-          this.setState({previous_month_name: data.previous_month_name})
-          this.setState({is_last_day_of_month: data.is_last_day_of_month})
-          this.setState({month_year: data.month_year})
-          this.setState({is_loading: false})
+          this.setState({
+            expenses: data.expenses,
+            income: data.income,
+            paid_customers: data.paid_customers,
+            due_customers: data.due_customers,
+            previous_month_name: data.previous_month_name,
+            is_last_day_of_month: data.is_last_day_of_month,
+            month_year: data.month_year,
+            is_loading: false
+          })
         } catch (e) {
-          this.setState({is_error: 'Something went wrong, please try again later. ' + e})
-          this.setState({is_loading: false})
+          this.setState({
+            is_error: 'Something went wrong, please try again later. ' + e,
+            is_loading: false
+          })
         }
       }
 
