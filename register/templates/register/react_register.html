@@ -195,8 +195,6 @@
 {% block content %}
   <div>
 
-
-  {% load mathfilters %}
   <div class="row bd-highlight mb-3">
     <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
       {% if active_customers_not_in_register %}
@@ -228,9 +226,16 @@
       </form>
     </div>
   </div>
-  <h2 class="text-center">Register - {{ month_year }}</h2>
-  <hr>
+  <h5 class="p-0 m-0 text-center">Register - {{ month_year }}</h5>
+  <hr class="mt-1">
 
+  {% if not e_register and not m_register %}
+    <div class="alert alert-primary text-center" role="alert">
+      No Register Entry to display
+    </div>
+  {% endif %}
+
+  <div id="report"></div>
 
   {# React Report Starts #}
 
@@ -241,7 +246,6 @@
 
       constructor(props) {
         super(props);
-        // this.findDateEntry = this.findDateEntry.bind(this);
         this.handler = this.handler.bind(this)
         this.openModal = this.openModal.bind(this);
         this.markAttendance = this.markAttendance.bind(this);
@@ -287,18 +291,21 @@
         const day = dateArr[1].substring(0, 3);
 
         const finalDateStr = `${day.replace(/,/g, "")} ${dateArr[0]},  ${dateArr[2]}`
-        this.setState({att_customer_id: obj.customer.id})
-        this.setState({att_name: obj.customer.name})
-        this.setState({att_quantity: obj.entry.length ? obj.entry[0].quantity : default_quantity})
-        this.setState({att_schedule: obj.schedule})
-        this.setState({att_attendance: obj.entry.length ? obj.entry[0].schedule.endsWith('yes') : false})
-        this.setState({att_log_date: finalDateStr})
-        this.setState({show_modal: true})
+        this.setState({
+          att_customer_id: obj.customer.id,
+          att_name: obj.customer.name,
+          att_quantity: obj.entry.length ? obj.entry[0].quantity : default_quantity,
+          att_schedule: obj.schedule,
+          att_attendance: obj.entry.length ? obj.entry[0].schedule.endsWith('yes') : false,
+          att_log_date: finalDateStr,
+          show_modal: true
+        })
+
       }
 
       async markAttendance(event) {
-        this.setState({ajax_loading: true})
         event.preventDefault();
+        this.setState({ajax_loading: true})
         const formData = new FormData(event.target);
         const requestOptions = {
           method: 'POST',
@@ -353,8 +360,10 @@
           })
         $('#autopilotModal').modal('hide');
         leaveChange()
-        this.setState({show_modal: false})
-        this.setState({ajax_loading: false})
+        this.setState({
+          show_modal: false,
+          ajax_loading: false
+        })
       }
 
       async componentDidMount() {
@@ -363,14 +372,19 @@
           const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/register/{{ register_date_year }}/{{ register_date_month }}/";
           const response = await fetch(url);
           const data = await response.json();
-          this.setState({m_register: data.m_register})
-          this.setState({e_register: data.e_register})
-          this.setState({dates: data.dates})
-          this.setState({default_price: data.default_price})
-          this.setState({is_loading: false})
+          this.setState({
+            m_register: data.m_register,
+            e_register: data.e_register,
+            dates: data.dates,
+            default_price: data.default_price,
+            is_loading: false,
+          })
+
         } catch (e) {
-          this.setState({is_error: 'Something went wrong, please try again later. ' + e})
-          this.setState({is_loading: false})
+          this.setState({
+            is_error: 'Something went wrong, please try again later. ' + e,
+            is_loading: false
+          })
         }
       }
 
@@ -603,7 +617,9 @@
                                 data-dismiss="modal">Close
                         </button>
                         <button type="submit" className="btn btn-primary"
-                                autoFocus>Add Entry
+                                disabled={this.state.ajax_loading} autoFocus>
+                          {this.state.ajax_loading ? <span><i
+                            className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Add Entry'}
                         </button>
                       </div>
                     </form>
@@ -622,13 +638,6 @@
       , document.getElementById("report"));
 
   </script>
-
-  <div id="report"></div>
-  {% if not e_register and not m_register %}
-    <div class="alert alert-primary text-center" role="alert">
-      No Register Entry to display
-    </div>
-  {% endif %}
 
 
   {#  React Component ends here #}

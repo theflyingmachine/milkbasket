@@ -376,7 +376,7 @@ def is_last_day_of_month():
     """Function to check if today is the last day of the month"""
     today = datetime.today().date()
     last_day = today.replace(day=monthrange(today.year, today.month)[1])
-    return True if today == last_day else False
+    return today == last_day
 
 
 def get_tenant_perf(request):
