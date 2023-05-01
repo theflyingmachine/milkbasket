@@ -302,8 +302,8 @@
       }
 
       async markAttendance(event) {
-        this.setState({ajax_loading: true})
         event.preventDefault();
+        this.setState({ajax_loading: true})
         const formData = new FormData(event.target);
         const requestOptions = {
           method: 'POST',
@@ -608,7 +608,9 @@
                                 data-dismiss="modal">Close
                         </button>
                         <button type="submit" className="btn btn-primary"
-                                autoFocus>Add Entry
+                                disabled={this.state.ajax_loading} autoFocus>
+                          {this.state.ajax_loading ? <span><i
+                            className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Add Entry'}
                         </button>
                       </div>
                     </form>

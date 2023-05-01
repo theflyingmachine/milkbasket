@@ -62,6 +62,37 @@
     }
 
     class IncomeExpense extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          mod_entry: null,
+          mod_title: null,
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e, title) => {
+        this.setState({
+          showModal: true,
+          mod_entry: e,
+          mod_title: title
+        });
+      };
+
+      deleteIncExp = () => {
+        this.setState({ajax_loading: true});
+      };
+
       render() {
         return (
           <div>
@@ -77,20 +108,17 @@
               </tr>
               </thead>
               <tbody>
-              {this.props.entry.map((expense, index) => (
-                <tr key={expense.id} className="">
+              {this.props.entry.map((income_expense, index) => (
+                <tr key={income_expense.id} className="">
                   <th className="py-2 col-1" scope="row">{index + 1}</th>
-                  <td className="py-2 col-5">{expense.description}</td>
-                  <td className="py-2 col-2">{parseFloat(expense.amount).toFixed(1)}</td>
-                  <td className="py-2 col-2">{formatDate(expense.log_date)}</td>
+                  <td className="py-2 col-5">{income_expense.description}</td>
+                  <td className="py-2 col-2">{parseFloat(income_expense.amount).toFixed(1)}</td>
+                  <td className="py-2 col-2">{formatDate(income_expense.log_date)}</td>
                   <td className="py-2 col-2">
                     <button type="button" className="btn-sm btn-danger"
                             data-toggle="modal"
-                            data-target="#exampleModal"
-                            data-id="{{ expense.id }}"
-                            data-desc="{{ expense.description }}"
-                            data-cost="{{ expense.cost }}"
-                            data-log_date="{{ expense.log_date }}"
+                            data-target="#deleteModal"
+                            onClick={() => this.openModal(income_expense, this.props.title)}
                     >Delete
                     </button>
                   </td>
@@ -99,13 +127,57 @@
               <tr className="info-row">
                 <td colSpan="5" className="py-2 font-weight-bold"><i
                   className="fas fa-calculator text-info"></i> Total {this.props.title}:
-                  Rs {this.props.entry.reduce((acc, expense) => acc + parseFloat(expense.amount), 0)}
+                  Rs {this.props.entry.reduce((acc, income_expense) => acc + parseFloat(income_expense.amount), 0)}
                 </td>
               </tr>
               </tbody>
             </table>
+            {this.state.showModal && this.state.mod_entry ?
+              /* Delete Modal */
+              <div key={this.state.mod_entry.id} className="modal fade" id="deleteModal"
+                   tabIndex="-1" role="dialog"
+                   aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title"
+                          id="exampleModalLabel">Delete {this.state.mod_title}</h5>
+                      <button type="button" className="close" data-dismiss="modal"
+                              aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form onSubmit={this.deleteIncExp} name="deleteExp"
+                          action={`${this.state.mod_title === 'Expenses' ? '{% url "manage_expense" %}' : '{% url "manage_income" %}'}`}
+                          method="post">
+                      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                      <input type="hidden" className="form-control" id="modal_id" name="id"
+                             value={this.state.mod_entry.id}/>
+                      <div className="p-4">
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="modal_desc">Are you sure to delete?</label>
+                            <textarea id="modal_desc" className="form-control" name="w3review"
+                                      rows="4" cols="50"
+                                      value={this.state.mod_entry.description}
+                                      disabled></textarea>
+                          </div>
+                        </div>
+                        <button type="submit"
+                                className="btn btn-danger justify-content-center"
+                                disabled={this.state.ajax_loading} autoFocus>
+                          {this.state.ajax_loading ? <span><i
+                            className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Delete'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              : ''}
           </div>
-        );
+        )
+          ;
       }
     }
 
@@ -168,6 +240,7 @@
         this.state = {
           showModal: false,
           mod_entry: null,
+          ajax_loading: false,
         };
       }
 
@@ -178,10 +251,12 @@
       }
 
       openModal = (e) => {
-        console.log(e);
-        console.log(this.state.previous_month_name);
         this.setState({mod_entry: e});
         this.setState({showModal: true});
+      };
+
+      makePayment = () => {
+        this.setState({ajax_loading: true});
       };
 
       render() {
@@ -217,12 +292,10 @@
                       </div> : ''}</td>
                   <td className="py-2 col-4">
                     <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
-
-
+                            data-toggle="modal"
+                            data-target="#exampleModal2" onClick={() => this.openModal(entry)}
                     >Make Payment
                     </button>
-                    <button onClick={() => this.openModal(entry)}>Open Modal</button>
-
                   </td>
                 </tr>
               ))}
@@ -230,11 +303,11 @@
                 <td colSpan="5" className="py-2 font-weight-bold"><i
                   className="fas fa-calculator text-info"></i> Total
                   Due :
-                  Rs {(this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_amount), 0)) - (this.props.entry.reduce((total, customer) => total + parseFloat(customer.balance_amount), 0))}
+                  Rs {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_amount), 0)}
                   &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
                   <i className="fas fa-calculator text-info"></i> Due
                   ({this.props.previous_month_name})
-                  : {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_prev_amount), 0) - this.props.entry.reduce((total, customer) => total + parseFloat(customer.balance_amount), 0)}
+                  : {this.props.entry.reduce((total, customer) => total + parseFloat(customer.due_prev_amount), 0)}
                 </td>
               </tr>
               </tbody>
@@ -252,8 +325,10 @@
                         <span aria-hidden="true">&times;</span>
                       </button>
                     </div>
-                    <form name="addexp" action="{% url 'accept_payment' %}"
+                    <form name="addexp" onSubmit={this.makePayment}
+                          action="{% url 'accept_payment' %}"
                           method="post">
+                      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
                       <input type="hidden" className="form-control" id="c_id" name="c_id"
                              value={this.state.mod_entry.id}/>
                       <div className="p-4">
@@ -262,7 +337,7 @@
                             <label htmlFor="c_name">Name</label>
                             <input autoFocus type="text" className="form-control" id="c_name"
                                    name="c_name"
-                                   defaultValue={this.state.mod_entry.name}
+                                   value={this.state.mod_entry.name}
                                    disabled/>
                           </div>
                         </div>
@@ -271,42 +346,44 @@
                             <label htmlFor="c_dueamount">Due Amount</label>
                             <input type="text" className="form-control" id="c_dueamount"
                                    name="c_dueamount"
-                                   defaultValue={this.state.mod_entry.final_due_amount}
+                                   value={this.state.mod_entry.final_due_amount}
                                    disabled placeholder="Due Amount"/>
                           </div>
                         </div>
                         <div className="form-row">
                           <div className="form-group col-md-12">
-                            <label htmlFor="c_payment">Payment Amount (<span
-                              id="prevmonthdue">Till date</span>)</label>
-                            <input type="number" step="0.01"
+                            <label htmlFor="c_payment">Payment Amount <span
+                              className="text-info">({this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? 'Till date' : this.props.previous_month_name})</span></label>
+                            <input key={this.state.mod_entry.id} type="number" step="0.01"
                                    className="form-control font-weight-bold"
                                    id="c_payment"
                                    name="c_payment"
-                                   defaultValue={this.state.mod_entry.final_due_prev_amount}
-                                   placeholder="Amount"/>
+                                   defaultValue={this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? this.state.mod_entry.final_due_amount : this.state.mod_entry.final_due_prev_amount}
+                            />
                           </div>
                         </div>
 
                         <div id='payment_notification' className="form-row">
                           <div className="form-group col-md-12 send-sms-checkbox">
-                            <label htmlFor="sms-notification">Send SMS Notification </label>
-                            <input type="checkbox" id="sms-notification" name="sms-notification"
-                                   defaultChecked
-                                   value="1"/>
+                            <label htmlFor="sms-notification">Send Notification &nbsp;</label>
+                            {this.state.mod_entry.contact > 0 && this.state.mod_entry.contact.length === 10 ?
+                              <input type="checkbox" id="sms-notification" name="sms-notification"
+                                     defaultChecked
+                                     value="1"/> :
+                              <span className="text-secondary">(Not available)</span>}
                           </div>
                         </div>
 
-                        <button type="submit" className="btn btn-primary justify-content-center">
-                          {#onClick="submitFormFn(this);">#}
-                          Accept
-                          Payment
+                        <button type="submit" className="btn btn-primary justify-content-center"
+                                disabled={this.state.ajax_loading} autoFocus>
+                          {this.state.ajax_loading ? <span><i
+                            className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Accept Payment'}
                         </button>
                       </div>
                     </form>
                   </div>
                 </div>
-              </div> : 'NO MOD'}
+              </div> : ''}
 
           </div>
         );

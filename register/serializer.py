@@ -69,5 +69,6 @@ class DueCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = (
-        'id', 'name', 'due_amount', 'balance_amount', 'due_prev_amount', 'final_due_amount',
-        'final_due_prev_amount')
+            'id', 'name', 'contact', 'due_amount', 'balance_amount', 'due_prev_amount',
+            'final_due_amount',
+            'final_due_prev_amount')
