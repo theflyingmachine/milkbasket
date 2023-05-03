@@ -74,6 +74,8 @@ urlpatterns = [
          name='get_register_api'),
     path('api/v1/accounts/<int:year>/<int:month>/', api_views.RegisterAPI.get_account_api,
          name='get_account_api'),
+    path('api/v1/customers/<int:customer_id>/', api_views.RegisterAPI.get_profile_api,
+         name='get_profile_api'),
 
 ]
 

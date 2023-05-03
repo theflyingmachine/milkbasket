@@ -1,0 +1,1104 @@
+{% include "register/header.html" %}
+
+{# PROD Bundle #}
+{#<script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>#}
+{#<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>#}
+{##}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>#}
+
+{# Dev Bundle #}
+<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+<script
+ src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+
+<style>
+
+
+  {#   Edit Profile modal #}
+  .quantity-input {
+      font-size: 30px;
+  }
+
+  .inbox {
+      max-width: 400px;
+  }
+
+  .item {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #F1F1F1;
+  }
+
+  .item:last-child {
+      border-bottom: 0;
+  }
+
+  input:checked + label {
+      background: #c3e7b4;
+      text-decoration: none;
+  }
+
+  .edit-form input[type="checkbox"] {
+      margin: 10px;
+      width: 40px; /*Desired width*/
+      height: 40px; /*Desired height*/
+      cursor: pointer;
+  }
+
+  .schedule-label {
+      margin: 0;
+      padding: 10px;
+      transition: background 0.5s;
+      text-decoration: line-through;
+      flex: 1;
+      font-family: 'helvetica neue';
+      font-size: 25px;
+      font-weight: 200;
+      border-radius: 5px;
+  {#border-left: 1px solid green;#}
+  }
+
+  table {
+      border-collapse: collapse;
+  }
+
+  table, td, th {
+      border: 1px solid black;
+  }
+
+  * {
+      box-sizing: border-box;
+  }
+
+  ul {
+      list-style-type: none;
+  }
+
+  body {
+      font-family: Verdana, sans-serif;
+  }
+
+  .month {
+      padding: 70px 25px;
+      width: 100%;
+      background: #1abc9c;
+      text-align: center;
+  }
+
+  .month ul {
+      margin: 0;
+      padding: 0;
+  }
+
+  .month ul li {
+      color: white;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+  }
+
+  .weekdays {
+      margin: 0;
+      padding: 10px 0;
+      background-color: #ddd;
+  }
+
+  .weekdays li {
+      display: inline-block;
+      width: 14.27%;
+      color: #666;
+      text-align: center;
+  }
+
+  .weekdays-title li {
+      background-color: lightgray;
+      display: inline-block;
+      width: 13.6%;
+      color: #666;
+      text-align: center;
+  }
+
+  .days {
+      padding: 10px 0;
+      background: #eee;
+      margin: 0;
+  }
+
+  .days div {
+      list-style-type: none;
+      display: inline-block;
+      width: 14.27%;
+      text-align: center;
+      margin-bottom: 5px;
+      font-size: 12px;
+      color: #777;
+  }
+
+  .days div .active {
+      padding: 5px;
+      background: #1abc9c;
+      color: white !important
+  }
+
+  /* Add media queries for smaller screens */
+  @media screen and (max-width: 600px) {
+      .weekdays li, .days li {
+          width: 13.1%;
+      }
+
+      .weekdays-title li {
+          width: 13%
+      }
+
+      .days div {
+          font-size: 0.6rem;
+      }
+
+      h2 {
+          font-size: 1.5rem !important;
+      }
+  }
+
+  @media screen and (max-width: 420px) {
+      .weekdays li, .days li {
+          width: 12.7%;
+      }
+
+      .weekdays-title li {
+          width: 12.7%
+      }
+
+      h2 {
+          font-size: 1.5rem !important;
+      }
+  }
+
+  @media screen and (max-width: 290px) {
+      .weekdays li, .days li {
+          width: 12.2%;
+      }
+
+      .weekdays-title li {
+          width: 12.6%
+      }
+
+      .days div {
+          font-size: 0.4rem;
+      }
+
+      h2 {
+          font-size: 1.5rem !important;
+      }
+  }
+
+  .dash {
+      border: 1px dashed #425858;
+      border-collapse: collapse;
+      padding-bottom: 25px !important;
+      padding-top: 25px !important;
+  }
+
+  @media (min-width: 768px) {
+      .seven-cols .col-md-1 {
+          width: 100%;
+          *width: 100%;
+      }
+
+      .weekdays-title li {
+          width: 13.6%
+      }
+  }
+
+  @media (min-width: 992px) {
+      .seven-cols .col-sm-1 {
+          width: 14.285714285714285714285714285714%;
+          *width: 14.285714285714285714285714285714%;
+      }
+
+      .weekdays-title li {
+          width: 13.78%
+      }
+  }
+
+  /**
+   *  The following is not really needed in this case
+   *  Only to demonstrate the usage of @media for large screens
+   */
+  @media (min-width: 1200px) {
+      .seven-cols .col-sm-1 {
+          width: 14.285714285714285714285714285714%;
+          *width: 14.285714285714285714285714285714%;
+      }
+
+      .weekdays-title li {
+          width: 13.85%
+      }
+  }
+
+
+  .cal-border {
+      border-style: groove;
+      border-width: thin;
+  }
+
+</style>
+
+{% block content %}
+
+
+  <div id="report"></div>
+
+  {# React Report Starts #}
+
+  <script type="text/babel">
+
+    function formatDate(log_date) {
+      return new Date(log_date).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short'
+      });
+    }
+
+    class IncomeExpense extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          mod_entry: null,
+          mod_title: null,
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e, title) => {
+        this.setState({
+          showModal: true,
+          mod_entry: e,
+          mod_title: title
+        });
+      };
+
+      deleteIncExp = () => {
+        this.setState({ajax_loading: true});
+      };
+
+      render() {
+        return (
+          <div>
+            <h3 className="pt-2 mt-2 text-center">{this.props.title}</h3>
+            <table className="table mb-5 table-sm table-striped">
+              <thead>
+              <tr className=" bg-info text-white">
+                <th className="p-1 col-1" scope="col">#</th>
+                <th className="p-1 col-5" scope="col">Description</th>
+                <th className="p-1 col-2" scope="col">Amount</th>
+                <th className="p-1 col-2" scope="col">Date</th>
+                <th className="p-1 col-2" scope="col">Action</th>
+              </tr>
+              </thead>
+              <tbody>
+              {this.props.entry.map((income_expense, index) => (
+                <tr key={income_expense.id} className="">
+                  <th className="py-2 col-1" scope="row">{index + 1}</th>
+                  <td className="py-2 col-5">{income_expense.description}</td>
+                  <td className="py-2 col-2">{parseFloat(income_expense.amount).toFixed(1)}</td>
+                  <td className="py-2 col-2">{formatDate(income_expense.log_date)}</td>
+                  <td className="py-2 col-2">
+                    <button type="button" className="btn-sm btn-danger"
+                            data-toggle="modal"
+                            data-target="#deleteModal"
+                            onClick={() => this.openModal(income_expense, this.props.title)}
+                    >Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              <tr className="info-row">
+                <td colSpan="5" className="py-2 font-weight-bold"><i
+                  className="fas fa-calculator text-info"></i> Total {this.props.title}:
+                  Rs {this.props.entry.reduce((acc, income_expense) => acc + parseFloat(income_expense.amount), 0)}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+            {this.state.showModal && this.state.mod_entry ?
+              /* Delete Modal */
+              <div key={this.state.mod_entry.id} className="modal fade" id="deleteModal"
+                   tabIndex="-1" role="dialog"
+                   aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title"
+                          id="exampleModalLabel">Delete {this.state.mod_title}</h5>
+                      <button type="button" className="close" data-dismiss="modal"
+                              aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form onSubmit={this.deleteIncExp} name="deleteExp"
+                          action={`${this.state.mod_title === 'Expenses' ? '{% url "manage_expense" %}' : '{% url "manage_income" %}'}`}
+                          method="post">
+                      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                      <input type="hidden" className="form-control" id="modal_id" name="id"
+                             value={this.state.mod_entry.id}/>
+                      <div className="p-4">
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="modal_desc">Are you sure to delete?</label>
+                            <textarea id="modal_desc" className="form-control" name="w3review"
+                                      rows="4" cols="50"
+                                      value={this.state.mod_entry.description}
+                                      disabled></textarea>
+                          </div>
+                        </div>
+                        <button type="submit"
+                                className="btn btn-danger justify-content-center"
+                                disabled={this.state.ajax_loading} autoFocus>
+                          {this.state.ajax_loading ? <span><i
+                            className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Delete'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              : ''}
+          </div>
+        )
+          ;
+      }
+    }
+
+
+    class PaidCustomers extends React.Component {
+      render() {
+        return (
+          <div>
+            <h3 className="pt-2 mt-2 text-center">{this.props.title}</h3>
+            <table className="table mb-5 table-sm table-striped">
+              <thead>
+              <tr className="bg-info text-white">
+                <th className="p-1 col-1" scope="col">#</th>
+                <th className="p-1 col-5" scope="col">Name</th>
+                <th className="p-1 col-3" scope="col">Adjusted Amount</th>
+                <th className="p-1 col-3" scope="col">Paid Amount</th>
+              </tr>
+              </thead>
+              <tbody>
+              {this.props.entry.map((entry, index) => (
+                <tr key={index}>
+                  <th className="py-2  col-1" scope="row">{index + 1}</th>
+                  <th className="py-2  col-5" scope="row"><a
+                    href={`profile/${entry.id}`}>{entry.name}</a>
+                    {#href="{% url 'customer_profile'  entry.customer_id %}">{entry.name}</a>#}
+                  </th>
+                  {entry.balance_amount < 0 ?
+                    <td
+                      className="text-success col-3 font-weight-bold">{Math.abs(entry.balance_amount)}
+                      &nbsp;(Adv)</td> :
+                    entry.balance_amount > 0 ?
+                      <td className="col-3">{entry.balance_amount}</td> :
+                      <td className="col-3"></td>
+                  }
+                  <td className="py-2  col-3"><b>{entry.paid_amount}</b></td>
+
+                </tr>
+
+              ))}
+              <tr className="info-row">
+                <td colSpan="4" className="py-2 font-weight-bold"><i
+                  className="fas fa-calculator text-info"></i> Total {this.props.title}:
+                  Rs {this.props.entry.reduce((acc, paid) => acc + parseFloat(paid.paid_amount), 0)}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+    }
+
+    class DueCustomers extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          mod_entry: null,
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e) => {
+        this.setState({
+          mod_entry: e,
+          showModal: true
+        });
+      };
+
+      makePayment = () => {
+        this.setState({ajax_loading: true});
+      };
+
+      render() {
+        return (
+          <div>
+            <h3 className="pt-2 mt-2 text-center">{this.props.title}</h3>
+            <table className="table mb-5 table-sm table-striped">
+              <thead>
+              <tr className="bg-info text-white">
+                <th className="p-1 col-1" scope="col">#</th>
+                <th className="p-1 col-3" scope="col">Name</th>
+                <th className="p-1 col-2" scope="col">Total Due</th>
+                <th className="p-1 col-2" scope="col">Due (till {this.props.previous_month_name})
+                </th>
+                <th className="p-1 col-4" scope="col">Action</th>
+              </tr>
+              </thead>
+              <tbody>
+              {this.props.entry.map((entry, index) => (
+                <tr key={index}>
+                  <th className="py-2 col-1" scope="row">{index + 1}</th>
+                  <th className="py-2 col-3" scope="row"><a
+                    href={`profile/${entry.id}`}>{entry.name}</a>
+                    {#href="{% url 'customer_profile'  entry.customer_id %}">{{ entry.customer__name }}</a>#}
+                  </th>
+                  <td className="py-2 col-2">{entry.final_due_amount}</td>
+                  <td className="py-2 col-2">
+                    {entry.final_due_prev_amount > 0 || entry.final_due_prev_amount < 0 ?
+                      <div>
+                        <span
+                          className="font-weight-bold">{entry.final_due_prev_amount}</span> &nbsp;
+                        <span className="text-info">{this.props.previous_month_name}</span>
+                      </div> : ''}</td>
+                  <td className="py-2 col-4">
+                    <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
+                            data-toggle="modal"
+                            data-target="#exampleModal2" onClick={() => this.openModal(entry)}
+                    >Make Payment
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              <tr className="info-row">
+                <td colSpan="5" className="py-2 font-weight-bold"><i
+                  className="fas fa-calculator text-info"></i> Total
+                  Due :
+                  Rs {this.props.entry.reduce((total, customer) => total + parseFloat(customer.final_due_amount), 0)}
+                  &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+                  <i className="fas fa-calculator text-info"></i> Due
+                  ({this.props.previous_month_name})
+                  : {this.props.entry.reduce((total, customer) => total + parseFloat(customer.final_due_prev_amount), 0)}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+            {this.state.showModal ?
+              <div className="modal fade" id="exampleModal2" tabIndex="-1" role="dialog"
+                   aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title" id="exampleModalLabel">Accept Payment
+                        - {{ month_year }}</h5>
+                      <button type="button" className="close" data-dismiss="modal"
+                              aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form name="addexp" onSubmit={this.makePayment}
+                          action="{% url 'accept_payment' %}"
+                          method="post">
+                      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                      <input type="hidden" className="form-control" id="c_id" name="c_id"
+                             value={this.state.mod_entry.id}/>
+                      <div className="p-4">
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="c_name">Name</label>
+                            <input autoFocus type="text" className="form-control" id="c_name"
+                                   name="c_name"
+                                   value={this.state.mod_entry.name}
+                                   disabled/>
+                          </div>
+                        </div>
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="c_dueamount">Due Amount</label>
+                            <input type="text" className="form-control" id="c_dueamount"
+                                   name="c_dueamount"
+                                   value={this.state.mod_entry.final_due_amount}
+                                   disabled placeholder="Due Amount"/>
+                          </div>
+                        </div>
+                        <div className="form-row">
+                          <div className="form-group col-md-12">
+                            <label htmlFor="c_payment">Payment Amount <span
+                              className="text-info">({this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? 'Till date' : this.props.previous_month_name})</span></label>
+                            <input key={this.state.mod_entry.id} type="number" step="0.01"
+                                   className="form-control font-weight-bold"
+                                   id="c_payment"
+                                   name="c_payment"
+                                   defaultValue={this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? this.state.mod_entry.final_due_amount : this.state.mod_entry.final_due_prev_amount}
+                            />
+                          </div>
+                        </div>
+
+                        <div id='payment_notification' className="form-row">
+                          <div className="form-group col-md-12 send-sms-checkbox">
+                            <label htmlFor="sms-notification">Send Notification &nbsp;</label>
+                            {this.state.mod_entry.contact > 0 && this.state.mod_entry.contact.length === 10 ?
+                              <input type="checkbox" id="sms-notification" name="sms-notification"
+                                     defaultChecked
+                                     value="1"/> :
+                              <span className="text-secondary">(Not available)</span>}
+                          </div>
+                        </div>
+
+                        <button type="submit" className="btn btn-primary justify-content-center"
+                                disabled={this.state.ajax_loading} autoFocus>
+                          {this.state.ajax_loading ? <span><i
+                            className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Accept Payment'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div> : ''}
+
+          </div>
+        );
+      }
+    }
+
+
+    class Accounts extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          data: null,
+          is_loading: true,
+          is_error: false,
+
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+
+      async componentDidMount() {
+        try {
+          let hostname = window.location.hostname === '127.0.0.1' ? window.location.hostname + ':8000' : window.location.hostname;
+          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/customers/{{ customer_id }}/";
+          const response = await fetch(url);
+          const data = await response.json();
+          this.setState({
+            data: data,
+            is_loading: false
+          })
+        } catch (e) {
+          this.setState({
+            is_error: 'Something went wrong, please try again later. ' + e,
+            is_loading: false
+          })
+        }
+      }
+
+
+      render() {
+
+        const billNote = {
+          color: 'dimgrey', fontSize: '10px'
+        }
+
+        const loadingComp = <div className="text-center m-xl-5 p-xl-5">
+          <div className="spinner-grow text-primary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-secondary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-success spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-danger spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-warning spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-info spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-dark spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+
+        return (
+          <div>
+            <div className='p-0'>
+              <div>
+                {this.state.is_loading ? <div className="pt-5 mt-5">{loadingComp}</div>
+                  : (
+                    <div>
+
+                      {!(this.state.data) ?
+                        <div className="pt-5 mt-5 alert alert-primary text-center" role="alert">
+                          Nothing to display at the moment
+                        </div>
+                        : ''}
+
+                      {this.state.is_error ?
+                        <div className="alert alert-danger text-center" role="alert">
+                          {this.state.is_error}
+                        </div> : ''}
+
+                      {this.state.data ? (
+                          <div className="col-12 mb-3">
+
+                            <h2 className="pt-2 text-center"> {this.state.data.customer.name}
+                              <button type="button" className="btn btn-primary m-2 text-right"
+                                      data-toggle="modal"
+                                      data-target="#editProfileModal"
+                                      data-name="{{ customer.name }}"
+                                      data-id="{{ customer.id }}"
+                                      data-contact="{{ customer.contact }}"
+                                      data-email="{{ customer.email }}"
+                                      data-m-quantity="{{ customer.m_quantity }}"
+                                      data-e-quantity="{{ customer.e_quantity }}"
+                                      data-morning="{{ customer.morning }}"
+                                      data-evening="{{ customer.evening }}"
+                              ><i className="fas fa-user-edit"></i> Edit
+                              </button>
+                            </h2>
+
+                            <div className="row">
+                              <table width="100%">
+                                <tbody>
+                                <tr>
+                                  <td className="p-3 bg-light ">Account
+                                    Number: {this.state.data.customer.id}</td>
+                                  <td className="p-3 bg-light ">Default Quantity:
+                                    <span
+                                      id="custQuantity">
+                                  {this.state.data.customer.m_quantity > 0 ? this.state.data.customer.m_quantity + ' ML (Morning)' : null}
+                                      {this.state.data.customer.morning && this.state.data.customer.evening ? ' , ' : null}
+                                      {this.state.data.customer.e_quantity > 0 ? this.state.data.customer.e_quantity + ' ML (Evening)' : null}
+                                  </span>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td className="p-3 bg-light ">Customer
+                                    Since: {new Date(this.state.data.customer.member_since).toLocaleDateString('en-US', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      year: 'numeric'
+                                    })}</td>
+                                  {this.state.data.customer.morning || this.state.data.customer.evening ?
+
+                                    <td className="p-3 bg-light ">Default Schedule: <span
+                                      id="custSchedule">
+                                  {this.state.data.customer.morning ? 'Morning' : null}
+                                      {this.state.data.customer.morning && this.state.data.customer.evening ? ' and ' : null}
+                                      {this.state.data.customer.evening ? 'Evening' : null}
+                                </span></td>
+                                    :
+                                    <td
+                                      className="p-3 text-danger bg-light font-weight-bold">Customer
+                                      Account Inactive
+                                    </td>}
+                                </tr>
+                                </tbody>
+                              </table>
+                            </div>
+
+
+                            {Object.prototype.hasOwnProperty.call(this.state.data, 'due_summary') && Object.keys(this.state.data['due_summary']).length === 0 ? null :
+
+                              <div className="col-12 p-0">
+                                <h5 className="pt-2 mt-2 text-center">Payment Due</h5>
+                                <table className="table table-sm table-striped">
+                                  <thead>
+                                  <tr className="d-flex bg-info text-white">
+                                    <th className="p-2 col-4" scope="col">Total Due</th>
+                                    <th className="p-2 col-4" scope="col">Due
+                                      (till {this.state.data.previous_month_name})
+                                    </th>
+                                    <th className="p-2 col-4" scope="col">Action</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  <tr className="d-flex">
+                                    {% if payment_due_amount_till_date < 0 %}
+                                      <td
+                                        className="p-2 col-4">{{ payment_due_amount_till_date }}
+                                        <span
+                                          className="text-success">(Advance)</span>
+                                        {% if total_due_amount > 0 %}
+                                          <button type="button" className="btn-sm btn-warning"
+                                                  data-toggle="modal"
+                                                  data-target="#exampleModal3"
+                                          >Settle Up
+                                          </button>{% endif %}
+                                        {% if total_due_amount == 0 %}
+                                          <button type="button" className="btn-sm btn-warning"
+                                                  data-toggle="modal"
+                                                  data-target="#exampleModal4"
+                                          >Refund Advance
+                                          </button>{% endif %}
+
+                                      </td>
+                                    {% else %}
+                                      <td
+                                        className="p-2 col-4">{this.state.data.due_summary.final_due_amount}</td>
+                                    {% endif %}
+                                    <td className="p-2 col-4">
+                                      {this.state.data.due_summary.final_due_prev_amount > 0 ?
+                                        <div>
+                                          <span
+                                            className="font-weight-bold">{this.state.data.due_summary.final_due_prev_amount}</span>
+                                          <span
+                                            className="text-info">{{ previous_month_name }}</span>
+                                        </div> : null}
+                                    </td>
+                                    <td className="col-4">
+                                      <button type="button" className="btn-sm btn-primary"
+                                              data-toggle="modal"
+                                              data-target="#exampleModal2"
+                                      >Make Payment
+                                      </button>
+                                    </td>
+                                  </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+
+                            }
+
+
+                            {# Bill Summary #}
+                            {this.state.data.bill_summary[this.state.data.bill_summary.length - 1].sub_total > 0 ?
+                              <div>
+                                {this.state.data.tenant.download_pdf_pref &&
+                                  <div className="text-center">
+                                    <a target="_blank"
+                                       href={this.state.data.print_bill_url}
+                                       className="btn btn-primary mb-1"><i
+                                      className="fa fa-print" aria-hidden="true"></i> Print /
+                                      Download</a>
+                                  </div>}
+                                <div className="mt-4 mb-4 col-12  p-0">
+                                  <h5 className="pt-2 mt-2 text-center">Bill Summary </h5>
+                                  <table>
+                                    <thead>
+                                    <tr className=" bg-info text-white">
+                                      <th className="p-2 text-center" colSpan="2">Description</th>
+                                      <th className="p-2 text-right">Amount</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {this.state.data.bill_summary.map((bill, index) => (
+                                      index === this.state.data.bill_summary.length - 1 ? (
+                                        <tr key={index}>
+                                          <td className="p-1" colSpan="2">
+          <span style={billNote}>
+            Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {bill.last_updated}. This bill was generated on {bill.today}. {this.state.data.milk_price}
+          </span>
+                                          </td>
+                                          <td colSpan="1">
+                                            {bill.balance ?
+                                              <div>
+                                                <h6
+                                                  className="pr-2 text-nowrap text-right font-weight-bold">
+                                                  {bill.sub_total}
+                                                </h6>
+                                                <h6
+                                                  className="pr-2 text-nowrap text-right
+                                              font-weight-bold">
+                                                  Balance: -{bill.balance}
+                                                </h6>
+                                              </div>
+                                              : null}
+                                            <h5
+                                              className="p-1 text-nowrap text-right font-weight-bold">
+                                              Total: {bill.sum_total}
+                                            </h5>
+                                          </td>
+                                        </tr>
+                                      ) : (
+                                        <tr key={index}>
+                                          <td className="m-2 dash text-center" rowSpan="1">
+                                            {bill.month_year}
+                                          </td>
+
+                                          <td className="m-2 dash text-right">
+                                            {bill.desc.map((bill_month, index) => (
+                                              index === bill.desc.length - 1 ? null : (
+                                                <h6 key={index} className="m-1">
+                                                  {bill_month.quantity} ML
+                                                  <strong>&nbsp;X&nbsp;</strong> {bill_month.desc}&nbsp;unit(s)
+                                                  = {bill_month.total_units / 1000}L
+                                                </h6>
+                                              )))}
+                                          </td>
+                                          <td className="m-2 p-2 dash text-right">
+                                            {bill.desc.map((bill_month, index) => (
+                                              index === bill.desc.length - 1 ? (
+                                                <h6 key={index} className="font-weight-bold">
+                                                  {bill_month.total}
+                                                </h6>
+                                              ) : null))}
+                                          </td>
+
+                                        </tr>
+                                      )
+                                    ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                              : null}
+
+
+                            {# Calender View #}
+                            {this.state.data.calendar ?
+                              <div id="calendar-view">
+                                <div className="mt-4 col-12  p-0">
+                                  {this.state.data.calendar.map((month, index) => (
+                                    <div key={index}>
+                                      <div className="month">
+                                        <ul>
+                                          <li>
+                                            {month.month} {month.year}
+                                          </li>
+                                        </ul>
+                                      </div>
+
+                                      <ul className="col-12 p-0 m-0 weekdays-title">
+                                        <li>Mon</li>
+                                        <li>Tue</li>
+                                        <li>Wed</li>
+                                        <li>Thu</li>
+                                        <li>Fri</li>
+                                        <li>Sat</li>
+                                        <li>Sun</li>
+                                      </ul>
+                                      <ul className="row  p-0 seven-cols days">
+                                        {month.week_start_day.map((day, index) => (
+                                          <div key={index}></div>
+                                        ))}
+                                        {month.days_in_month.map((day, index) => (
+                                          <div key={index} className="p-0 cal-border">
+                                            <h2>{day.day}</h2>
+                                            {day.data.length > 0 ? (day.data.map((entry, index) => (
+                                              <span key={index}>
+                                                <span
+                                                  className="d-block text-white bg-primary p-0 p-lg-2">
+                                                  {entry.schedule_display}&nbsp;
+                                                  {entry.attendance ? entry.quantity + " ML" :
+                                                    <span
+                                                      className="p-0 bg-danger text-white"> ABSENT </span>}
+                                                </span>
+
+                                                {entry.attendance ? (entry.paid ? <span
+                                                    className="d-block bg-success text-white p-1"> PAID</span>
+                                                  : <span
+                                                    className="d-block bg-warning text-white p-1">DUE</span>) : null}
+                                              </span>
+                                            ))) : null}
+                                          </div>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+
+                              : null}
+
+
+                            {# Register Entry #}
+                            {
+                              this.state.data.customer.transaction_entry.length ?
+                                <div className="mt-4 col-12  p-0">
+                                  <h5 className="pt-2 mt-2 text-center">Transaction</h5>
+                                  <table className="table table-sm table-striped">
+                                    <thead>
+                                    <tr className="d-flex bg-info text-white">
+                                      <th className="p-2 col-2" scope="col">#Tnx</th>
+                                      <th className="p-2 col-6" scope="col">Transaction Date
+                                      </th>
+                                      <th className="p-2 col-4" scope="col">Amount</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {this.state.data.customer.transaction_entry.map((transaction, index) => (
+                                      <tr key={index} className="d-flex">
+                                        <td className="p-2 col-2">#{transaction.id}</td>
+                                        <td
+                                          className="p-2 col-6">{new Date(transaction.log_date).toLocaleDateString('en-US', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                          hour12: true,
+                                          timeZone: 'IST'
+                                        })}
+                                          {#                  {% if entry.payment_mode == 'ONLINE' %}#}
+                                          {#                    <a target="_blank"#}
+                                          {#                       href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% endif %}#}
+                                          &nbsp;<span
+                                            className="text-info">{transaction.payment_mode}</span>
+                                        </td>
+                                        <td className="p-2 col-4">{transaction.amount}
+                                          {transaction.refund_notes ?
+                                            <span
+                                              className="text-info">{{ transaction.refund_notes }}</span>
+                                            : null}
+                                          {this.state.data.can_revert_transaction && transaction.is_revertible && (index + 1) === this.state.data.customer.transaction_entry.length ?
+                                            <button id="reverttransactionbuttonmain"
+                                                    type="button"
+                                                    className="btn btn-danger mb-1"
+                                                    data-toggle="modal"
+                                                    data-target="#revertTransactionModal"
+                                                    data-trans_id="{{ entry.id }}"
+                                                    data-trans-amount="{{ entry.amount }}"
+                                                    data-trans-date="{{ entry.log_date }}"
+                                            ><i className="fas fa-undo"></i> Revert Transaction
+                                            </button> : null}
+                                        </td>
+
+                                      </tr>
+                                    ))}
+                                    </tbody>
+                                  </table>
+                                </div> : null
+                            }
+
+
+                            {# Register Entry #}
+                            {this.state.data.customer.register_entry.length ?
+                              <div className="mt-4 col-12  p-0">
+                                <h5 className="pt-2 mt-2 text-center">Register Entry</h5>
+                                <table className="table table-sm table-striped">
+                                  <thead>
+                                  <tr className="d-flex bg-info text-white">
+                                    <th className="p-1 col-4" scope="col">Date</th>
+                                    {#<th className="p-1 col-2" scope="col">Time</th>#}
+                                    <th className="px-0 col-2" scope="col">Quota</th>
+                                    <th className="px-0 col-2" scope="col">Price</th>
+                                    <th className="px-0 col-2" scope="col">Billed</th>
+                                    <th className="px-0 col-2" scope="col">Status</th>
+                                  </tr>
+                                  </thead>
+                                  <tbody>
+                                  {this.state.data.customer.register_entry.map((register, index) => (
+                                    <tr key={index} className="d-flex">
+                                      <td
+                                        className="p-0 col-4">{new Date(register.log_date).toLocaleDateString('en-US', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric'
+                                      })}</td>
+                                      {#<td className="p-1 col-2">{{ entry.display_schedule }}</td>#}
+                                      <td className="p-0 col-2">{register.quantity} ML
+                                      </td>
+                                      <td className="p-0 col-2">{register.current_price}</td>
+                                      <td
+                                        className="p-0 col-2">{(register.current_price * register.quantity) / 1000}</td>
+                                      <td
+                                        className={`p-0 col-2 font-weight-bold ${register.paid ? 'text-success' : 'text-danger'}`}>{register.paid ? 'Paid' : 'Due'}</td>
+                                    </tr>
+                                  ))}
+                                  </tbody>
+                                </table>
+                              </div> : null
+                            }
+
+
+                          </div>
+
+
+                        ) :
+                        ''
+                      }
+
+                      {# Customers Info #}
+                      {#{this.state.paid_customers.length ? (#}
+                      {#  <PaidCustomers entry={this.state.paid_customers} title="Paid Customers"/>#}
+                      {#) : ''}#}
+
+                      {# Expense Table #}
+                      {#{this.state.expenses.length ? (#}
+                      {#  <IncomeExpense entry={this.state.expenses} title="Expenses"/>#}
+                      {#) : ''}#}
+                      {##}
+                      {# Income Table #}
+                      {#{this.state.income.length ? (#}
+                      {#  <IncomeExpense entry={this.state.income} title="Income"/>#}
+                      {#) : ''}#}
+                      <p className="text-center mb-5 text-secondary"> --- END OF PAGE
+                        ---</p>
+                    </div>
+
+                  )}
+              </div>
+            </div>
+          </div>
+
+
+        )
+          ;
+      }
+    }
+
+    ReactDOM.render(
+      <Accounts/>
+      , document.getElementById("report"));
+
+  </script>
+
+  {#  React Component ends here #}
+
+  <script>
+    function submitFormFn(submitForm) {
+      {# Showing please wait spinner while accepting payment #}
+      submitForm.disabled = true;
+      submitForm.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
+      submitForm.form.submit();
+    }
+  </script>
+{% endblock %}
+{% include "register/footer.html" %}

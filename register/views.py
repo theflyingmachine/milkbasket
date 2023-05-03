@@ -40,22 +40,15 @@ from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
     get_whatsapp_media_by_id, get_client_ip, calculate_milk_price, is_dev
-from register.utils import customer_register_last_updated
 from register.utils import generate_bill
-from register.utils import get_active_month
-from register.utils import get_bill_summary
 from register.utils import get_customer_all_due
-from register.utils import get_customer_balance_amount
 from register.utils import get_customer_due_amount
 from register.utils import get_customer_due_amount_by_month
 from register.utils import get_last_autopilot
 from register.utils import get_last_transaction
-from register.utils import get_milk_current_price
 from register.utils import get_mongo_client
 from register.utils import get_tenant_perf
-from register.utils import is_last_day_of_month
 from register.utils import is_mobile
-from register.utils import is_transaction_revertible
 from register.utils import render_to_pdf
 from register.utils import send_email_api
 from register.utils import send_sms_api
@@ -1117,121 +1110,17 @@ def logout_request(request):
 
 @login_required
 def customer_profile(request, cust_id=None):
-    template = 'register/profile.html'
+    template = 'register/react_profile.html'
     context = {
         'is_mobile': is_mobile(request),
         'page_title': 'Milk Basket - Profile',
     }
-    current_date = date.today()
     if cust_id:
-        customer = Customer.objects.filter(tenant_id=request.user.id, id=cust_id).first()
-        if not customer:
-            return render(request, template, context={'nocustomer': True})
-        transaction = Payment.objects.filter(tenant_id=request.user.id, customer_id=cust_id)
 
-        if customer.morning and not customer.evening:
-            customer.schedule = 'Morning'
-        if not customer.morning and customer.evening:
-            customer.schedule = 'Evening'
-        if customer.morning and customer.evening:
-            customer.schedule = 'Morning and Evening'
-        register = Register.objects.filter(tenant_id=request.user.id,
-                                           customer_id=cust_id).order_by('-log_date')
-        register_entry = register.filter(schedule__in=['morning-yes', 'evening-yes', 'e-morning',
-                                                       'e-evening']).values()
-        for entry in register_entry:
-            entry['billed_amount'] = float(entry['current_price'] / 1000) * entry['quantity']
-            entry['display_paid'] = 'Paid' if entry['paid'] else 'Due'
-            entry['display_schedule'] = 'Morning' if entry[
-                                                         'schedule'] == 'morning-yes' else 'Evening'
-            entry['display_log_date'] = entry['log_date'].strftime('%d-%b-%Y')
-
-        # Get due table
-        due_cust = Register.objects.filter(tenant_id=request.user.id, customer_id=cust_id, paid=0,
-                                           schedule__in=['morning-yes', 'evening-yes', 'e-morning',
-                                                         'e-evening']).order_by('-log_date')
-        payment_due_amount_prev_month = 0
-        payment_due_amount_till_date = 0
-        if due_cust:
-            # Check due till today
-            payment_due_amount_till_date = calculate_milk_price(due_cust)
-
-            # Check due till last month
-            due_cust_prev_month = due_cust.exclude(
-                log_date__month=current_date.month, log_date__year=current_date.year)
-            payment_due_amount_prev_month = calculate_milk_price(due_cust_prev_month)
-
-        # Extract months which has due for calendar
-        active_months = get_active_month(cust_id, all_active=True)
-        calendar = [{'month': active_month.strftime('%B'),
-                     'year': active_month.strftime('%Y'),
-                     'week_start_day': [x for x in range(0, active_month.weekday())],
-                     'days_in_month': [{'day': day,
-                                        'data': register.filter(
-                                            log_date=active_month.replace(day=day))
-                                        } for day in range(1, (
-                         monthrange(active_month.year, active_month.month)[1]) + 1)]
-                     } for active_month in active_months]
-
-        # Extract only due months for bill
-        due_months = get_active_month(cust_id, only_paid=False, only_due=True)
-        bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
-                         'desc': get_bill_summary(cust_id, month=due_month.month,
-                                                  year=due_month.year)}
-                        for due_month in due_months]
-        bill_summary.reverse()
-        last_data_entry = customer_register_last_updated(cust_id)
-        bill_sum_total = {
-            'last_updated': last_data_entry.strftime("%d %B, %Y") if last_data_entry else '',
-            'today': datetime.now().strftime("%d %B, %Y, %H:%M %p"),
-            'sum_total': (
-                sum([bill.get('desc')[-1]['total'] for bill in bill_summary if bill.get('desc')]))}
-
-        # Check for balance / Due amount
-        balance_amount = get_customer_balance_amount(cust_id)
-        if balance_amount:
-            bill_sum_total['balance'] = balance_amount
-            bill_sum_total['sub_total'] = bill_sum_total['sum_total']
-            bill_sum_total['sum_total'] = bill_sum_total['sum_total'] - balance_amount
-
-        bill_summary.append(bill_sum_total)
-        due_till_prev_month = round(payment_due_amount_prev_month, 2) - round(balance_amount)
-        due_till_current_month = round(payment_due_amount_till_date, 2) - round(balance_amount)
-        prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
-        current_month_name = current_date.strftime("%B")
-        last_day_of_month = is_last_day_of_month()
-        if last_day_of_month or get_tenant_perf(
-            request).bill_till_date or not due_till_prev_month > 0:
-            sms_text = SMS_DUE_MESSAGE.format(customer.name, current_month_name,
-                                              due_till_current_month)
-        else:
-            sms_text = SMS_DUE_MESSAGE.format(customer.name, prev_month_name, due_till_prev_month)
-
-        # Check if last transaction is older than 30 days
-        last_trans = get_last_transaction(request, customer)
-        is_30_days_old = (datetime.now() - last_trans.log_date).days > 30 if last_trans else False
-        # Get Tenant Preference
-        try:
-            tenant = Tenant.objects.get(tenant_id=request.user.id)
-        except Tenant.DoesNotExist:
-            return redirect('setting')
         context.update({
-            'calendar': calendar,
-            'milk_price': get_milk_current_price(request.user.id, description=True),
-            'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
             'menu_customer': True,
-            'customer': customer,
-            'sms_text': sms_text,
-            'transaction': transaction,
-            'is_revertible': is_transaction_revertible(request, customer) and not is_30_days_old,
-            'register': register_entry,
-            'payment_due_amount_prev_month': due_till_prev_month,
-            'payment_due_amount_till_date': due_till_current_month,
-            'previous_month_name': prev_month_name,
-            'tenant': tenant,
-            'balance_amount': balance_amount,
-            'total_due_amount': payment_due_amount_till_date,
-            'is_last_day_of_month': is_last_day_of_month()
+            'customer_id': cust_id,
+            'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
         })
         return render(request, template, context)
     return redirect('view_customers')
