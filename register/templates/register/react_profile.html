@@ -262,9 +262,9 @@
             <table width="100%">
               <tbody>
               <tr>
-                <td className="p-3 bg-light ">Account
-                  Number: {this.props.data.customer.id}</td>
-                <td className="p-3 bg-light ">Default Quantity:
+                {#<td className="p-1 bg-light ">Account#}
+                {#  Number: {this.props.data.customer.id}</td>#}
+                <td className="p-1 bg-light ">Default Quantity:
                   <span
                     id="custQuantity">
                                   {this.props.data.customer.m_quantity > 0 ? this.props.data.customer.m_quantity + ' ML (Morning)' : null}
@@ -274,15 +274,15 @@
                 </td>
               </tr>
               <tr>
-                <td className="p-3 bg-light ">Customer
-                  Since: {new Date(this.props.data.customer.member_since).toLocaleDateString('en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                  })}</td>
+                {#<td className="p-1 bg-light ">Customer#}
+                {#  Since: {new Date(this.props.data.customer.member_since).toLocaleDateString('en-US', {#}
+                {#    day: 'numeric',#}
+                {#    month: 'short',#}
+                {#    year: 'numeric'#}
+                {#  })}</td>#}
                 {this.props.data.customer.morning || this.props.data.customer.evening ?
 
-                  <td className="p-3 bg-light ">Default Schedule: <span
+                  <td className="p-1 bg-light ">Default Schedule: <span
                     id="custSchedule">
                                   {this.props.data.customer.morning ? 'Morning' : null}
                     {this.props.data.customer.morning && this.props.data.customer.evening ? ' and ' : null}
@@ -407,7 +407,8 @@
                       <form name="addexp" onSubmit={this.makePayment}
                             action="{% url 'accept_payment' %}"
                             method="post">
-                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
                         <input type="hidden" className="form-control" id="return_url"
                                name="return_url"
                                value={`profile/${this.state.mod_entry.id}`}/>
@@ -457,7 +458,8 @@
                             </div>
                           </div>
 
-                          <button type="submit" className="btn btn-primary justify-content-center"
+                          <button type="submit"
+                                  className="btn btn-primary justify-content-center"
                                   disabled={this.state.ajax_loading} autoFocus>
                             {this.state.ajax_loading ? <span><i
                               className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Accept Payment'}
@@ -673,7 +675,8 @@
                 </tbody>
               </table>
               {this.state.showModal ?
-                <div className="modal fade" id="revertTransactionModal" tabIndex="-1" role="dialog"
+                <div className="modal fade" id="revertTransactionModal" tabIndex="-1"
+                     role="dialog"
                      aria-labelledby="exampleModalLabel" aria-hidden="true">
                   <div className="modal-dialog" role="document">
                     <div className="modal-content">
@@ -690,7 +693,8 @@
                       <form onSubmit={this.revertTransaction} id="revert-trans-form"
                             name="revert-trans"
                             action="{% url 'revert_transaction' %}" method="post">
-                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
                         <input type="hidden" className="form-control" id="c_id" name="c_id"
                                value={this.state.mod_entry.customer}/>
                         <div className="p-4">
@@ -752,6 +756,7 @@
                         <div key={index} className="p-0 cal-border">
                           <h2>{day.day}</h2>
                           {day.data.length > 0 ? (day.data.map((entry, index) => (
+                            {# TODO fix cal text wrapping #}
                             <span key={index}>
                                                 <span
                                                   className="d-block text-white bg-primary p-0 p-lg-2">
@@ -837,8 +842,43 @@
           is_loading: true,
           is_error: false,
 
+          showModal: false,
           ajax_loading: false,
+
+          morning: false,
+          evening: false
         };
+      }
+
+      handleCheckboxChange = event => {
+        const target = event.target;
+        const name = target.name;
+        const checked = target.checked;
+
+        this.setState({
+          [name]: checked
+        });
+      };
+
+      async updateCustomer(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch('{% url 'add_customer' %}', requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            location.reload();
+          })
+          .catch(error => {
+            if (error) {
+              show_toast('Error', error.message, 'danger')
+            } else {
+              show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
+            }
+          })
       }
 
       handler() {
@@ -846,6 +886,12 @@
           someVar: 'some value'
         })
       }
+
+      openModal = () => {
+        this.setState({
+          showModal: true
+        });
+      };
 
 
       async componentDidMount() {
@@ -856,6 +902,8 @@
           const data = await response.json();
           this.setState({
             data: data,
+            morning: data.customer.morning,
+            evening: data.customer.evening,
             is_loading: false
           })
         } catch (e) {
@@ -913,14 +961,7 @@
                               <button type="button" className="btn btn-primary m-2 text-right"
                                       data-toggle="modal"
                                       data-target="#editProfileModal"
-                                      data-name="{{ customer.name }}"
-                                      data-id="{{ customer.id }}"
-                                      data-contact="{{ customer.contact }}"
-                                      data-email="{{ customer.email }}"
-                                      data-m-quantity="{{ customer.m_quantity }}"
-                                      data-e-quantity="{{ customer.e_quantity }}"
-                                      data-morning="{{ customer.morning }}"
-                                      data-evening="{{ customer.evening }}"
+                                      onClick={() => this.openModal()}
                               ><i className="fas fa-user-edit"></i> Edit
                               </button>
                             </h2>
@@ -955,6 +996,131 @@
                       }
 
                       <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
+
+                      {this.state.showModal &&
+                        <div className="modal fade" id="editProfileModal" tabIndex="-1"
+                             role="dialog"
+                             aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div className="modal-dialog" role="document">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h5 className="modal-title" id="exampleModalLabel"><i
+                                  className="fas fa-user-edit"></i>
+                                  &nbsp; Edit Customer</h5>
+                                <button type="button" className="close" data-dismiss="modal"
+                                        aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <form id="updateCustomerForm" name="edit-customer"
+                                    onSubmit={this.updateCustomer}
+                                    method="post">
+                                <input type="hidden" name="csrfmiddlewaretoken"
+                                       value="{{ csrf_token }}"/>
+                                <input type="hidden" className="form-control" id="recipient_id"
+                                       name="id" defaultValue={this.state.data.customer.id}/>
+                                <input type="hidden" className="form-control" id="redirect_url"
+                                       name="redirect_url"
+                                       value="None"/>
+                                <div className="p-4">
+                                  <div className="form-row">
+                                    <div className="form-group col-md-12">
+                                      <label htmlFor="name">Name</label>
+                                      <input autoFocus required type="text"
+                                             className="form-control"
+                                             id="recipient_name"
+                                             name="name"
+                                             defaultValue={this.state.data.customer.name}
+                                             readOnly/>
+                                    </div>
+                                  </div>
+                                  {this.state.data.tenant.sms_pref &&
+                                    <div className="form-row">
+                                      <div className="form-group col-md-12">
+                                        <label htmlFor="inputEmail4">Contact</label>
+                                        <input type="number" step="1" min="6000000000"
+                                               max="9999999999"
+                                         {#onKeyPress="if(this.value.length==10) return false;"#}
+                                               className="form-control" id="recipient_contact"
+                                               name="contact"
+                                               defaultValue={parseInt(this.state.data.customer.contact)}
+                                               placeholder="Enter Contact"/>
+                                      </div>
+                                    </div>}
+                                  {this.state.data.tenant.email_pref &&
+                                    <div className="form-row">
+                                      <div className="form-group col-md-12">
+                                        <label htmlFor="email">Email</label>
+                                        <input type="text" className="form-control"
+                                               id="recipient_email"
+                                               name="email"
+                                               defaultValue={this.state.data.customer.email}
+                                               placeholder="Enter Email"/>
+                                      </div>
+                                    </div>}
+                                  <div className="form-row">
+                                    <div className="form-group col-md-12">
+                                      <label>Schedule</label>
+                                      <div className="inbox mx-3 edit-form">
+                                        <div className="item">
+                                          <input type="checkbox" id="recipient_morning"
+                                                 name="morning"
+                                                 onChange={this.handleCheckboxChange}
+                                                 defaultChecked={this.state.data.customer.morning}/>
+                                          <label htmlFor="recipient_morning"
+                                                 className="schedule-label"><i
+                                            className="fas fa-cloud-sun text-warning"></i> Morning</label>
+                                        </div>
+                                        <div className="item">
+                                          <input type="checkbox" id="recipient_evening"
+                                                 name="evening"
+                                                 onChange={this.handleCheckboxChange}
+                                                 defaultChecked={this.state.data.customer.evening}/>
+                                          <label htmlFor="recipient_evening"
+                                                 className="schedule-label"><i
+                                            className="fas fa-cloud-moon text-info"></i> Evening</label>
+                                        </div>
+                                      </div>
+
+                                      {this.state.morning && <div>
+                                        <label id="recipient-quantity-m-label"
+                                               htmlFor="recipient-quantity-m">Morning
+                                          Quantity</label>
+                                        <input
+                                          className="form-control quantity-input"
+                                          step="0"
+                                          type="number"
+                                          id="recipient-quantity-m"
+                                          name="m_quantity"
+                                          required
+                                          defaultValue={this.state.data.customer.m_quantity}
+                                          placeholder="Enter ML (Morning)"/></div>}
+
+                                      {this.state.evening && <div>
+
+                                        <label id="recipient-quantity-e-label"
+                                               htmlFor="recipient-quantity-e">Evening
+                                          Quantity</label>
+                                        <input
+                                          className="form-control quantity-input"
+                                          step="0"
+                                          type="number"
+                                          id="recipient-quantity-e"
+                                          name="e_quantity"
+                                          required
+                                          defaultValue={this.state.data.customer.e_quantity}
+                                          placeholder="Enter ML (Evening)"/></div>}
+                                    </div>
+                                  </div>
+                                  <button id="editButton" type="submit"
+                                          className="btn btn-primary justify-content-center col-12">Update
+                                    Customer
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>}
                     </div>
 
                   )}
@@ -977,12 +1143,11 @@
   {#  React Component ends here #}
 
   <script>
-    function submitFormFn(submitForm) {
-      {# Showing please wait spinner while accepting payment #}
-      submitForm.disabled = true;
-      submitForm.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';
-      submitForm.form.submit();
-    }
+    {#function submitFormFn(submitForm) {#}
+    {# Showing please wait spinner while accepting payment #}
+    {#  submitForm.disabled = true;#}
+    {#  submitForm.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';#}
+    {#  submitForm.form.submit();#}
   </script>
 {% endblock %}
 {% include "register/footer.html" %}
