@@ -237,5 +237,6 @@ class RegisterAPI():
             'is_last_day_of_month': is_last_day_of_month(),
             'tenant': TenantSerializer(instance=tenant).data,
             'current_month_name': current_month_name,
+            'month_year': date.today().strftime("%B, %Y"),
             'print_bill_url': reverse('print_bill', args=[customer.id]),
         })

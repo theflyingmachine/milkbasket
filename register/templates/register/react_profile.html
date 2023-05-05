@@ -113,7 +113,7 @@
       text-align: center;
   }
 
-  .weekdays-title li {
+  .weekdays-title div {
       background-color: lightgray;
       display: inline-block;
       width: 13.6%;
@@ -258,7 +258,7 @@
     class CustomersInfo extends React.Component {
       render() {
         return (
-          <div className="row">
+          <div>
             <table width="100%">
               <tbody>
               <tr>
@@ -302,6 +302,35 @@
     }
 
     class PaymentTable extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          mod_entry: this.props.data.due_summary,
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e) => {
+        this.setState({
+          showModal: true
+        });
+      };
+
+      makePayment = () => {
+        this.setState({ajax_loading: true});
+      };
+
+
       render() {
         return (
           this.props.data.due_summary.final_due_amount === 0 ? null :
@@ -325,6 +354,7 @@
                       <span
                         className="text-success">(Advance)</span>
                       {% if total_due_amount > 0 %}
+                        {# TODO: fix settelup #}
                         <button type="button" className="btn-sm btn-warning"
                                 data-toggle="modal"
                                 data-target="#exampleModal3"
@@ -352,15 +382,91 @@
                       </div> : null}
                   </td>
                   <td className="col-4">
-                    <button type="button" className="btn-sm btn-primary"
+                    <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
                             data-toggle="modal"
-                            data-target="#exampleModal2"
+                            data-target="#exampleModal2" onClick={() => this.openModal()}
                     >Make Payment
                     </button>
                   </td>
                 </tr>
                 </tbody>
               </table>
+              {this.state.showModal ?
+                <div className="modal fade" id="exampleModal2" tabIndex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel">Accept Payment
+                          - {this.props.data.month_year}</h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form name="addexp" onSubmit={this.makePayment}
+                            action="{% url 'accept_payment' %}"
+                            method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                        <input type="hidden" className="form-control" id="return_url"
+                               name="return_url"
+                               value={`profile/${this.state.mod_entry.id}`}/>
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.id}/>
+                        <div className="p-4">
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="c_name">Name</label>
+                              <input autoFocus type="text" className="form-control" id="c_name"
+                                     name="c_name"
+                                     value={this.state.mod_entry.name}
+                                     disabled/>
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="c_dueamount">Due Amount</label>
+                              <input type="text" className="form-control" id="c_dueamount"
+                                     name="c_dueamount"
+                                     value={this.state.mod_entry.final_due_amount}
+                                     disabled placeholder="Due Amount"/>
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="c_payment">Payment Amount <span
+                                className="text-info">({this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? 'Till date' : this.props.data.previous_month_name})</span></label>
+                              <input key={this.state.mod_entry.id} type="number" step="0.01"
+                                     className="form-control font-weight-bold"
+                                     id="c_payment"
+                                     name="c_payment"
+                                     defaultValue={this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? this.state.mod_entry.final_due_amount : this.state.mod_entry.final_due_prev_amount}
+                              />
+                            </div>
+                          </div>
+
+                          <div id='payment_notification' className="form-row">
+                            <div className="form-group col-md-12 send-sms-checkbox">
+                              <label htmlFor="sms-notification">Send Notification &nbsp;</label>
+                              {this.state.mod_entry.contact > 0 && this.state.mod_entry.contact.length === 10 ?
+                                <input type="checkbox" id="sms-notification"
+                                       name="sms-notification"
+                                       defaultChecked
+                                       value="1"/> :
+                                <span className="text-secondary">(Not available)</span>}
+                            </div>
+                          </div>
+
+                          <button type="submit" className="btn btn-primary justify-content-center"
+                                  disabled={this.state.ajax_loading} autoFocus>
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Accept Payment'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div> : null}
             </div>
         );
       }
@@ -459,6 +565,57 @@
     }
 
     class TransactionTable extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          mod_entry: null,
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e) => {
+        this.setState({
+          mod_entry: e,
+          showModal: true
+        });
+        console.log(e)
+      };
+
+      async revertTransaction(event) {
+        event.preventDefault();
+        {#todo: fix this#}
+        {#this.setState({ajax_loading: true})#}
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch('{% url 'revert_transaction' %}', requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              location.reload();
+            }
+          })
+          .catch(error => {
+            if (error) {
+              show_toast('Error', error.message, 'danger')
+            } else {
+              show_toast('Error', 'Something went wrong, we could not revert transaction', 'danger')
+            }
+          })
+      }
+
       render() {
         return (
           this.props.data.customer.transaction_entry.length > 0 ?
@@ -496,6 +653,8 @@
                     <td className="p-2 col-4">{transaction.amount}
                       {transaction.refund_notes ?
                         <span
+                         {# TODO: fix refund #}
+
                           className="text-info">{{ transaction.refund_notes }}</span>
                         : null}
                       {this.props.data.can_revert_transaction && transaction.is_revertible && (index + 1) === this.props.data.customer.transaction_entry.length ?
@@ -504,9 +663,7 @@
                                 className="btn btn-danger mb-1"
                                 data-toggle="modal"
                                 data-target="#revertTransactionModal"
-                                data-trans_id="{{ entry.id }}"
-                                data-trans-amount="{{ entry.amount }}"
-                                data-trans-date="{{ entry.log_date }}"
+                                onClick={() => this.openModal(transaction)}
                         ><i className="fas fa-undo"></i> Revert Transaction
                         </button> : null}
                     </td>
@@ -515,18 +672,59 @@
                 ))}
                 </tbody>
               </table>
+              {this.state.showModal ?
+                <div className="modal fade" id="revertTransactionModal" tabIndex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel2">Revert
+                          Transaction <span
+                            className="text-danger font-weight-bold" id="t_id_val_head"></span>
+                        </h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form onSubmit={this.revertTransaction} id="revert-trans-form"
+                            name="revert-trans"
+                            action="{% url 'revert_transaction' %}" method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.customer}/>
+                        <div className="p-4">
+                          <div className="form-row d-flex justify-content-center">
+                            {#                  <input type="text" id="t_id_val" disabled value="">#}
+                            <p> Are you sure you want to revert transaction
+                              #{this.state.mod_entry.id} ? </p>
+                            <p className="text-secondary text-center p-2" id="trans-details"></p>
+                          </div>
+                          <button id="reverttransactionbutton" type="submit"
+                                  className="btn btn-danger justify-content-center col-12"
+                                  disabled={this.state.ajax_loading}>
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Revert Transaction'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                : null}
             </div> : null
 
         );
       }
     }
 
-    class CalendarWiget extends React.Component {
+    class CalendarWidget extends React.Component {
       render() {
         return (
           this.props.data.calendar ?
             <div id="calendar-view">
-              <div className="mt-4 col-12  p-0">
+              <div className="mt-4 col-12 p-0">
                 {this.props.data.calendar.map((month, index) => (
                   <div key={index}>
                     <div className="month">
@@ -537,14 +735,14 @@
                       </ul>
                     </div>
 
-                    <ul className="col-12 p-0 m-0 weekdays-title">
-                      <li>Mon</li>
-                      <li>Tue</li>
-                      <li>Wed</li>
-                      <li>Thu</li>
-                      <li>Fri</li>
-                      <li>Sat</li>
-                      <li>Sun</li>
+                    <ul className="row p-0 days weekdays-title">
+                      <div className="m-0 p-0">Mon</div>
+                      <div className="m-0 p-0">Tue</div>
+                      <div className="m-0 p-0">Wed</div>
+                      <div className="m-0 p-0">Thu</div>
+                      <div className="m-0 p-0">Fri</div>
+                      <div className="m-0 p-0">Sat</div>
+                      <div className="m-0 p-0">Sun</div>
                     </ul>
                     <ul className="row  p-0 seven-cols days">
                       {month.week_start_day.map((day, index) => (
@@ -709,7 +907,7 @@
                         </div>}
 
                       {this.state.data ? (
-                          <div className="col-12 mb-3">
+                          <div className="p-0 mb-3">
 
                             <h2 className="pt-2 text-center"> {this.state.data.customer.name}
                               <button type="button" className="btn btn-primary m-2 text-right"
@@ -742,7 +940,7 @@
                             <TransactionTable data={this.state.data}/>
 
                             {# Calendar #}
-                            <CalendarWiget data={this.state.data}/>
+                            <CalendarWidget data={this.state.data}/>
 
                             {# Register Entry #}
                             <RegisterEntry data={this.state.data}/>
