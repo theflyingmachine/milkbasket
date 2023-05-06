@@ -155,6 +155,9 @@ MAINTENANCE_MODE_IGNORE_SUPERUSER = True  # if True superuser will not see maint
 MAINTENANCE_MODE_TEMPLATE = 'register/errors/Maintenance.html'
 MAINTENANCE_MODE_STATUS_CODE = 503
 
+# Set the session cookie age to 90 days (in seconds)
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 90
+
 # Sentry Logging
 sentry_sdk.init(
     dsn=SENTRY_DSN_DEV if RUN_ENVIRONMENT == 'dev' else SENTRY_DSN_PROD,
