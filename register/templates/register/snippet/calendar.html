@@ -51,7 +51,7 @@
         text-align: center;
     }
 
-    .weekdays-title li {
+    .weekdays-title div {
         background-color: lightgray;
         display: inline-block;
         width: 13.6%;
@@ -196,14 +196,14 @@
         </ul>
       </div>
 
-      <ul class="col-12 p-0 m-0 weekdays-title">
-        <li>Mon</li>
-        <li>Tue</li>
-        <li>Wed</li>
-        <li>Thu</li>
-        <li>Fri</li>
-        <li>Sat</li>
-        <li>Sun</li>
+      <ul class="row p-0 days weekdays-title">
+        <div class="m-0 p-0">Mon</div>
+        <div class="m-0 p-0">Tue</div>
+        <div class="m-0 p-0">Wed</div>
+        <div class="m-0 p-0">Thu</div>
+        <div class="m-0 p-0">Fri</div>
+        <div class="m-0 p-0">Sat</div>
+        <div class="m-0 p-0">Sun</div>
       </ul>
       <ul class="row  p-0 seven-cols days">
         {% for day in month.week_start_day %}

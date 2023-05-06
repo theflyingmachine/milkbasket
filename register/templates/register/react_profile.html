@@ -1,0 +1,1260 @@
+{% include "register/header.html" %}
+
+{# PROD Bundle #}
+<script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+{# Dev Bundle #}
+{#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
+{#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>#}
+
+<script
+ src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+
+<style>
+
+
+  {#   Edit Profile modal #}
+  .quantity-input {
+      font-size: 30px;
+  }
+
+  .inbox {
+      max-width: 400px;
+  }
+
+  .item {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #F1F1F1;
+  }
+
+  .item:last-child {
+      border-bottom: 0;
+  }
+
+  input:checked + label {
+      background: #c3e7b4;
+      text-decoration: none;
+  }
+
+  .edit-form input[type="checkbox"] {
+      margin: 10px;
+      width: 40px; /*Desired width*/
+      height: 40px; /*Desired height*/
+      cursor: pointer;
+  }
+
+  .schedule-label {
+      margin: 0;
+      padding: 10px;
+      transition: background 0.5s;
+      text-decoration: line-through;
+      flex: 1;
+      font-family: 'helvetica neue';
+      font-size: 25px;
+      font-weight: 200;
+      border-radius: 5px;
+  {#border-left: 1px solid green;#}
+  }
+
+  table {
+      border-collapse: collapse;
+  }
+
+  table, td, th {
+      border: 1px solid black;
+  }
+
+  * {
+      box-sizing: border-box;
+  }
+
+  ul {
+      list-style-type: none;
+  }
+
+  body {
+      font-family: Verdana, sans-serif;
+  }
+
+  .month {
+      padding: 70px 25px;
+      width: 100%;
+      background: #1abc9c;
+      text-align: center;
+  }
+
+  .month ul {
+      margin: 0;
+      padding: 0;
+  }
+
+  .month ul li {
+      color: white;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+  }
+
+  .weekdays {
+      margin: 0;
+      padding: 10px 0;
+      background-color: #ddd;
+  }
+
+  .weekdays li {
+      display: inline-block;
+      width: 14.27%;
+      color: #666;
+      text-align: center;
+  }
+
+  .weekdays-title div {
+      background-color: lightgray;
+      display: inline-block;
+      width: 13.6%;
+      color: #666;
+      text-align: center;
+  }
+
+  .days {
+      padding: 10px 0;
+      background: #eee;
+      margin: 0;
+  }
+
+  .days div {
+      list-style-type: none;
+      display: inline-block;
+      width: 14.27%;
+      text-align: center;
+      margin-bottom: 5px;
+      font-size: 12px;
+      color: #777;
+  }
+
+  .days div .active {
+      padding: 5px;
+      background: #1abc9c;
+      color: white !important
+  }
+
+  /* Add media queries for smaller screens */
+  @media screen and (max-width: 600px) {
+      .weekdays li, .days li {
+          width: 13.1%;
+      }
+
+      .weekdays-title li {
+          width: 13%
+      }
+
+      .days div {
+          font-size: 0.6rem;
+      }
+
+      h2 {
+          font-size: 1.5rem !important;
+      }
+  }
+
+  @media screen and (max-width: 420px) {
+      .weekdays li, .days li {
+          width: 12.7%;
+      }
+
+      .weekdays-title li {
+          width: 12.7%
+      }
+
+      h2 {
+          font-size: 1.5rem !important;
+      }
+  }
+
+  @media screen and (max-width: 290px) {
+      .weekdays li, .days li {
+          width: 12.2%;
+      }
+
+      .weekdays-title li {
+          width: 12.6%
+      }
+
+      .days div {
+          font-size: 0.4rem;
+      }
+
+      h2 {
+          font-size: 1.5rem !important;
+      }
+  }
+
+  .dash {
+      border: 1px dashed #425858;
+      border-collapse: collapse;
+      padding-bottom: 25px !important;
+      padding-top: 25px !important;
+  }
+
+  @media (min-width: 768px) {
+      .seven-cols .col-md-1 {
+          width: 100%;
+          *width: 100%;
+      }
+
+      .weekdays-title li {
+          width: 13.6%
+      }
+  }
+
+  @media (min-width: 992px) {
+      .seven-cols .col-sm-1 {
+          width: 14.285714285714285714285714285714%;
+          *width: 14.285714285714285714285714285714%;
+      }
+
+      .weekdays-title li {
+          width: 13.78%
+      }
+  }
+
+  /**
+   *  The following is not really needed in this case
+   *  Only to demonstrate the usage of @media for large screens
+   */
+  @media (min-width: 1200px) {
+      .seven-cols .col-sm-1 {
+          width: 14.285714285714285714285714285714%;
+          *width: 14.285714285714285714285714285714%;
+      }
+
+      .weekdays-title li {
+          width: 13.85%
+      }
+  }
+
+
+  .cal-border {
+      border-style: groove;
+      border-width: thin;
+  }
+
+</style>
+
+{% block content %}
+
+
+  <div id="report"></div>
+
+  {# React Report Starts #}
+
+  <script type="text/babel">
+
+    function formatDate(log_date) {
+      return new Date(log_date).toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'IST'
+      });
+    }
+
+
+    class CustomersInfo extends React.Component {
+      render() {
+        return (
+          <div>
+            <table width="100%">
+              <tbody>
+              {this.props.data.customer.morning || this.props.data.customer.evening ?
+                <tr>
+                  {#<td className="p-1 bg-light ">Account#}
+                  {#  Number: {this.props.data.customer.id}</td>#}
+                  <td className="p-1 bg-light ">Default Quantity:
+                    <span
+                      id="custQuantity">
+                                  {this.props.data.customer.m_quantity > 0 ? this.props.data.customer.m_quantity + ' ML (Morning)' : null}
+                      {this.props.data.customer.morning && this.props.data.customer.evening ? ' , ' : null}
+                      {this.props.data.customer.e_quantity > 0 ? this.props.data.customer.e_quantity + ' ML (Evening)' : null}
+                                  </span>
+                  </td>
+                </tr> : null}
+              <tr>
+                {#<td className="p-1 bg-light ">Customer#}
+                {#  Since: {new Date(this.props.data.customer.member_since).toLocaleDateString('en-US', {#}
+                {#    day: 'numeric',#}
+                {#    month: 'short',#}
+                {#    year: 'numeric'#}
+                {#  })}</td>#}
+                {this.props.data.customer.morning || this.props.data.customer.evening ?
+
+                  <td className="p-1 bg-light ">Default Schedule: <span
+                    id="custSchedule">
+                                  {this.props.data.customer.morning ? 'Morning' : null}
+                    {this.props.data.customer.morning && this.props.data.customer.evening ? ' and ' : null}
+                    {this.props.data.customer.evening ? 'Evening' : null}
+                                </span></td>
+                  :
+                  <td
+                    className="p-3 text-danger bg-light font-weight-bold">Customer
+                    Account Inactive
+                  </td>}
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+    }
+
+    class PaymentTable extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          showModalRefund: false,
+          showModalSettleUp: false,
+          mod_entry: this.props.data.due_summary,
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e) => {
+        this.setState({
+          showModal: true
+        });
+      };
+
+      openModalSettleUp = (e) => {
+        this.setState({
+          showModalSettleUp: true
+        });
+      };
+
+      openModalRefund = (e) => {
+        this.setState({
+          showModalRefund: true
+        });
+      };
+
+      makePayment = () => {
+        this.setState({ajax_loading: true});
+      };
+
+
+      render() {
+        return (
+          this.props.data.due_summary.final_due_amount === 0 && this.props.data.due_summary.balance_amount === 0 ? null :
+            <div className="col-12 p-0">
+              <h5 className="pt-2 mt-2 text-center">Payment Due</h5>
+              <table className="table table-sm table-striped">
+                <thead>
+                <tr className="d-flex bg-info text-white">
+                  <th className="p-2 col-4" scope="col">Total Due</th>
+                  <th className="p-2 col-4" scope="col">Due
+                    (till {this.props.data.previous_month_name})
+                  </th>
+                  <th className="p-2 col-4" scope="col">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr className="d-flex">
+                  {this.props.data.due_summary.final_due_amount <= 0 ?
+                    <td
+                      className="p-2 col-4">{Math.abs(this.props.data.due_summary.final_due_amount)}
+                      {this.props.data.due_summary.final_due_amount < 0 &&
+                        <span className="text-success">(Advance)</span>}
+                      {this.props.data.due_summary.due_amount > 0 ?
+                        <button type="button" className="btn-sm btn-warning"
+                                data-toggle="modal"
+                                data-target="#exampleModal3"
+                                onClick={() => this.openModalSettleUp()}
+                        >Settle Up
+                        </button> : null}
+                      {this.props.data.due_summary.due_amount === 0 ?
+                        <button type="button" className="btn-sm btn-warning"
+                                data-toggle="modal"
+                                data-target="#exampleModal4"
+                                onClick={() => this.openModalRefund()}
+                        >Refund Advance
+                        </button> : null}
+                    </td>
+                    :
+                    <td
+                      className="p-2 col-4">{this.props.data.due_summary.final_due_amount}</td>
+                  }
+                  <td className="p-2 col-4">
+                    {this.props.data.due_summary.final_due_prev_amount > 0 ?
+                      <div>
+                                          <span
+                                            className="font-weight-bold">{this.props.data.due_summary.final_due_prev_amount}</span>
+                        <span
+                          className="text-info">{this.props.data.previous_month_name}</span>
+                      </div> : null}
+                  </td>
+                  <td className="col-4">
+                    {this.props.data.due_summary.final_due_amount > 0 &&
+                      <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
+                              data-toggle="modal"
+                              data-target="#exampleModal2" onClick={() => this.openModal()}
+                      >Make Payment
+                      </button>}
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+              {this.state.showModal &&
+                <div className="modal fade" id="exampleModal2" tabIndex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel">Accept Payment
+                          - {this.props.data.month_year}</h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form name="addexp" onSubmit={this.makePayment}
+                            action="{% url 'accept_payment' %}"
+                            method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
+                        <input type="hidden" className="form-control" id="return_url"
+                               name="return_url"
+                               value={`profile/${this.state.mod_entry.id}`}/>
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.id}/>
+                        <div className="p-4">
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="c_name">Name</label>
+                              <input autoFocus type="text" className="form-control" id="c_name"
+                                     name="c_name"
+                                     value={this.state.mod_entry.name}
+                                     disabled/>
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="c_dueamount">Due Amount</label>
+                              <input type="text" className="form-control" id="c_dueamount"
+                                     name="c_dueamount"
+                                     value={this.state.mod_entry.final_due_amount}
+                                     disabled placeholder="Due Amount"/>
+                            </div>
+                          </div>
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="c_payment">Payment Amount <span
+                                className="text-info">({this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? 'Till date' : this.props.data.previous_month_name})</span></label>
+                              <input key={this.state.mod_entry.id} type="number" step="0.01"
+                                     className="form-control font-weight-bold"
+                                     id="c_payment"
+                                     name="c_payment"
+                                     required
+                                     defaultValue={this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? this.state.mod_entry.final_due_amount : this.state.mod_entry.final_due_prev_amount}
+                              />
+                            </div>
+                          </div>
+
+                          <div id='payment_notification' className="form-row">
+                            <div className="form-group col-md-12 send-sms-checkbox">
+                              <label htmlFor="sms-notification">Send Notification &nbsp;</label>
+                              {this.state.mod_entry.contact > 0 && this.state.mod_entry.contact.length === 10 ?
+                                <input type="checkbox" id="sms-notification"
+                                       name="sms-notification"
+                                       defaultChecked
+                                       value="1"/> :
+                                <span className="text-secondary">(Not available)</span>}
+                            </div>
+                          </div>
+
+                          <button type="submit"
+                                  className="btn btn-primary justify-content-center"
+                                  disabled={this.state.ajax_loading} autoFocus>
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Accept Payment'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>}
+
+              {this.state.showModalSettleUp &&
+                <div className="modal fade" id="exampleModal3" tabIndex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel">Settle Up Advance
+                          - {this.state.mod_entry.name}</h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form name="settleup" action="{% url 'customer_settle_up' %}"
+                            onSubmit={this.makePayment}
+                            method="post">
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.id}/>
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
+                        <div className="p-4">
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="name">Are you sure to settle up the Advance amount
+                                against any
+                                remaining due Register entry?</label>
+                              <hr/>
+                              <label className="d-block" htmlFor="Advance">Available
+                                Advance: {this.state.mod_entry.balance_amount}</label>
+                              <label className="d-block" htmlFor="Due">Total
+                                Due: {this.state.mod_entry.due_amount}</label>
+                            </div>
+                          </div>
+
+                          <button type="submit"
+                                  className="btn btn-primary justify-content-center col-12">
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Settle Up'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>}
+
+              {this.state.showModalRefund &&
+                <div className="modal fade" id="exampleModal4" tabIndex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel">Refund Advance
+                          - {this.state.mod_entry.name}</h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form name="refund_balance" action="{% url 'customer_refund' %}"
+                            onSubmit={this.makePayment}
+                            method="post">
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.id}/>
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
+                        <div className="p-4">
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="name">Are you sure to refund remaining
+                                Advance?</label>
+                              <hr/>
+                              <label className="d-block" htmlFor="Advance">Available
+                                Advance: {this.state.mod_entry.balance_amount}</label>
+                            </div>
+                          </div>
+
+                          <button type="submit"
+                                  className="btn btn-primary justify-content-center col-12">
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : `Refund ₹ ${this.state.mod_entry.balance_amount}`}
+
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>}
+            </div>
+        );
+      }
+    }
+
+    class BillSummary extends React.Component {
+      render() {
+        const billNote = {
+          color: 'dimgrey', fontSize: '10px'
+        }
+        return (
+          this.props.data.due_summary.final_due_amount > 0 ?
+            <div>
+              {this.props.data.tenant.download_pdf_pref &&
+                <div className="text-center">
+                  <a target="_blank"
+                     href={this.props.data.print_bill_url}
+                     className="btn btn-primary mb-1"><i
+                    className="fa fa-print" aria-hidden="true"></i> Print /
+                    Download</a>
+                </div>}
+              <div className="mt-4 mb-4 col-12  p-0">
+                <h5 className="pt-2 mt-2 text-center">Bill Summary </h5>
+                <table width="100%">
+                  <thead>
+                  <tr className=" bg-info text-white">
+                    <th className="p-2 text-center" colSpan="2">Description</th>
+                    <th className="p-2 text-right">Amount</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {this.props.data.bill_summary.map((bill, index) => (
+                    index === this.props.data.bill_summary.length - 1 ? (
+                      <tr key={index}>
+                        <td className="p-1" colSpan="2">
+          <span style={billNote}>
+            Note: Efforts have been made to maintain the data accuracy. However, data reflected in this bill might not be up to date. This bill reflects data last updated on {bill.last_updated}. This bill was generated on {bill.today}. {this.props.data.milk_price}
+          </span>
+                        </td>
+                        <td colSpan="1">
+                          {bill.balance ?
+                            <div>
+                              <h6
+                                className="pr-2 text-nowrap text-right font-weight-bold">
+                                {bill.sub_total}
+                              </h6>
+                              <h6
+                                className="pr-2 text-nowrap text-right
+                                              font-weight-bold">
+                                Balance: -{bill.balance}
+                              </h6>
+                            </div>
+                            : null}
+                          <h5
+                            className="p-1 text-nowrap text-right font-weight-bold">
+                            Total: {bill.sum_total}
+                          </h5>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={index}>
+                        <td className="m-2 dash text-center" rowSpan="1">
+                          {bill.month_year}
+                        </td>
+
+                        <td className="m-2 dash text-right">
+                          {bill.desc.map((bill_month, index) => (
+                            index === bill.desc.length - 1 ? null : (
+                              <h6 key={index} className="m-1">
+                                {bill_month.quantity} ML
+                                <strong>&nbsp;X&nbsp;</strong> {bill_month.desc}&nbsp;unit(s)
+                                = {bill_month.total_units / 1000}L
+                              </h6>
+                            )))}
+                        </td>
+                        <td className="m-2 p-2 dash text-right">
+                          {bill.desc.map((bill_month, index) => (
+                            index === bill.desc.length - 1 ? (
+                              <h6 key={index} className="font-weight-bold">
+                                {bill_month.total}
+                              </h6>
+                            ) : null))}
+                        </td>
+
+                      </tr>
+                    )
+                  ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            : null
+
+        );
+      }
+    }
+
+    class TransactionTable extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          showModal: false,
+          mod_entry: null,
+          ajax_loading: false,
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = (e) => {
+        this.setState({
+          mod_entry: e,
+          showModal: true
+        });
+      };
+
+      async revertTransaction(event) {
+        event.preventDefault();
+        // Disable submit button and add label
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Please wait...';
+
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch('{% url 'revert_transaction' %}', requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              location.reload();
+            }
+          })
+          .catch(error => {
+            if (error) {
+              show_toast('Error', error.message, 'danger')
+            } else {
+              show_toast('Error', 'Something went wrong, we could not revert transaction', 'danger')
+            }
+          })
+      }
+
+      render() {
+        return (
+          this.props.data.customer.transaction_entry.length > 0 ?
+            <div className="mt-4 col-12  p-0">
+              <h5 className="pt-2 mt-2 text-center">Transaction</h5>
+              <table className="table table-sm table-striped">
+                <thead>
+                <tr className="d-flex bg-info text-white">
+                  <th className="p-2 col-2" scope="col">#Tnx</th>
+                  <th className="p-2 col-6" scope="col">Transaction Date
+                  </th>
+                  <th className="p-2 col-4" scope="col">Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                {this.props.data.customer.transaction_entry.map((transaction, index) => (
+                  <tr key={index} className="d-flex">
+                    <td className="p-2 col-2">#{transaction.id}</td>
+                    <td
+                      className="p-2 col-6">{formatDate(transaction.log_date)}
+                      {#                  {% if entry.payment_mode == 'ONLINE' %}#}
+                      {#                    <a target="_blank"#}
+                      {#                       href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% endif %}#}
+                      &nbsp;<span
+                        className="text-info">{transaction.payment_mode}</span>
+                    </td>
+                    <td className="p-2 col-4">{transaction.amount} &nbsp;
+                      {transaction.refund_notes ?
+                        <span
+                          className="text-info">{transaction.refund_notes}</span>
+                        : null}
+                      {this.props.data.can_revert_transaction && transaction.is_revertible && (index + 1) === this.props.data.customer.transaction_entry.length ?
+                        <button id="reverttransactionbuttonmain"
+                                type="button"
+                                className="btn btn-danger mb-1"
+                                data-toggle="modal"
+                                data-target="#revertTransactionModal"
+                                onClick={() => this.openModal(transaction)}
+                        ><i className="fas fa-undo"></i> Revert Transaction
+                        </button> : null}
+                    </td>
+
+                  </tr>
+                ))}
+                </tbody>
+              </table>
+              {this.state.showModal ?
+                <div className="modal fade" id="revertTransactionModal" tabIndex="-1"
+                     role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel2">Revert
+                          Transaction <span
+                            className="text-danger font-weight-bold" id="t_id_val_head"></span>
+                        </h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form onSubmit={this.revertTransaction} id="revert-trans-form"
+                            name="revert-trans"
+                            action="{% url 'revert_transaction' %}" method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.customer}/>
+                        <div className="p-4">
+                          <div className="form-row d-flex justify-content-center">
+                            {#                  <input type="text" id="t_id_val" disabled value="">#}
+                            <p> Are you sure you want to revert transaction
+                              #{this.state.mod_entry.id} ? </p>
+                            <p className="text-secondary text-center p-2" id="trans-details"></p>
+                          </div>
+                          <button id="reverttransactionbutton" type="submit"
+                                  className="btn btn-danger justify-content-center col-12"
+                                  disabled={this.state.ajax_loading}>
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Revert Transaction'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                : null}
+            </div> : null
+
+        );
+      }
+    }
+
+    class CalendarWidget extends React.Component {
+      render() {
+        return (
+          this.props.data.calendar ?
+            <div id="calendar-view">
+              <div className="mt-4 col-12 p-0">
+                {this.props.data.calendar.map((month, index) => (
+                  <div key={index}>
+                    <div className="month">
+                      <ul>
+                        <li>
+                          {month.month} {month.year}
+                        </li>
+                      </ul>
+                    </div>
+
+                    <ul className="row p-0 days weekdays-title">
+                      <div className="m-0 p-0">Mon</div>
+                      <div className="m-0 p-0">Tue</div>
+                      <div className="m-0 p-0">Wed</div>
+                      <div className="m-0 p-0">Thu</div>
+                      <div className="m-0 p-0">Fri</div>
+                      <div className="m-0 p-0">Sat</div>
+                      <div className="m-0 p-0">Sun</div>
+                    </ul>
+                    <ul className="row  p-0 seven-cols days">
+                      {month.week_start_day.map((day, index) => (
+                        <div key={index}></div>
+                      ))}
+                      {month.days_in_month.map((day, index) => (
+                        <div key={index} className="p-0 cal-border">
+                          <h2 className="m-0">{day.day}</h2>
+                          {day.data.length > 0 ? (day.data.map((entry, index) => (
+                            <span key={index} className="text-wrap">
+                                                <span
+                                                  className="d-block text-white bg-primary p-0 p-lg-2">
+                                                  {entry.schedule_display}
+                                                  <hr className="m-0 p-0"/>
+                                                  {entry.attendance ? entry.quantity + " ML" :
+                                                    <span
+                                                      className="d-block p-0 bg-danger text-white"> ABSENT </span>}
+                                                </span>
+
+                              {entry.attendance ? (entry.paid ? <span
+                                  className="d-block bg-success text-white p-1"> PAID</span>
+                                : <span
+                                  className="d-block bg-warning text-white p-1">DUE</span>) : null}
+                                              </span>
+                          ))) : null}
+                        </div>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+
+            : null
+
+        );
+      }
+    }
+
+    class RegisterEntry extends React.Component {
+      render() {
+        return (
+          this.props.data.customer.register_entry.length ?
+            <div className="mt-4 col-12  p-0">
+              <h5 className="pt-2 mt-2 text-center">Register Entry</h5>
+              <table className="table table-sm table-striped">
+                <thead>
+                <tr className="d-flex bg-info text-white">
+                  <th className="p-1 col-4" scope="col">Date</th>
+                  {#<th className="p-1 col-2" scope="col">Time</th>#}
+                  <th className="px-0 col-2" scope="col">Quota</th>
+                  <th className="px-0 col-2" scope="col">Price</th>
+                  <th className="px-0 col-2" scope="col">Billed</th>
+                  <th className="px-0 col-2" scope="col">Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                {this.props.data.customer.register_entry.map((register, index) => (
+                  <tr key={index} className="d-flex">
+                    <td
+                      className="p-0 col-4">{new Date(register.log_date).toLocaleDateString('en-US', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}</td>
+                    {#<td className="p-1 col-2">{{ entry.display_schedule }}</td>#}
+                    <td className="p-0 col-2">{register.quantity} ML
+                    </td>
+                    <td className="p-0 col-2">{register.current_price}</td>
+                    <td
+                      className="p-0 col-2">{(register.current_price * register.quantity) / 1000}</td>
+                    <td
+                      className={`p-0 col-2 font-weight-bold ${register.paid ? 'text-success' : 'text-danger'}`}>{register.paid ? 'Paid' : 'Due'}</td>
+                  </tr>
+                ))}
+                </tbody>
+              </table>
+            </div> : null
+
+        );
+      }
+    }
+
+    class CustomerProfile extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
+
+        this.state = {
+          data: null,
+          is_loading: true,
+          is_error: false,
+
+          showModal: false,
+          ajax_loading: false,
+
+          morning: false,
+          evening: false
+        };
+      }
+
+      handleCheckboxChange = event => {
+        const target = event.target;
+        const name = target.name;
+        const checked = target.checked;
+
+        this.setState({
+          [name]: checked
+        });
+      };
+
+      async updateCustomer(event) {
+        event.preventDefault();
+        // Disable submit button and add label
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Please Wait…';
+
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch('{% url 'add_customer' %}', requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            location.reload();
+          })
+          .catch(error => {
+            if (error) {
+              show_toast('Error', error.message, 'danger')
+            } else {
+              show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
+            }
+          })
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+      openModal = () => {
+        this.setState({
+          showModal: true
+        });
+      };
+
+
+      async componentDidMount() {
+        try {
+          let hostname = window.location.hostname === '127.0.0.1' ? window.location.hostname + ':8000' : window.location.hostname;
+          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/customers/{{ customer_id }}/";
+          const response = await fetch(url);
+          const data = await response.json();
+          this.setState({
+            data: data,
+            morning: data.customer.morning,
+            evening: data.customer.evening,
+            is_loading: false
+          })
+        } catch (e) {
+          this.setState({
+            is_error: 'Something went wrong, please try again later. ' + e,
+            is_loading: false
+          })
+        }
+      }
+
+
+      render() {
+
+        const loadingComp = <div className="text-center m-xl-5 p-xl-5">
+          <div className="spinner-grow text-primary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-secondary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-success spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-danger spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-warning spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-info spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-dark spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+
+        return (
+          <div>
+            <div className='p-0'>
+              <div>
+                {this.state.is_loading ? <div className="pt-5 mt-5">{loadingComp}</div>
+                  : (
+                    <div>
+
+                      {this.state.is_error &&
+                        <div className="alert alert-danger text-center" role="alert">
+                          {this.state.is_error}
+                        </div>}
+
+                      {this.state.data ? (
+                          <div className="p-0 mb-3">
+
+                            <h2 className="pt-2 text-center"> {this.state.data.customer.name}
+                              <button type="button" className="btn btn-primary m-2 text-right"
+                                      data-toggle="modal"
+                                      data-target="#editProfileModal"
+                                      onClick={() => this.openModal()}
+                              ><i className="fas fa-user-edit"></i> Edit
+                              </button>
+                            </h2>
+
+
+                            {# Customers Info #}
+
+                            <CustomersInfo data={this.state.data}/>
+
+                            {# Payment Table #}
+                            <PaymentTable data={this.state.data}/>
+
+                            {# Bill Summary #}
+                            <BillSummary data={this.state.data}/>
+
+                            {# Transactions #}
+                            <TransactionTable data={this.state.data}/>
+
+                            {# Calendar #}
+                            <CalendarWidget data={this.state.data}/>
+
+                            {# Register Entry #}
+                            <RegisterEntry data={this.state.data}/>
+
+                          </div>
+
+
+                        ) :
+                        <div className="mt-5 alert alert-primary text-center" role="alert">
+                          Nothing to display at the moment
+                        </div>
+                      }
+
+                      <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
+
+                      {this.state.showModal &&
+                        <div className="modal fade" id="editProfileModal" tabIndex="-1"
+                             role="dialog"
+                             aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div className="modal-dialog" role="document">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h5 className="modal-title" id="exampleModalLabel"><i
+                                  className="fas fa-user-edit"></i>
+                                  &nbsp; Edit Customer</h5>
+                                <button type="button" className="close" data-dismiss="modal"
+                                        aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <form id="updateCustomerForm" name="edit-customer"
+                                    onSubmit={this.updateCustomer}
+                                    method="post">
+                                <input type="hidden" name="csrfmiddlewaretoken"
+                                       value="{{ csrf_token }}"/>
+                                <input type="hidden" className="form-control" id="recipient_id"
+                                       name="id" defaultValue={this.state.data.customer.id}/>
+                                <input type="hidden" className="form-control" id="redirect_url"
+                                       name="redirect_url"
+                                       value="None"/>
+                                <div className="p-4">
+                                  <div className="form-row">
+                                    <div className="form-group col-md-12">
+                                      <label htmlFor="name">Name</label>
+                                      <input autoFocus required type="text"
+                                             className="form-control"
+                                             id="recipient_name"
+                                             name="name"
+                                             defaultValue={this.state.data.customer.name}
+                                             readOnly/>
+                                    </div>
+                                  </div>
+                                  {this.state.data.tenant.sms_pref &&
+                                    <div className="form-row">
+                                      <div className="form-group col-md-12">
+                                        <label htmlFor="inputEmail4">Contact</label>
+                                        <input type="number" step="1" min="6000000000"
+                                               max="9999999999"
+                                         {#onKeyPress="if(this.value.length==10) return false;"#}
+                                               className="form-control" id="recipient_contact"
+                                               name="contact"
+                                               defaultValue={parseInt(this.state.data.customer.contact) > 0 ? parseInt(this.state.data.customer.contact) : ''}
+                                               placeholder="Enter Contact"/>
+                                      </div>
+                                    </div>}
+                                  {this.state.data.tenant.email_pref &&
+                                    <div className="form-row">
+                                      <div className="form-group col-md-12">
+                                        <label htmlFor="email">Email</label>
+                                        <input type="text" className="form-control"
+                                               id="recipient_email"
+                                               name="email"
+                                               defaultValue={this.state.data.customer.email}
+                                               placeholder="Enter Email"/>
+                                      </div>
+                                    </div>}
+                                  <div className="form-row">
+                                    <div className="form-group col-md-12">
+                                      <label>Schedule</label>
+                                      <div className="inbox mx-3 edit-form">
+                                        <div className="item">
+                                          <input type="checkbox" id="recipient_morning"
+                                                 name="morning"
+                                                 onChange={this.handleCheckboxChange}
+                                                 defaultChecked={this.state.data.customer.morning}/>
+                                          <label htmlFor="recipient_morning"
+                                                 className="schedule-label"><i
+                                            className="fas fa-cloud-sun text-warning"></i> Morning</label>
+                                        </div>
+                                        <div className="item">
+                                          <input type="checkbox" id="recipient_evening"
+                                                 name="evening"
+                                                 onChange={this.handleCheckboxChange}
+                                                 defaultChecked={this.state.data.customer.evening}/>
+                                          <label htmlFor="recipient_evening"
+                                                 className="schedule-label"><i
+                                            className="fas fa-cloud-moon text-info"></i> Evening</label>
+                                        </div>
+                                      </div>
+
+                                      {this.state.morning && <div>
+                                        <label id="recipient-quantity-m-label"
+                                               htmlFor="recipient-quantity-m">Morning
+                                          Quantity</label>
+                                        <input
+                                          className="form-control quantity-input"
+                                          step="0"
+                                          type="number"
+                                          id="recipient-quantity-m"
+                                          name="m_quantity"
+                                          required
+                                          defaultValue={this.state.data.customer.m_quantity}
+                                          placeholder="Enter ML (Morning)"/></div>}
+
+                                      {this.state.evening && <div>
+
+                                        <label id="recipient-quantity-e-label"
+                                               htmlFor="recipient-quantity-e">Evening
+                                          Quantity</label>
+                                        <input
+                                          className="form-control quantity-input"
+                                          step="0"
+                                          type="number"
+                                          id="recipient-quantity-e"
+                                          name="e_quantity"
+                                          required
+                                          defaultValue={this.state.data.customer.e_quantity}
+                                          placeholder="Enter ML (Evening)"/></div>}
+                                    </div>
+                                  </div>
+                                  <button id="editButton" type="submit"
+                                          className="btn btn-primary justify-content-center col-12">Update
+                                    Customer
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>}
+                    </div>
+
+                  )}
+              </div>
+            </div>
+          </div>
+
+
+        )
+          ;
+      }
+    }
+
+    ReactDOM.render(
+      <CustomerProfile/>
+      , document.getElementById("report"));
+
+  </script>
+
+  {#  React Component ends here #}
+
+{% endblock %}
+{% include "register/footer.html" %}
