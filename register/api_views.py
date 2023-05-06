@@ -150,6 +150,7 @@ class RegisterAPI():
         """
         This function returns JSON data for the customer profile.
         """
+        due_customers_default = {}
         current_date = date.today()
         prev_month_name = (current_date + relativedelta(months=-1)).strftime("%B")
         current_month_name = current_date.strftime("%B")
@@ -201,6 +202,17 @@ class RegisterAPI():
                     output_field=FloatField()), 0),
             balance_amount=Coalesce(F('balance__balance_amount'), 0),
         )
+        if not due_customers:
+            due_customers_default = {
+                "id": customer.id,
+                "name": customer.name,
+                "contact": customer.contact,
+                "due_amount": 0,
+                "balance_amount": abs(balance_amount),
+                "due_prev_amount": 0,
+                "final_due_amount": 0 - abs(balance_amount),
+                "final_due_prev_amount": 0
+            }
 
         #  Extract months which has due for calendar
         active_months = get_active_month(customer_id, all_active=True)
@@ -230,7 +242,7 @@ class RegisterAPI():
             'milk_price': get_milk_current_price(request.user.id, description=True),
             'bill_summary': bill_summary if bill_summary[-1]['sum_total'] else None,
             'due_summary': DueCustomerSerializer(instance=due_customers, many=True).data[
-                0] if due_customers else {},
+                0] if due_customers else due_customers_default,
             'customer': CustomerProfileSerializer(instance=customer, many=False).data,
             'can_revert_transaction': is_transaction_revertible(request, customer),
             'previous_month_name': prev_month_name,

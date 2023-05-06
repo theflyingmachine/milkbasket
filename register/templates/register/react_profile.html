@@ -255,24 +255,38 @@
 
   <script type="text/babel">
 
+    function formatDate(log_date) {
+      return new Date(log_date).toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'IST'
+      });
+    }
+
+
     class CustomersInfo extends React.Component {
       render() {
         return (
           <div>
             <table width="100%">
               <tbody>
-              <tr>
-                {#<td className="p-1 bg-light ">Account#}
-                {#  Number: {this.props.data.customer.id}</td>#}
-                <td className="p-1 bg-light ">Default Quantity:
-                  <span
-                    id="custQuantity">
+              {this.props.data.customer.morning || this.props.data.customer.evening ?
+                <tr>
+                  {#<td className="p-1 bg-light ">Account#}
+                  {#  Number: {this.props.data.customer.id}</td>#}
+                  <td className="p-1 bg-light ">Default Quantity:
+                    <span
+                      id="custQuantity">
                                   {this.props.data.customer.m_quantity > 0 ? this.props.data.customer.m_quantity + ' ML (Morning)' : null}
-                    {this.props.data.customer.morning && this.props.data.customer.evening ? ' , ' : null}
-                    {this.props.data.customer.e_quantity > 0 ? this.props.data.customer.e_quantity + ' ML (Evening)' : null}
+                      {this.props.data.customer.morning && this.props.data.customer.evening ? ' , ' : null}
+                      {this.props.data.customer.e_quantity > 0 ? this.props.data.customer.e_quantity + ' ML (Evening)' : null}
                                   </span>
-                </td>
-              </tr>
+                  </td>
+                </tr> : null}
               <tr>
                 {#<td className="p-1 bg-light ">Customer#}
                 {#  Since: {new Date(this.props.data.customer.member_since).toLocaleDateString('en-US', {#}
@@ -309,6 +323,8 @@
 
         this.state = {
           showModal: false,
+          showModalRefund: false,
+          showModalSettleUp: false,
           mod_entry: this.props.data.due_summary,
           ajax_loading: false,
         };
@@ -326,6 +342,18 @@
         });
       };
 
+      openModalSettleUp = (e) => {
+        this.setState({
+          showModalSettleUp: true
+        });
+      };
+
+      openModalRefund = (e) => {
+        this.setState({
+          showModalRefund: true
+        });
+      };
+
       makePayment = () => {
         this.setState({ajax_loading: true});
       };
@@ -333,7 +361,7 @@
 
       render() {
         return (
-          this.props.data.due_summary.final_due_amount === 0 ? null :
+          this.props.data.due_summary.final_due_amount === 0 && this.props.data.due_summary.balance_amount === 0 ? null :
             <div className="col-12 p-0">
               <h5 className="pt-2 mt-2 text-center">Payment Due</h5>
               <table className="table table-sm table-striped">
@@ -348,50 +376,51 @@
                 </thead>
                 <tbody>
                 <tr className="d-flex">
-                  {% if payment_due_amount_till_date < 0 %}
+                  {this.props.data.due_summary.final_due_amount <= 0 ?
                     <td
-                      className="p-2 col-4">{{ payment_due_amount_till_date }}
-                      <span
-                        className="text-success">(Advance)</span>
-                      {% if total_due_amount > 0 %}
-                        {# TODO: fix settelup #}
+                      className="p-2 col-4">{Math.abs(this.props.data.due_summary.final_due_amount)}
+                      {this.props.data.due_summary.final_due_amount < 0 &&
+                        <span className="text-success">(Advance)</span>}
+                      {this.props.data.due_summary.due_amount > 0 ?
                         <button type="button" className="btn-sm btn-warning"
                                 data-toggle="modal"
                                 data-target="#exampleModal3"
+                                onClick={() => this.openModalSettleUp()}
                         >Settle Up
-                        </button>{% endif %}
-                      {% if total_due_amount == 0 %}
+                        </button> : null}
+                      {this.props.data.due_summary.due_amount === 0 ?
                         <button type="button" className="btn-sm btn-warning"
                                 data-toggle="modal"
                                 data-target="#exampleModal4"
+                                onClick={() => this.openModalRefund()}
                         >Refund Advance
-                        </button>{% endif %}
-
+                        </button> : null}
                     </td>
-                  {% else %}
+                    :
                     <td
                       className="p-2 col-4">{this.props.data.due_summary.final_due_amount}</td>
-                  {% endif %}
+                  }
                   <td className="p-2 col-4">
                     {this.props.data.due_summary.final_due_prev_amount > 0 ?
                       <div>
                                           <span
                                             className="font-weight-bold">{this.props.data.due_summary.final_due_prev_amount}</span>
                         <span
-                          className="text-info">{{ previous_month_name }}</span>
+                          className="text-info">{this.props.data.previous_month_name}</span>
                       </div> : null}
                   </td>
                   <td className="col-4">
-                    <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
-                            data-toggle="modal"
-                            data-target="#exampleModal2" onClick={() => this.openModal()}
-                    >Make Payment
-                    </button>
+                    {this.props.data.due_summary.final_due_amount > 0 &&
+                      <button type="button" className="btn-sm btn-primary my-1 p-0 p-lg-2 p-md-1"
+                              data-toggle="modal"
+                              data-target="#exampleModal2" onClick={() => this.openModal()}
+                      >Make Payment
+                      </button>}
                   </td>
                 </tr>
                 </tbody>
               </table>
-              {this.state.showModal ?
+              {this.state.showModal &&
                 <div className="modal fade" id="exampleModal2" tabIndex="-1" role="dialog"
                      aria-labelledby="exampleModalLabel" aria-hidden="true">
                   <div className="modal-dialog" role="document">
@@ -441,6 +470,7 @@
                                      className="form-control font-weight-bold"
                                      id="c_payment"
                                      name="c_payment"
+                                     required
                                      defaultValue={this.props.is_last_day_of_month || !(this.state.mod_entry.final_due_prev_amount > 0) ? this.state.mod_entry.final_due_amount : this.state.mod_entry.final_due_prev_amount}
                               />
                             </div>
@@ -468,7 +498,95 @@
                       </form>
                     </div>
                   </div>
-                </div> : null}
+                </div>}
+
+              {this.state.showModalSettleUp &&
+                <div className="modal fade" id="exampleModal3" tabIndex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel">Settle Up Advance
+                          - {this.state.mod_entry.name}</h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form name="settleup" action="{% url 'customer_settle_up' %}"
+                            onSubmit={this.makePayment}
+                            method="post">
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.id}/>
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
+                        <div className="p-4">
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="name">Are you sure to settle up the Advance amount
+                                against any
+                                remaining due Register entry?</label>
+                              <hr/>
+                              <label className="d-block" htmlFor="Advance">Available
+                                Advance: {this.state.mod_entry.balance_amount}</label>
+                              <label className="d-block" htmlFor="Due">Total
+                                Due: {this.state.mod_entry.due_amount}</label>
+                            </div>
+                          </div>
+
+                          <button type="submit"
+                                  className="btn btn-primary justify-content-center col-12">
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Settle Up'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>}
+
+              {this.state.showModalRefund &&
+                <div className="modal fade" id="exampleModal4" tabIndex="-1" role="dialog"
+                     aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel">Refund Advance
+                          - {this.state.mod_entry.name}</h5>
+                        <button type="button" className="close" data-dismiss="modal"
+                                aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form name="refund_balance" action="{% url 'customer_refund' %}"
+                            onSubmit={this.makePayment}
+                            method="post">
+                        <input type="hidden" className="form-control" id="c_id" name="c_id"
+                               value={this.state.mod_entry.id}/>
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                               value="{{ csrf_token }}"/>
+                        <div className="p-4">
+                          <div className="form-row">
+                            <div className="form-group col-md-12">
+                              <label htmlFor="name">Are you sure to refund remaining
+                                Advance?</label>
+                              <hr/>
+                              <label className="d-block" htmlFor="Advance">Available
+                                Advance: {this.state.mod_entry.balance_amount}</label>
+                            </div>
+                          </div>
+
+                          <button type="submit"
+                                  className="btn btn-primary justify-content-center col-12">
+                            {this.state.ajax_loading ? <span><i
+                              className="fa fa-spinner fa-spin"></i> Please Wait… </span> : `Refund ₹ ${this.state.mod_entry.balance_amount}`}
+
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>}
             </div>
         );
       }
@@ -492,7 +610,7 @@
                 </div>}
               <div className="mt-4 mb-4 col-12  p-0">
                 <h5 className="pt-2 mt-2 text-center">Bill Summary </h5>
-                <table>
+                <table width="100%">
                   <thead>
                   <tr className=" bg-info text-white">
                     <th className="p-2 text-center" colSpan="2">Description</th>
@@ -590,13 +708,15 @@
           mod_entry: e,
           showModal: true
         });
-        console.log(e)
       };
 
       async revertTransaction(event) {
         event.preventDefault();
-        {#todo: fix this#}
-        {#this.setState({ajax_loading: true})#}
+        // Disable submit button and add label
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Please wait...';
+
         const formData = new FormData(event.target);
         const requestOptions = {
           method: 'POST',
@@ -637,27 +757,17 @@
                   <tr key={index} className="d-flex">
                     <td className="p-2 col-2">#{transaction.id}</td>
                     <td
-                      className="p-2 col-6">{new Date(transaction.log_date).toLocaleDateString('en-US', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true,
-                      timeZone: 'IST'
-                    })}
+                      className="p-2 col-6">{formatDate(transaction.log_date)}
                       {#                  {% if entry.payment_mode == 'ONLINE' %}#}
                       {#                    <a target="_blank"#}
                       {#                       href="{% url 'check_txn_status' entry.transaction_id %}">{{ entry.payment_mode }}</a>{% endif %}#}
                       &nbsp;<span
                         className="text-info">{transaction.payment_mode}</span>
                     </td>
-                    <td className="p-2 col-4">{transaction.amount}
+                    <td className="p-2 col-4">{transaction.amount} &nbsp;
                       {transaction.refund_notes ?
                         <span
-                         {# TODO: fix refund #}
-
-                          className="text-info">{{ transaction.refund_notes }}</span>
+                          className="text-info">{transaction.refund_notes}</span>
                         : null}
                       {this.props.data.can_revert_transaction && transaction.is_revertible && (index + 1) === this.props.data.customer.transaction_entry.length ?
                         <button id="reverttransactionbuttonmain"
@@ -754,16 +864,16 @@
                       ))}
                       {month.days_in_month.map((day, index) => (
                         <div key={index} className="p-0 cal-border">
-                          <h2>{day.day}</h2>
+                          <h2 className="m-0">{day.day}</h2>
                           {day.data.length > 0 ? (day.data.map((entry, index) => (
-                            {# TODO fix cal text wrapping #}
-                            <span key={index}>
+                            <span key={index} className="text-wrap">
                                                 <span
                                                   className="d-block text-white bg-primary p-0 p-lg-2">
-                                                  {entry.schedule_display}&nbsp;
+                                                  {entry.schedule_display}
+                                                  <hr className="m-0 p-0"/>
                                                   {entry.attendance ? entry.quantity + " ML" :
                                                     <span
-                                                      className="p-0 bg-danger text-white"> ABSENT </span>}
+                                                      className="d-block p-0 bg-danger text-white"> ABSENT </span>}
                                                 </span>
 
                               {entry.attendance ? (entry.paid ? <span
@@ -862,6 +972,11 @@
 
       async updateCustomer(event) {
         event.preventDefault();
+        // Disable submit button and add label
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Please Wait…';
+
         const formData = new FormData(event.target);
         const requestOptions = {
           method: 'POST',
@@ -1043,7 +1158,7 @@
                                          {#onKeyPress="if(this.value.length==10) return false;"#}
                                                className="form-control" id="recipient_contact"
                                                name="contact"
-                                               defaultValue={parseInt(this.state.data.customer.contact)}
+                                               defaultValue={parseInt(this.state.data.customer.contact) > 0 ? parseInt(this.state.data.customer.contact) : ''}
                                                placeholder="Enter Contact"/>
                                       </div>
                                     </div>}
@@ -1142,12 +1257,5 @@
 
   {#  React Component ends here #}
 
-  <script>
-    {#function submitFormFn(submitForm) {#}
-    {# Showing please wait spinner while accepting payment #}
-    {#  submitForm.disabled = true;#}
-    {#  submitForm.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Please Wait…';#}
-    {#  submitForm.form.submit();#}
-  </script>
 {% endblock %}
 {% include "register/footer.html" %}

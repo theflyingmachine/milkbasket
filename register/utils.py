@@ -401,8 +401,11 @@ def get_last_transaction(request, customer):
 
 def is_transaction_revertible(request, customer):
     """ Function to check if last is revertible"""
-    return True if Balance.objects.filter(tenant_id=request.user.id, customer=customer).exclude(
-        last_balance_amount=None) else False
+    balance = Balance.objects.filter(tenant_id=request.user.id, customer=customer).exclude(
+        last_balance_amount=None)
+    payment = Payment.objects.filter(tenant_id=request.user.id, customer=customer).order_by(
+        '-log_date').first()
+    return bool(balance and payment.refund_notes is None)
 
 
 def is_mobile(request):

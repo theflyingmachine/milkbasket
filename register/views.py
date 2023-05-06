@@ -1395,7 +1395,7 @@ def customer_refund(request):
         if abs(balance.balance_amount) > 0:
             # Get last transaction number / Add Note about Refund
             last_transaction = Payment.objects.filter(customer=customer).latest('log_date')
-            last_transaction.refund_notes = f'₹{abs(balance.balance_amount)} Refunded on {datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}'
+            last_transaction.refund_notes = f'₹{abs(balance.balance_amount)} Refunded on {datetime.now().strftime("%d-%b-%Y %I:%M %p")}'
             last_transaction.save()
             # Update Balance with 0 remaining amount
             balance.balance_amount = 0

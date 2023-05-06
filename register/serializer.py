@@ -49,23 +49,23 @@ class DueCustomerSerializer(serializers.ModelSerializer):
     due_prev_amount = serializers.SerializerMethodField()
     final_due_amount = serializers.SerializerMethodField()
     final_due_prev_amount = serializers.SerializerMethodField()
-    balance_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    balance_amount = serializers.FloatField(read_only=True)
 
     @staticmethod
     def get_due_amount(obj):
-        return decimal.Decimal(obj.due_amount) / 1000
+        return float(decimal.Decimal(obj.due_amount) / 1000)
 
     @staticmethod
     def get_due_prev_amount(obj):
-        return decimal.Decimal(obj.due_prev_amount) / 1000
+        return float(decimal.Decimal(obj.due_prev_amount) / 1000)
 
     @staticmethod
     def get_final_due_amount(obj):
-        return decimal.Decimal(obj.due_amount / 1000) - abs(obj.balance_amount or 0)
+        return float(decimal.Decimal(obj.due_amount / 1000) - abs(obj.balance_amount or 0))
 
     @staticmethod
     def get_final_due_prev_amount(obj):
-        return decimal.Decimal(obj.due_prev_amount / 1000) - abs(obj.balance_amount or 0)
+        return float(decimal.Decimal(obj.due_prev_amount / 1000) - abs(obj.balance_amount or 0))
 
     class Meta:
         model = Customer
