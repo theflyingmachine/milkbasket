@@ -81,7 +81,7 @@ class RegisterAPI():
                      range(1, days_in_month + 1)]
 
         # Get All customers if no entry is added - will be used in autopilot mode
-        autopilot_morning_register, autopilot_evening_register = m_cust, e_cust
+        autopilot_morning_register, autopilot_evening_register = [], []
         active_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
         if not m_cust or not e_cust:
             autopilot_morning_register = active_customers.filter(m_quantity__gt=0)
@@ -115,9 +115,11 @@ class RegisterAPI():
                              'today_day': date.today(),
                              'last_entry_day': date.today().replace(day=last_entry_date),
                              'autopilot_morning_register': CustomerSerializer(
-                                 instance=autopilot_morning_register, many=True).data,
+                                 instance=autopilot_morning_register,
+                                 many=True).data if not m_cust else [],
                              'autopilot_evening_register': CustomerSerializer(
-                                 instance=autopilot_evening_register, many=True).data,
+                                 instance=autopilot_evening_register,
+                                 many=True).data if not e_cust else [],
                              'active_customers_not_in_register': CustomerSerializer(
                                  instance=active_customers_not_in_register, many=True).data,
                              'active_customers': CustomerSerializer(instance=active_customers,

@@ -439,9 +439,9 @@ def autopilot(request, year=None, month=None):
         end = datetime.strptime(end_date, '%b %d, %Y')
 
         today = date.today()
-        if start < end or (start.year, start.month) != (today.year, today.month) or (
+        if end < start or (start.year, start.month) != (today.year, today.month) or (
             end.year, end.month) != (today.year, today.month):
-            if start < end:
+            if end < start:
                 message = f'You have selected {start_date} start and {end_date} end date. End date cannot be before start date.'
             else:
                 message = 'Autopilot can only be run for current month.'
@@ -486,7 +486,7 @@ def autopilot(request, year=None, month=None):
             'reload': True,
         }
         messages.add_message(request, messages.SUCCESS,
-                             f'Autopilot completed from {start_date} to {end_date} {log_month}')
+                             f'Autopilot completed from {start.strftime("%d %b")} to {end.strftime("%d %b")}')
         return JsonResponse(response)
     # return invalid response if already not returned data
     response = {

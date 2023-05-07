@@ -540,7 +540,7 @@
                                     </div>
                                     <div className="row">
 
-                                      {this.state.data.m_register ? (
+                                      {this.state.data.m_register.length ? (
                                         <div className="col-6">
                                           <h5 className="mb-4">Morning Register</h5>
                                           {this.state.data.m_register.map((entry, index) => {
@@ -572,7 +572,7 @@
                                         </div>
                                       )}
 
-                                      {this.state.data.e_register ? (
+                                      {this.state.data.e_register.length ? (
                                         <div className="col-6">
                                           <h5 className="mb-4">Evening Register</h5>
                                           {this.state.data.e_register.map((entry, index) => {
