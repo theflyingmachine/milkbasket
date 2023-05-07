@@ -112,9 +112,8 @@ class RegisterAPI():
                              'register_date_month': register_date.month,
                              'register_date_year': register_date.year,
                              'month_year': month_year,
-                             'today_day': date.today().day,
-                             'last_entry_day': last_entry_date,
-                             # 'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
+                             'today_day': date.today(),
+                             'last_entry_day': date.today().replace(day=last_entry_date),
                              'autopilot_morning_register': CustomerSerializer(
                                  instance=autopilot_morning_register, many=True).data,
                              'autopilot_evening_register': CustomerSerializer(

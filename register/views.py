@@ -301,7 +301,7 @@ def add_customer(request):
 
 
 @login_required
-def addentry(request, year=None, month=None):
+def add_entry(request, year=None, month=None):
     # Get Tenant Preference
     tenant = get_tenant_perf(request)
     if tenant is None:
@@ -322,11 +322,11 @@ def addentry(request, year=None, month=None):
             # check if entry exists for give day and schedule
             entry = None
             if customer_info.morning:
-                check_record = Register.objects.filter(tenant_id=request.user.id,
-                                                       customer_id=customer,
-                                                       log_date=full_log_date,
-                                                       schedule__startswith='morning-yes').first()
-                if not check_record:
+                entry = Register.objects.filter(tenant_id=request.user.id,
+                                                customer_id=customer,
+                                                log_date=full_log_date,
+                                                schedule__startswith='morning-yes').first()
+                if not entry:
                     entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
                                      log_date=full_log_date,
                                      schedule='morning-yes',
@@ -334,11 +334,11 @@ def addentry(request, year=None, month=None):
                                      current_price=current_price)
                     entry.save()
             if customer_info.evening:
-                check_record = Register.objects.filter(tenant_id=request.user.id,
-                                                       customer_id=customer,
-                                                       log_date=full_log_date,
-                                                       schedule__startswith='evening-yes').first()
-                if not check_record:
+                entry = Register.objects.filter(tenant_id=request.user.id,
+                                                customer_id=customer,
+                                                log_date=full_log_date,
+                                                schedule__startswith='evening-yes').first()
+                if not entry:
                     entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
                                      log_date=full_log_date,
                                      schedule='evening-yes',
@@ -434,17 +434,25 @@ def autopilot(request, year=None, month=None):
                 autopilot_data.append(auto)
         log_month = request.POST.get("log_month", None)
         start_date = request.POST['start']
-        start = datetime.strptime(f'{start_date}', '%B %d, %Y')
+        start = datetime.strptime(start_date, '%b %d, %Y')
         end_date = request.POST['end']
-        end = datetime.strptime(f'{end_date}', '%B %d, %Y')
+        end = datetime.strptime(end_date, '%b %d, %Y')
 
-        if end_date < start_date:
+        today = date.today()
+        if start < end or (start.year, start.month) != (today.year, today.month) or (
+            end.year, end.month) != (today.year, today.month):
+            if start < end:
+                message = f'You have selected {start_date} start and {end_date} end date. End date cannot be before start date.'
+            else:
+                message = 'Autopilot can only be run for current month.'
+
             response = {
                 'showmessage': True,
-                'message': f'You have selected {start_date} start and {end_date} end date. End date can not be before start date.',
+                'message': message,
                 'status': False,
             }
             return JsonResponse(response)
+
         delta = end - start  # as timedelta
         for i in range(delta.days + 1):
             day = start + timedelta(days=i)
@@ -1050,7 +1058,6 @@ def customer_profile(request, cust_id=None):
         'page_title': 'Milk Basket - Profile',
     }
     if cust_id:
-
         context.update({
             'menu_customer': True,
             'customer_id': cust_id,

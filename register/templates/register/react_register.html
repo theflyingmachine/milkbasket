@@ -357,7 +357,6 @@
                 {!this.state.is_loading &&
                   <select className="inline mt-2 ml-2 bd-highlight" id="effect-selector"
                           onChange={() => leaveChange()}>
-                    {#onChange=leaveChange()">#}
                     <option defaultValue="none">No Effect</option>
                     <option defaultValue="quantity">Show Quantity</option>
                     <option defaultValue="difference">Show Difference</option>
@@ -513,11 +512,12 @@
                                       <div className="col-sm-3">
                                         <div className="form-group">
                                           <select name="start"
+                                                  defaultValue={formatDate(this.state.data.last_entry_day)}
                                                   className="form-control custom-select-lg">
                                             {this.state.data.dates.map((day, index) =>
                                               <option key={index}
-                                               {#selected={new Date(day).getDate() === this.state.data.last_entry_day}#}
-                                                      defaultValue={new Date(day).getDate()}>{formatDate(day)}</option>
+                                                      value={formatDate(day)}
+                                              >{formatDate(day)}</option>
                                             )}
                                           </select>
                                         </div>
@@ -526,11 +526,12 @@
                                       <div className="col-sm-3">
                                         <div className="form-group">
                                           <select name="end"
+                                                  defaultValue={formatDate(this.state.data.today_day)}
                                                   className="form-control custom-select-lg">
                                             {this.state.data.dates.map((day, index) =>
                                               <option key={index}
-                                               {#selected={new Date(day).getDate() === this.state.data.today_day}#}
-                                                      defaultValue={new Date(day).getDate()}>{formatDate(day)}</option>
+                                                      value={formatDate(day)}
+                                              >{formatDate(day)}</option>
                                             )}
                                           </select>
                                         </div>
@@ -954,11 +955,11 @@
       const divsToHide = document.querySelectorAll(".milk-quantity");
       const length = divsToHide.length;
 
-      if (selectedValue === "none") {
+      if (selectedValue === "No Effect") {
         for (let i = 0; i < length; i++) {
           divsToHide[i].style.display = "none";
         }
-      } else if (selectedValue === "quantity") {
+      } else if (selectedValue === "Show Quantity") {
         for (let i = 0; i < length; i++) {
           const divToHide = divsToHide[i];
           divToHide.style.display = "block";
@@ -974,7 +975,7 @@
             element.style.backgroundColor = 'white';
           }
         });
-      } else if (selectedValue === "difference") {
+      } else if (selectedValue === "Show Difference") {
         for (let i = 0; i < length; i++) {
           const divToHide = divsToHide[i];
           divToHide.style.display = "block";
@@ -994,52 +995,6 @@
 
     $('.modal').on('shown.bs.modal', function () {
       $(this).find('[autofocus]').focus();
-    });
-
-    {#    Ajax for register entry #}
-    $(document).ready(function () {
-      $('.modal form').on('submit', function (event) {
-        $(".progress").show();
-        $(".modal-footer").hide();
-        $("#auto-pilot-form").hide();
-        $("#auto-img").show();
-
-
-        event.preventDefault()
-        $.post($(this).attr('action'), $(this).serialize(), function (data) {
-          if (data.return === true) {
-            // Success code here
-            if (data.reload === true) {
-              location.reload()
-            }
-            if (data.quantity != undefined) {
-              show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success')
-            }
-          } else {
-            // Error code here
-            $('#autopilot').modal('hide');
-            $("#auto-img").hide();
-            $(".modal-backdrop").remove();
-            $(".progress").hide();
-            $(".modal-footer").show();
-            $("#auto-pilot-form").show();
-            if (data.showmessage === true) {
-              show_toast('Error', data.message, 'danger')
-            } else {
-              show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
-            }
-          }
-        }, 'json')
-      })
-
-      $("body").tooltip({
-        selector: "[data-toggle='tooltip']",
-        container: "body"
-      })
-
-      $(".progress").hide();
-      $("#auto-img").hide();
-
     });
 
   </script>
