@@ -434,11 +434,11 @@ def autopilot(request, year=None, month=None):
                 autopilot_data.append(auto)
         log_month = request.POST.get("log_month", None)
         start_date = request.POST['start']
-        start = datetime.strptime(f'{start_date}-{log_month}', '%d-%B, %Y')
+        start = datetime.strptime(f'{start_date}', '%B %d, %Y')
         end_date = request.POST['end']
-        end = datetime.strptime(f'{end_date}-{log_month}', '%d-%B, %Y')
+        end = datetime.strptime(f'{end_date}', '%B %d, %Y')
 
-        if int(end_date) < int(start_date):
+        if end_date < start_date:
             response = {
                 'showmessage': True,
                 'message': f'You have selected {start_date} start and {end_date} end date. End date can not be before start date.',

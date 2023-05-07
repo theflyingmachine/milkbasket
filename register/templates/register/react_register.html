@@ -201,6 +201,14 @@
 
   <script type="text/babel">
 
+    function formatDate(log_date) {
+      return new Date(log_date).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
     class Register extends React.Component {
       filteredArray;
 
@@ -215,6 +223,7 @@
           data: null,
 
           showModalAddRegister: false,
+          showModalAutopilot: false,
           ajax_loading: false
         };
       }
@@ -229,6 +238,11 @@
       openModalAddNew = (e) => {
         this.setState({
           showModalAddRegister: true
+        });
+      };
+      openModalAutopilot = (e) => {
+        this.setState({
+          showModalAutopilot: true
         });
       };
 
@@ -248,6 +262,10 @@
             if (data.reload) {
               location.reload();
             }
+            if (data.showmessage && !data.status) {
+              show_toast('Error', data.message, 'danger')
+
+            }
           })
           .catch(error => {
             if (error) {
@@ -256,6 +274,12 @@
               show_toast('Error', 'Something went wrong, we could not revert transaction', 'danger')
             }
           })
+        $('#autopilot').modal('hide');
+        $(".modal-backdrop").remove();
+        this.setState({
+          showModalAutopilot: false,
+          ajax_loading: false
+        })
       };
 
 
@@ -281,6 +305,9 @@
       render() {
         const fullWidth = {
           width: 100 + '%',
+        }
+        const halfWidth40 = {
+          width: 40 + '%',
         }
 
         const loadingComp = <div className="text-center m-xl-5 p-xl-5">
@@ -311,24 +338,30 @@
           <div>
             <div className="row bd-highlight mb-3">
               <div className="col-12 col-md-6 mr-auto p-2 bd-highlight">
+
+                {!this.state.is_loading &&
+                  <button type="button" className="btn mt-2 ml-2 btn-primary" data-toggle="modal"
+                          data-target="#autopilotModal"
+                          onClick={() => this.openModalAutopilot()}><i
+                    className="fa fa-plane"></i> |
+                    Auto-Pilot Mode
+                  </button>}
+
                 {this.state.data && this.state.data.active_customers_not_in_register.length ?
                   <button type="button" className="btn mt-2 ml-2 btn-primary" data-toggle="modal"
                           data-target="#exampleModal1"
-                          data-whatever="@fat"
                           onClick={() => this.openModalAddNew()}>< i
                     className="far fa-address-book"></i> | Add New Entry
                   </button> : null}
 
-                <button type="button" className="btn mt-2 ml-2 btn-primary" data-toggle="modal"
-                        data-target="#autopilot"
-                        data-whatever="@fat"><i className="fa fa-plane"></i> | Auto-Pilot Mode
-                </button>
-                <select className="inline mt-2 ml-2 bd-highlight" id="effect-selector">
-                  {#onChange=leaveChange()">#}
-                  <option defaultValue="none">No Effect</option>
-                  <option defaultValue="quantity">Show Quantity</option>
-                  <option defaultValue="difference">Show Difference</option>
-                </select>
+                {!this.state.is_loading &&
+                  <select className="inline mt-2 ml-2 bd-highlight" id="effect-selector"
+                          onChange={() => leaveChange()}>
+                    {#onChange=leaveChange()">#}
+                    <option defaultValue="none">No Effect</option>
+                    <option defaultValue="quantity">Show Quantity</option>
+                    <option defaultValue="difference">Show Difference</option>
+                  </select>}
 
               </div>
               <div className="justify-content-end inline p-2 bd-highlight">
@@ -455,6 +488,158 @@
                         </div>
                       }
 
+                      {this.state.showModalAutopilot &&
+                        <div className="modal fade" id="autopilotModal" tabIndex="-1" role="dialog"
+                             aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div className="modal-dialog modal-xl autopilot-modal-size-mobile"
+                               role="document">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h4 className="modal-title">Autopilot Mode</h4>
+                                <button type="button" className="close"
+                                        data-dismiss="modal">&times;</button>
+                              </div>
+
+                              {!this.state.ajax_loading ?
+                                <form id="auto-pilot-form" action="{% url 'view_autopilot' %}"
+                                      onSubmit={this.startAJAX} method="post">
+                                  <div className="modal-body">
+                                    <input type="hidden" name="csrfmiddlewaretoken"
+                                           value="{{ csrf_token }}"/>
+                                    <input type="hidden" className="form-control" name="log_month"
+                                           id="log_month"
+                                           value="{{ month_year }}"/>
+                                    <div className="row justify-content-center">
+                                      <div className="col-sm-3">
+                                        <div className="form-group">
+                                          <select name="start"
+                                                  className="form-control custom-select-lg">
+                                            {this.state.data.dates.map((day, index) =>
+                                              <option key={index}
+                                               {#selected={new Date(day).getDate() === this.state.data.last_entry_day}#}
+                                                      defaultValue={new Date(day).getDate()}>{formatDate(day)}</option>
+                                            )}
+                                          </select>
+                                        </div>
+                                      </div>
+                                      <h3> to </h3>
+                                      <div className="col-sm-3">
+                                        <div className="form-group">
+                                          <select name="end"
+                                                  className="form-control custom-select-lg">
+                                            {this.state.data.dates.map((day, index) =>
+                                              <option key={index}
+                                               {#selected={new Date(day).getDate() === this.state.data.today_day}#}
+                                                      defaultValue={new Date(day).getDate()}>{formatDate(day)}</option>
+                                            )}
+                                          </select>
+                                        </div>
+                                      </div>
+
+                                    </div>
+                                    <div className="row">
+
+                                      {this.state.data.m_register ? (
+                                        <div className="col-6">
+                                          <h5 className="mb-4">Morning Register</h5>
+                                          {this.state.data.m_register.map((entry, index) => {
+                                            return entry.status && (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile">{entry.name} | {entry.m_quantity} ML
+                                                <input name={`${entry.id}-morning`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <div className="col-6">
+                                          <h5 className="mb-4 text-success">Add Customer to
+                                            Morning Register</h5>
+                                          {this.state.data.autopilot_morning_register.map((entry, index) => {
+                                            return (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile text-success">
+                                                {entry.name} | {entry.m_quantity} ML
+                                                <input name={`${entry.id}-morning`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+
+                                      {this.state.data.e_register ? (
+                                        <div className="col-6">
+                                          <h5 className="mb-4">Evening Register</h5>
+                                          {this.state.data.e_register.map((entry, index) => {
+                                            return entry.status && (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile">{entry.name} | {entry.e_quantity} ML
+                                                <input name={`${entry.id}-evening`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <div className="col-6">
+                                          <h5 className="mb-4 text-success">Add Customer to
+                                            Evening Register</h5>
+                                          {this.state.data.autopilot_evening_register.map((entry, index) => {
+                                            return (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile text-success">
+                                                {entry.name} | {entry.e_quantity} ML
+                                                <input name={`${entry.id}-evening`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                    {this.state.data.active_customers.length ?
+                                      <button type="submit"
+                                              className="btn btn-primary btn-lg btn-block"
+                                              autoFocus>Add Bulk Entry
+                                      </button>
+                                      :
+                                      <h4 className="text-danger text-center"> Please <a
+                                        href="{% url 'view_customers' %}">add
+                                        Customers</a> before you can add to register</h4>
+                                    }
+
+                                  </div>
+                                </form>
+
+                                :
+                                <img className="pilot-img" style={halfWidth40} id="auto-img"
+                                     src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
+                                     alt="HTML5 Icon"/>}
+                              <br/>
+                              {this.state.ajax_loading &&
+                                <div className="progress">
+                                  <div
+                                    className="progress-bar progress-bar-striped progress-bar-animated"
+                                    role="progressbar"
+                                    aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                                    style={fullWidth}></div>
+                                </div>}
+                              <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary btn-block"
+                                        data-dismiss="modal">Close
+                                </button>
+                              </div>
+
+                            </div>
+                          </div>
+                        </div>}
+
 
                       <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
                     </div>
@@ -574,7 +759,7 @@
               show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
             }
           })
-        $('#autopilotModal').modal('hide');
+        $('#singleEntryModal').modal('hide');
         leaveChange()
         this.setState({
           show_modal: false,
@@ -628,7 +813,7 @@
                             <button type="button"
                                     className={`btn register-button q-${isCalYes ? filteredArray[0].quantity : ''}`}
                                     data-toggle="modal"
-                                    data-target="#autopilotModal"
+                                    data-target="#singleEntryModal"
                                     onClick={() => this.openModal(current_obj)}>
                               {i + 1}
                               <span
@@ -648,7 +833,7 @@
 
 
             {this.state.show_modal &&
-              <div className="modal fade" id="autopilotModal" tabIndex="-1" role="dialog"
+              <div className="modal fade" id="singleEntryModal" tabIndex="-1" role="dialog"
                    aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div className="modal-dialog" role="document">
                   <div className="modal-content">
@@ -737,137 +922,6 @@
 
 
   {#  React Component ends here #}
-
-  {#  Autopilot modal#}
-  <!-- The Modal -->
-  <div class="modal fade" id="autopilot">
-    <div class="modal-dialog modal-xl autopilot-modal-size-mobile">
-      <div class="modal-content">
-
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <h4 class="modal-title">Autopilot Mode</h4>
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-        </div>
-
-        <!-- Modal body -->
-
-        <form id="auto-pilot-form" action="{% url 'view_autopilot' %}"
-              method="post">{% csrf_token %}
-          <div class="modal-body">
-            <input type="hidden" class="form-control" name="log_month" id="log_month"
-                   value="{{ month_year }}">
-            <div class="row justify-content-center">
-              <div class="col-sm-3">
-                <div class="form-group">
-                  <select name="start" class="form-control custom-select-lg">
-                    {% for day in days %}
-                      <option {% if day == last_entry_day %} selected {% endif %}
-                                                             value="{{ day }}">{{ day }} {{ month_year }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <h3> to </h3>
-              <div class="col-sm-3">
-                <div class="form-group">
-                  <select name="end" class="form-control custom-select-lg">
-                    {% for day in days %}
-                      <option {% if day == today_day %} selected {% endif %}
-                                                        value="{{ day }}">{{ day }} {{ month_year }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-
-            </div>
-            <div class="row">
-              <div class="col-6">
-
-                {% if m_register %}
-                  <h3 class="mb-4">Morning Register</h3>
-                  {% for entry in m_register %}
-                    {% if entry.status %}
-                      <label
-                       class="container autopilot-modal-content-mobile">{{ entry.name }}
-                        | {{ entry.m_quantity }} ML
-                        <input name="{{ entry.id }}-morning" type="checkbox"
-                               checked="checked">
-                        <span class="checkmark"></span>
-                      </label>
-                    {% endif %}
-                  {% endfor %}
-                {% else %}
-                  <h3 class="mb-4 text-success">Add Customer to Morning Register</h3>
-                  {% for entry in autopilot_morning_register %}
-                    <label
-                     class="container autopilot-modal-content-mobile text-success">{{ entry.name }}
-                      | {{ entry.m_quantity }} ML
-                      <input name="{{ entry.id }}-morning" type="checkbox"
-                             checked="checked">
-                      <span class="checkmark"></span>
-                    </label>
-                  {% endfor %}
-                {% endif %}
-              </div>
-              <div class="col-6">
-                {% if e_register %}
-                  <h3 class="mb-4">Evening Register</h3>
-                  {% for entry in e_register %}
-                    {% if entry.status %}
-                      <label
-                       class="container autopilot-modal-content-mobile">{{ entry.name }}
-                        | {{ entry.e_quantity }} ML
-                        <input name="{{ entry.id }}-evening" type="checkbox"
-                               checked="checked">
-                        <span class="checkmark"></span>
-                      </label>
-                    {% endif %}
-                  {% endfor %}
-                {% else %}
-                  <h3 class="mb-4 text-success">Add Customer to Evening Register</h3>
-                  {% for entry in autopilot_evening_register %}
-                    <label
-                     class="container autopilot-modal-content-mobile text-success">{{ entry.name }}
-                      | {{ entry.e_quantity }} ML
-                      <input name="{{ entry.id }}-evening" type="checkbox"
-                             checked="checked">
-                      <span class="checkmark"></span>
-                    </label>
-                  {% endfor %}
-                {% endif %}
-              </div>
-            </div>
-            {% if active_customers %}
-              <button type="submit" class="btn btn-primary btn-lg btn-block" autofocus>Add Bulk
-                Entry
-              </button>
-            {% else %}
-              <h4 class="text-danger text-center"> Please <a href="{% url 'view_customers' %}">add
-                Customers</a> before you can add to register</h4>
-            {% endif %}
-
-          </div>
-        </form>
-
-        <img class="pilot-img" style="width:40%" id="auto-img"
-             src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
-             alt="HTML5 Icon">
-        <br>
-        <div class="progress">
-          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-               aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-               style="width: 100%"></div>
-        </div>
-        <!-- Modal footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Close
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
 
   <script>
     function leaveChange() {
