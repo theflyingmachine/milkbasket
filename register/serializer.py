@@ -13,12 +13,18 @@ class RegisterSerializer(serializers.ModelSerializer):
                   'transaction_number']
 
 
-class CustomerSerializer(serializers.ModelSerializer):
+class CustomerRegisterSerializer(serializers.ModelSerializer):
     register_entry = RegisterSerializer(many=True, source='register_set')
 
     class Meta:
         model = Customer
         fields = ['id', 'name', 'm_quantity', 'e_quantity', 'status', 'register_entry']
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['id', 'name', 'm_quantity', 'e_quantity', 'status']
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
