@@ -65,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenance_mode.middleware.MaintenanceModeMiddleware',
+    'register.middleware.SessionExpiryMiddleware',
 ]
 
 ROOT_URLCONF = 'milkbasket.urls'
