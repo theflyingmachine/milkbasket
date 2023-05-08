@@ -356,11 +356,15 @@ def add_entry(request, year=None, month=None):
             yes_or_no = 'yes' if int(attendance) else 'no'
             schedule = request.POST.get("schedule", 'morning').lower()
             full_schedule = f'{schedule.lower()}-{yes_or_no}'
-            quantity = form['quantity'].value() or False
+            quantity = int(form['quantity'].value()) or 0
             current_price = tenant.milk_price
+            if quantity % 250:
+                return JsonResponse({
+                    'return': False,
+                    'message': f'{quantity} ML is not allowed. Quantity should be in multiple of 250 ML',
+                })
 
             # check if entry exists for give day and schedule
-
             entry = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
                                             log_date=full_log_date,
                                             schedule__startswith=schedule).first()

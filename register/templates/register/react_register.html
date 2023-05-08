@@ -48,8 +48,8 @@
         max-width: 80% !important;
     }
 
-    /* The container */
-    .container {
+    /* The container-register */
+    .container-register {
         display: block;
         position: relative;
         padding-left: 35px;
@@ -63,7 +63,7 @@
     }
 
     /* Hide the browser's default checkbox */
-    .container input {
+    .container-register input {
         position: absolute;
         opacity: 0;
         cursor: pointer;
@@ -82,12 +82,12 @@
     }
 
     /* On mouse-over, add a grey background color */
-    .container:hover input ~ .checkmark {
+    .container-register:hover input ~ .checkmark {
         background-color: #ccc;
     }
 
     /* When the checkbox is checked, add a blue background */
-    .container input:checked ~ .checkmark {
+    .container-register input:checked ~ .checkmark {
         background-color: #2196F3;
     }
 
@@ -99,12 +99,12 @@
     }
 
     /* Show the checkmark when checked */
-    .container input:checked ~ .checkmark:after {
+    .container-register input:checked ~ .checkmark:after {
         display: block;
     }
 
     /* Style the checkmark/indicator */
-    .container .checkmark:after {
+    .container-register .checkmark:after {
         left: 9px;
         top: 5px;
         width: 5px;
@@ -193,7 +193,6 @@
 </style>
 
 {% block content %}
-  <div>
 
   <div id="report"></div>
 
@@ -546,7 +545,7 @@
                                           {this.state.data.m_register.map((entry, index) => {
                                             return entry.status && (
                                               <label key={index}
-                                                     className="container autopilot-modal-content-mobile">{entry.name} | {entry.m_quantity} ML
+                                                     className="container-register autopilot-modal-content-mobile">{entry.name} | {entry.m_quantity} ML
                                                 <input name={`${entry.id}-morning`}
                                                        type="checkbox" defaultChecked="checked"/>
                                                 <span className="checkmark"></span>
@@ -561,7 +560,7 @@
                                           {this.state.data.autopilot_morning_register.map((entry, index) => {
                                             return (
                                               <label key={index}
-                                                     className="container autopilot-modal-content-mobile text-success">
+                                                     className="container-register autopilot-modal-content-mobile text-success">
                                                 {entry.name} | {entry.m_quantity} ML
                                                 <input name={`${entry.id}-morning`}
                                                        type="checkbox" defaultChecked="checked"/>
@@ -578,7 +577,7 @@
                                           {this.state.data.e_register.map((entry, index) => {
                                             return entry.status && (
                                               <label key={index}
-                                                     className="container autopilot-modal-content-mobile">{entry.name} | {entry.e_quantity} ML
+                                                     className="container-register autopilot-modal-content-mobile">{entry.name} | {entry.e_quantity} ML
                                                 <input name={`${entry.id}-evening`}
                                                        type="checkbox" defaultChecked="checked"/>
                                                 <span className="checkmark"></span>
@@ -593,7 +592,7 @@
                                           {this.state.data.autopilot_evening_register.map((entry, index) => {
                                             return (
                                               <label key={index}
-                                                     className="container autopilot-modal-content-mobile text-success">
+                                                     className="container-register autopilot-modal-content-mobile text-success">
                                                 {entry.name} | {entry.e_quantity} ML
                                                 <input name={`${entry.id}-evening`}
                                                        type="checkbox" defaultChecked="checked"/>
@@ -726,37 +725,41 @@
         await fetch('{% url 'view_add_entry' %}', requestOptions)
           .then(response => response.json())
           .then(data => {
-            const current_state = this.state.registerPage
+            if (data.return) {
+              const current_state = this.state.registerPage
 
-            // Update state
-            const updatedRegister = current_state.map((customer) => {
-              if (customer.id === data.customer_id) {
-                const existingEntry = customer.register_entry.find((entry) => entry.id === data.entry.id);
+              // Update state
+              const updatedRegister = current_state.map((customer) => {
+                if (customer.id === data.customer_id) {
+                  const existingEntry = customer.register_entry.find((entry) => entry.id === data.entry.id);
 
-                if (existingEntry) {
+                  if (existingEntry) {
+                    return {
+                      ...customer,
+                      register_entry: customer.register_entry.map((entry) => {
+                        if (entry.id === data.entry.id) {
+                          return {...entry, ...data.entry};
+                        }
+                        return entry;
+                      }),
+                    };
+                  }
+
                   return {
                     ...customer,
-                    register_entry: customer.register_entry.map((entry) => {
-                      if (entry.id === data.entry.id) {
-                        return {...entry, ...data.entry};
-                      }
-                      return entry;
-                    }),
+                    register_entry: [...customer.register_entry, data.entry],
                   };
                 }
 
-                return {
-                  ...customer,
-                  register_entry: [...customer.register_entry, data.entry],
-                };
-              }
+                return customer;
+              });
 
-              return customer;
-            });
+              this.setState({registerPage: updatedRegister});
 
-            this.setState({registerPage: updatedRegister});
-
-            show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success');
+              show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success');
+            } else {
+              show_toast('Error', `${data.message}`, 'danger');
+            }
           })
           .catch(error => {
             if (error) {
