@@ -659,6 +659,7 @@
         this.handler = this.handler.bind(this)
         this.openModal = this.openModal.bind(this);
         this.markAttendance = this.markAttendance.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
 
         this.state = {
           registerPage: this.props.page,
@@ -672,6 +673,7 @@
           att_attendance: '',
           att_quantity: '',
           att_name: '',
+          att_customer_status: true,
 
           ajax_loading: false,
           show_modal: false,
@@ -686,28 +688,31 @@
       }
 
       openModal(obj) {
-        let default_quantity = null;
-        if (obj.schedule === 'Morning')
-          default_quantity = obj.customer.m_quantity;
-        if (obj.schedule === 'Evening')
-          default_quantity = obj.customer.e_quantity;
-
+        const {customer, entry, schedule} = obj;
+        const defaultQuantity = schedule === 'Morning' ? customer.m_quantity : schedule === 'Evening' ? customer.e_quantity : null;
         const options = {day: 'numeric', month: 'long', year: 'numeric'};
         const formattedDate = new Date(obj.date).toLocaleDateString('en-US', options);
         const dateArr = formattedDate.split(' ');
         const day = dateArr[1].substring(0, 3);
 
-        const finalDateStr = `${day.replace(/,/g, "")} ${dateArr[0]},  ${dateArr[2]}`
         this.setState({
-          att_customer_id: obj.customer.id,
-          att_name: obj.customer.name,
-          att_quantity: obj.entry.length ? obj.entry[0].quantity : default_quantity,
-          att_schedule: obj.schedule,
-          att_attendance: obj.entry.length ? obj.entry[0].schedule.endsWith('yes') : false,
-          att_log_date: finalDateStr,
-          show_modal: true
-        })
+          att_customer_id: customer.id,
+          att_name: customer.name,
+          att_quantity: entry.length > 0 ? entry[0].quantity : defaultQuantity,
+          att_schedule: schedule,
+          att_attendance: entry.length > 0 ? entry[0].schedule.endsWith('yes') : true,
+          att_log_date: `${day.replace(/,/g, "")} ${dateArr[0]},  ${dateArr[2]}`,
+          att_customer_status: customer.status,
+          show_modal: true,
+        });
+      }
 
+      handleInputChange(event) {
+        const target = event.target;
+        if (target.type === 'radio')
+          this.setState({att_attendance: target.value > 0})
+        else if (target.type === 'number')
+          this.setState({att_quantity: target.value})
       }
 
       async markAttendance(event) {
@@ -794,8 +799,8 @@
                         <a href={`profile/${customer.id}`}>{customer.name}</a>
                       </td>
                       {this.props.dates.map((date, i) => {
-                        const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
-                        const current_obj = {
+                        let filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
+                        let current_obj = {
                           entry: filteredArray,
                           date,
                           customer,
@@ -839,8 +844,8 @@
                 <div className="modal-dialog" role="document">
                   <div className="modal-content">
                     <div className="modal-header">
-                      <h6 className="modal-title"
-                          id="exampleModalLabel">{this.state.att_name} - {this.state.att_log_date} - {this.state.att_schedule}</h6>
+                      <h4 className="modal-title"
+                          id="exampleModalLabel">{this.state.att_log_date} - {this.state.att_schedule}</h4>
                       <button type="button" className="close" data-dismiss="modal"
                               aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -858,28 +863,31 @@
                                value={this.state.att_schedule || ''}
                                name="schedule"
                                id="recipient_schedule"/>
-                        <div className="form-group">
-                          <label htmlFor="recipient-price1" className="col-form-label">Price /
-                            L </label>
-                          <input type="text" className="form-control" disabled
-                                 name="selling_price"
-                                 id="recipient-price1" value={this.state.default_price || ''}/>
-                        </div>
+                        <h3 className="text-info">{this.state.att_name}</h3>
+                        <span
+                          className="text-secondary">Price {this.state.default_price} / Liter</span>
                         <div className="form-group">
                           <label htmlFor="recipient-quantity"
-                                 className="col-form-label">Quantity:</label>
+                                 className="col-form-label">Quantity: {!this.state.att_customer_status &&
+                            <span
+                              className="text-danger text-bold">(Customer Account Inactive)</span>}</label>
                           <input type="number"
                                  className="form-control quantity-input font-weight-bold"
                                  step='0'
-                                 defaultValue={this.state.att_quantity || ''}
+                                 value={this.state.att_quantity || ''}
+                                 onChange={this.handleInputChange}
                                  name="quantity" id="recipient-quantity" required/>
                         </div>
                         <div className="form-group">
                           <label htmlFor="yn">Attendance:</label>
                           <div className="wrapper">
                             <input type="radio" name="attendance" id="option-1" value="1"
-                                   defaultChecked/>
-                            <input type="radio" name="attendance" id="option-2" value="0"/>
+                                   checked={this.state.att_attendance}
+                                   onChange={this.handleInputChange}
+                            />
+                            <input type="radio" name="attendance" id="option-2" value="0"
+                                   checked={!this.state.att_attendance}
+                                   onChange={this.handleInputChange}/>
                             <label htmlFor="option-1" className="option option-1">
                               <span>✅ Present</span>
                             </label>
