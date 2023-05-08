@@ -439,9 +439,9 @@ def autopilot(request, year=None, month=None):
         end = datetime.strptime(end_date, '%b %d, %Y')
 
         today = date.today()
-        if end < start or (start.year, start.month) != (today.year, today.month) or (
+        if start > end or (start.year, start.month) != (today.year, today.month) or (
             end.year, end.month) != (today.year, today.month):
-            if end < start:
+            if start > end:
                 message = f'You have selected {start_date} start and {end_date} end date. End date cannot be before start date.'
             else:
                 message = 'Autopilot can only be run for current month.'
