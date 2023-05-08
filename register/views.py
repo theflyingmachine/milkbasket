@@ -3,7 +3,6 @@ import decimal
 import json
 import logging
 import threading
-from calendar import monthrange
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
@@ -16,7 +15,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum, Q, Prefetch
+from django.db.models import Sum, Q
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -71,79 +70,14 @@ def index(request, year=None, month=None):
         'is_mobile': is_mobile(request),
     }
     custom_month = None
-    active_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
     if year and month:
         date_time_str = f'01/{month}/{year} 01:01:01'
         custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
     register_date = custom_month if custom_month else date.today()
-    # Get morning register for given month
-    register_filter = {
-        'tenant_id': request.user.id,
-        'log_date__month': register_date.month,
-        'log_date__year': register_date.year
-    }
-    m_schedule = Q(schedule__in=['morning-yes', 'morning-no'])
-    e_schedule = Q(schedule__in=['evening-yes', 'evening-no'])
-
-    cust_register_filter = {
-        'tenant_id': request.user.id,
-        'register__log_date__month': register_date.month,
-        'register__log_date__year': register_date.year
-    }
-    cust_m_schedule = Q(register__schedule__in=['morning-yes', 'morning-no'])
-    cust_e_schedule = Q(register__schedule__in=['evening-yes', 'evening-no'])
-
-    # Get morning register for given month
-    m_register = Customer.objects.prefetch_related(
-        Prefetch('register_set',
-                 queryset=Register.objects.filter(
-                     m_schedule, **register_filter))
-    ).filter(cust_m_schedule, **cust_register_filter).distinct()
-
-    e_register = Customer.objects.prefetch_related(
-        Prefetch('register_set',
-                 queryset=Register.objects.filter(
-                     e_schedule, **register_filter))
-    ).filter(cust_e_schedule, **cust_register_filter).distinct()
-
-    # Get All customers if no entry is added - will be used in autopilot mode
-    autopilot_morning_register, autopilot_evening_register = [], []
-    if not e_register or not m_register:
-        autopilot_morning_register = active_customers.filter(m_quantity__gt=0)
-        autopilot_evening_register = active_customers.filter(e_quantity__gt=0)
-
-    # plot calendar days
-    days = monthrange(register_date.year, register_date.month)
     month_year = register_date.strftime("%B, %Y")
-    cal_days = range(1, days[1] + 1)
-
-    # Get last entry date
-    try:
-        last_entry_date = Register.objects.filter(tenant_id=request.user.id,
-                                                  log_date__month=register_date.month,
-                                                  log_date__year=register_date.year).latest(
-            'log_date__day')
-        last_entry_date = int(last_entry_date.log_date.strftime("%d")) + 1
-    except Register.DoesNotExist:
-        last_entry_date = 1
-
-    # Get only active customers not added on register
-    all_register = m_register.union(e_register)
-    active_customers_not_in_register = active_customers.exclude(id__in=all_register.values('id'))
 
     context.update({
         'month_year': month_year,
-        'm_register': m_register,
-        'e_register': e_register,
-        'today_day': date.today().day,
-        'last_entry_day': last_entry_date,
-        'days': cal_days,
-        'max_date': f'{date.today().year}-{date.today().month}-{days[1]}',
-        'active_customers': active_customers,
-        'default_price': tenant.milk_price,
-        'autopilot_morning_register': autopilot_morning_register,
-        'autopilot_evening_register': autopilot_evening_register,
-        'active_customers_not_in_register': active_customers_not_in_register,
         'register_date_month': register_date.month,
         'register_date_year': register_date.year,
         'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
@@ -367,7 +301,7 @@ def add_customer(request):
 
 
 @login_required
-def addentry(request, year=None, month=None):
+def add_entry(request, year=None, month=None):
     # Get Tenant Preference
     tenant = get_tenant_perf(request)
     if tenant is None:
@@ -388,11 +322,11 @@ def addentry(request, year=None, month=None):
             # check if entry exists for give day and schedule
             entry = None
             if customer_info.morning:
-                check_record = Register.objects.filter(tenant_id=request.user.id,
-                                                       customer_id=customer,
-                                                       log_date=full_log_date,
-                                                       schedule__startswith='morning-yes').first()
-                if not check_record:
+                entry = Register.objects.filter(tenant_id=request.user.id,
+                                                customer_id=customer,
+                                                log_date=full_log_date,
+                                                schedule__startswith='morning-yes').first()
+                if not entry:
                     entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
                                      log_date=full_log_date,
                                      schedule='morning-yes',
@@ -400,11 +334,11 @@ def addentry(request, year=None, month=None):
                                      current_price=current_price)
                     entry.save()
             if customer_info.evening:
-                check_record = Register.objects.filter(tenant_id=request.user.id,
-                                                       customer_id=customer,
-                                                       log_date=full_log_date,
-                                                       schedule__startswith='evening-yes').first()
-                if not check_record:
+                entry = Register.objects.filter(tenant_id=request.user.id,
+                                                customer_id=customer,
+                                                log_date=full_log_date,
+                                                schedule__startswith='evening-yes').first()
+                if not entry:
                     entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
                                      log_date=full_log_date,
                                      schedule='evening-yes',
@@ -500,17 +434,25 @@ def autopilot(request, year=None, month=None):
                 autopilot_data.append(auto)
         log_month = request.POST.get("log_month", None)
         start_date = request.POST['start']
-        start = datetime.strptime(f'{start_date}-{log_month}', '%d-%B, %Y')
+        start = datetime.strptime(start_date, '%b %d, %Y')
         end_date = request.POST['end']
-        end = datetime.strptime(f'{end_date}-{log_month}', '%d-%B, %Y')
+        end = datetime.strptime(end_date, '%b %d, %Y')
 
-        if int(end_date) < int(start_date):
+        today = date.today()
+        if start > end or (start.year, start.month) != (today.year, today.month) or (
+            end.year, end.month) != (today.year, today.month):
+            if start > end:
+                message = f'You have selected {start_date} start and {end_date} end date. End date cannot be before start date.'
+            else:
+                message = 'Autopilot can only be run for current month.'
+
             response = {
                 'showmessage': True,
-                'message': f'You have selected {start_date} start and {end_date} end date. End date can not be before start date.',
+                'message': message,
                 'status': False,
             }
             return JsonResponse(response)
+
         delta = end - start  # as timedelta
         for i in range(delta.days + 1):
             day = start + timedelta(days=i)
@@ -544,7 +486,7 @@ def autopilot(request, year=None, month=None):
             'reload': True,
         }
         messages.add_message(request, messages.SUCCESS,
-                             f'Autopilot completed from {start_date} to {end_date} {log_month}')
+                             f'Autopilot completed from {start.strftime("%d %b")} to {end.strftime("%d %b")}')
         return JsonResponse(response)
     # return invalid response if already not returned data
     response = {
@@ -1116,7 +1058,6 @@ def customer_profile(request, cust_id=None):
         'page_title': 'Milk Basket - Profile',
     }
     if cust_id:
-
         context.update({
             'menu_customer': True,
             'customer_id': cust_id,

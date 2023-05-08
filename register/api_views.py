@@ -16,7 +16,8 @@ from register.models import Customer, Payment, Tenant
 from register.models import Expense
 from register.models import Income
 from register.models import Register
-from register.serializer import CustomerSerializer, DueCustomerSerializer, ExpenseSerializer, \
+from register.serializer import CustomerRegisterSerializer, CustomerSerializer, \
+    DueCustomerSerializer, ExpenseSerializer, \
     IncomeSerializer, PaidCustomerSerializer, CustomerProfileSerializer, TenantSerializer
 from register.utils import get_tenant_perf, is_last_day_of_month, get_milk_current_price, \
     is_transaction_revertible, customer_register_last_updated, get_active_month, \
@@ -40,6 +41,7 @@ class RegisterAPI():
             date_time_str = f'01/{month}/{year} 01:01:01'
             custom_month = datetime.strptime(date_time_str, '%d/%m/%Y %H:%M:%S')
         register_date = custom_month if custom_month else date.today()
+        month_year = register_date.strftime("%B, %Y")
 
         register_filter = {
             'tenant_id': request.user.id,
@@ -78,11 +80,50 @@ class RegisterAPI():
         date_list = [dt.date(register_date.year, register_date.month, day) for day in
                      range(1, days_in_month + 1)]
 
+        # Get All customers if no entry is added - will be used in autopilot mode
+        autopilot_morning_register, autopilot_evening_register = [], []
+        active_customers = Customer.objects.filter(tenant_id=request.user.id, status=1)
+        if not m_cust or not e_cust:
+            autopilot_morning_register = active_customers.filter(m_quantity__gt=0)
+            autopilot_evening_register = active_customers.filter(e_quantity__gt=0)
+
+        # Get only active customers not added on register
+        all_register = m_cust.union(e_cust)
+        active_customers_not_in_register = active_customers.exclude(
+            id__in=all_register.values('id'))
+
+        # Get last entry date
+        try:
+            last_entry_date = Register.objects.filter(tenant_id=request.user.id,
+                                                      log_date__month=register_date.month,
+                                                      log_date__year=register_date.year).latest(
+                'log_date__day')
+            last_entry_date = int(last_entry_date.log_date.strftime("%d")) + 1
+        except Register.DoesNotExist:
+            last_entry_date = 1
+
         return JsonResponse({'status': 'success',
                              'default_price': tenant.milk_price,
                              'dates': date_list,
-                             'm_register': CustomerSerializer(instance=m_cust, many=True).data,
-                             'e_register': CustomerSerializer(instance=e_cust, many=True).data,
+                             'm_register': CustomerRegisterSerializer(instance=m_cust,
+                                                                      many=True).data,
+                             'e_register': CustomerRegisterSerializer(instance=e_cust,
+                                                                      many=True).data,
+                             'register_date_month': register_date.month,
+                             'register_date_year': register_date.year,
+                             'month_year': month_year,
+                             'today_day': date.today(),
+                             'last_entry_day': date.today().replace(day=last_entry_date),
+                             'autopilot_morning_register': CustomerSerializer(
+                                 instance=autopilot_morning_register,
+                                 many=True).data if not m_cust else [],
+                             'autopilot_evening_register': CustomerSerializer(
+                                 instance=autopilot_evening_register,
+                                 many=True).data if not e_cust else [],
+                             'active_customers_not_in_register': CustomerSerializer(
+                                 instance=active_customers_not_in_register, many=True).data,
+                             'active_customers': CustomerSerializer(instance=active_customers,
+                                                                    many=True).data,
                              })
 
     @login_required()

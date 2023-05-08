@@ -195,51 +195,19 @@
 {% block content %}
   <div>
 
-  <div class="row bd-highlight mb-3">
-    <div class="col-12 col-md-6 mr-auto p-2 bd-highlight">
-      {% if active_customers_not_in_register %}
-        <button type="button" class="btn mt-2 ml-2 btn-primary" data-toggle="modal"
-                data-target="#exampleModal1"
-                data-whatever="@fat"><i class="far fa-address-book"></i> | Add New Entry
-        </button>
-      {% endif %}
-      <button type="button" class="btn mt-2 ml-2 btn-primary" data-toggle="modal"
-              data-target="#autopilot"
-              data-whatever="@fat"><i class="fa fa-plane"></i> | Auto-Pilot Mode
-      </button>
-      <select class="inline mt-2 ml-2 bd-highlight" id="effect-selector"
-              onchange="leaveChange()">
-        <option value="none">No Effect</option>
-        <option value="quantity">Show Quantity</option>
-        <option value="difference">Show Difference</option>
-      </select>
-
-    </div>
-    <div class="justify-content-end inline p-2 bd-highlight">
-      <form name="view_select_record" action="{% url 'view_select_record' %}"
-            method="post">{% csrf_token %}
-        <label for="myDate" class="col-form-label">Select Register:</label>
-        <input type="hidden" name="nav-type" value="register" id="nav">
-        <input class="inline" type="month" name="register_month" id="my-date"
-               value="{% now 'Y-m' %}">
-        <button type="submit" class="btn btn-primary">GO</button>
-      </form>
-    </div>
-  </div>
-  <h5 class="p-0 m-0 text-center">Register - {{ month_year }}</h5>
-  <hr class="mt-1">
-
-  {% if not e_register and not m_register %}
-    <div class="alert alert-primary text-center" role="alert">
-      No Register Entry to display
-    </div>
-  {% endif %}
-
   <div id="report"></div>
 
   {# React Report Starts #}
 
   <script type="text/babel">
+
+    function formatDate(log_date) {
+      return new Date(log_date).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
 
     class Register extends React.Component {
       filteredArray;
@@ -247,16 +215,455 @@
       constructor(props) {
         super(props);
         this.handler = this.handler.bind(this)
+        this.startAJAX = this.startAJAX.bind(this)
+        this.state = {
+          is_loading: true,
+          is_error: false,
+          show_tooltip: {{ show_tooltip }},
+          data: null,
+
+          showModalAddRegister: false,
+          showModalAutopilot: false,
+          ajax_loading: false
+        };
+      }
+
+      handler() {
+        this.setState({
+          someVar: 'some value'
+        })
+      }
+
+
+      openModalAddNew = (e) => {
+        this.setState({
+          showModalAddRegister: true
+        });
+      };
+      openModalAutopilot = (e) => {
+        this.setState({
+          showModalAutopilot: true
+        });
+      };
+
+
+      async startAJAX(event) {
+        event.preventDefault();
+        this.setState({ajax_loading: true});
+
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch(event.target.action, requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            if (data.reload) {
+              location.reload();
+            }
+            if (data.showmessage && !data.status) {
+              show_toast('Error', data.message, 'danger')
+
+            }
+          })
+          .catch(error => {
+            if (error) {
+              show_toast('Error', error.message, 'danger')
+            } else {
+              show_toast('Error', 'Something went wrong, we could not revert transaction', 'danger')
+            }
+          })
+        $('#autopilot').modal('hide');
+        $(".modal-backdrop").remove();
+        this.setState({
+          showModalAutopilot: false,
+          ajax_loading: false
+        })
+      };
+
+
+      async componentDidMount() {
+        try {
+          let hostname = window.location.hostname === '127.0.0.1' ? window.location.hostname + ':8000' : window.location.hostname;
+          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/register/{{ register_date_year }}/{{ register_date_month }}/";
+          const response = await fetch(url);
+          const data = await response.json();
+          this.setState({
+            data: data,
+            is_loading: false,
+          })
+        } catch (e) {
+          this.setState({
+            is_error: 'Something went wrong, please try again later. ' + e,
+            is_loading: false
+          })
+        }
+      }
+
+
+      render() {
+        const fullWidth = {
+          width: 100 + '%',
+        }
+        const halfWidth40 = {
+          width: 40 + '%',
+        }
+
+        const loadingComp = <div className="text-center m-xl-5 p-xl-5">
+          <div className="spinner-grow text-primary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-secondary spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-success spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-danger spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-warning spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-info spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-dark spinner-size-big" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+
+        return (
+          <div>
+            <div className="row bd-highlight mb-3">
+              <div className="col-12 col-md-6 mr-auto p-2 bd-highlight">
+
+                {!this.state.is_loading &&
+                  <button type="button" className="btn mt-2 ml-2 btn-primary" data-toggle="modal"
+                          data-target="#autopilotModal"
+                          onClick={() => this.openModalAutopilot()}><i
+                    className="fa fa-plane"></i> |
+                    Auto-Pilot Mode
+                  </button>}
+
+                {this.state.data && this.state.data.active_customers_not_in_register.length ?
+                  <button type="button" className="btn mt-2 ml-2 btn-primary" data-toggle="modal"
+                          data-target="#exampleModal1"
+                          onClick={() => this.openModalAddNew()}>< i
+                    className="far fa-address-book"></i> | Add New Entry
+                  </button> : null}
+
+                {!this.state.is_loading &&
+                  <select className="inline mt-2 ml-2 bd-highlight" id="effect-selector"
+                          onChange={() => leaveChange()}>
+                    <option defaultValue="none">No Effect</option>
+                    <option defaultValue="quantity">Show Quantity</option>
+                    <option defaultValue="difference">Show Difference</option>
+                  </select>}
+
+              </div>
+              <div className="justify-content-end inline p-2 bd-highlight">
+                <form name="view_select_record" action="{% url 'view_select_record' %}"
+                      method="post">
+                  <input type="hidden" name="csrfmiddlewaretoken" defaultValue="{{ csrf_token }}"/>
+                  <label htmlFor="myDate" className="col-form-label">Select Register:</label>
+                  <input type="hidden" name="nav-type" defaultValue="register" id="nav"/>
+                  <input className="inline" type="month" name="register_month" id="my-date"
+                         defaultValue="{% now 'Y-m' %}"/>
+                  <button type="submit" className="btn btn-primary">GO</button>
+                </form>
+              </div>
+            </div>
+            <h5 className="p-0 m-0 text-center">Register - {{ month_year }}</h5>
+            <hr className="mt-1"/>
+            <div className='p-0'>
+              <div>
+                {this.state.is_loading ? loadingComp
+                  : (
+                    <div>
+
+                      {this.state.is_error ?
+                        <div className="alert alert-danger text-center" role="alert">
+                          {this.state.is_error}
+                        </div> : ''}
+
+                      {this.state.data.e_register.length === 0 && this.state.data.m_register.length === 0 ?
+                        <div className="alert alert-primary text-center" role="alert">
+                          No Register Entry to Display
+                        </div> : null}
+
+                      {this.state.data.m_register.length > 0 &&
+                        <RegisterSheet page={this.state.data.m_register}
+                                       dates={this.state.data.dates}
+                                       defaultPrice={this.state.data.default_price}
+                                       title="Morning"/>}
+                      {this.state.data.e_register.length > 0 &&
+                        <RegisterSheet page={this.state.data.e_register}
+                                       dates={this.state.data.dates}
+                                       defaultPrice={this.state.data.default_price}
+                                       title="Evening"/>}
+
+
+                      {this.state.showModalAddRegister &&
+                        <div className="modal fade" id="exampleModal1" tabIndex="-1" role="dialog"
+                             aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div className="modal-dialog" role="document">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h5 className="modal-title" id="exampleModalLabel">Add new Register
+                                  Entry</h5>
+                                <button type="button" className="close" data-dismiss="modal"
+                                        aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <form name="add-new-entry" action="{% url 'view_add_entry' %}"
+                                    onSubmit={this.startAJAX} method="post">
+                                <div className="modal-body">
+                                  <input type="hidden" name="csrfmiddlewaretoken"
+                                         defaultValue="{{ csrf_token }}"/>
+                                  <input type="hidden" defaultValue="True" className="form-control"
+                                         name="add-new-entry"
+                                         id="add-new"/>
+                                  <div className="form-group">
+                                    <label htmlFor="exampleFormControlSelect1">Customer</label>
+                                    <select className="form-control" name="customer"
+                                            id="exampleFormControlSelect1">
+                                      {this.state.data.active_customers_not_in_register.map((customer, index) =>
+                                        <option key={index} value={customer.id}>
+                                          {customer.name} | &nbsp;
+                                          {customer.m_quantity &&
+                                            `${customer.m_quantity} ML
+                                            (Morning) `}
+                                          {customer.e_quantity &&
+                                            `${customer.e_quantity} ML
+                                            (Evening) `}
+                                        </option>
+                                      )}
+
+                                    </select>
+                                  </div>
+                                  <div className="form-group">
+                                    <label htmlFor="recipient-price" className="col-form-label">Price
+                                      /
+                                      L </label>
+                                    <input type="text" className="form-control" disabled
+                                           name="selling_price"
+                                           id="recipient-price"
+                                           defaultValue={this.state.data.default_price}/>
+                                  </div>
+
+                                  <div className="form-group">
+                                    <label htmlFor="myDate1"
+                                           className="col-form-label">Date:</label>
+                                    <input className="form-control" type="date" name="log_date"
+                                           id="my-date-1"
+                                           min="{% now 'Y-m-01' %}" max="{{ max_date }}"
+                                           defaultValue="{% now 'Y-m-d' %}"/></div>
+                                </div>
+                                {this.state.ajax_loading &&
+                                  <div className="progress">
+                                    <div
+                                      className="progress-bar progress-bar-striped progress-bar-animated"
+                                      role="progressbar"
+                                      aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                                      style={fullWidth}></div>
+                                  </div>}
+                                <div className="modal-footer">
+                                  <button type="button" className="btn btn-secondary"
+                                          data-dismiss="modal">Close
+                                  </button>
+
+                                  <button type="submit" className="btn btn-primary" autoFocus>
+                                    {this.state.ajax_loading ? <span><i
+                                      className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Add Entry'}
+                                  </button>
+
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      {this.state.showModalAutopilot &&
+                        <div className="modal fade" id="autopilotModal" tabIndex="-1" role="dialog"
+                             aria-labelledby="exampleModalLabel" aria-hidden="true">
+                          <div className="modal-dialog modal-xl autopilot-modal-size-mobile"
+                               role="document">
+                            <div className="modal-content">
+                              <div className="modal-header">
+                                <h4 className="modal-title">Autopilot Mode</h4>
+                                <button type="button" className="close"
+                                        data-dismiss="modal">&times;</button>
+                              </div>
+
+                              {!this.state.ajax_loading ?
+                                <form id="auto-pilot-form" action="{% url 'view_autopilot' %}"
+                                      onSubmit={this.startAJAX} method="post">
+                                  <div className="modal-body">
+                                    <input type="hidden" name="csrfmiddlewaretoken"
+                                           value="{{ csrf_token }}"/>
+                                    <input type="hidden" className="form-control" name="log_month"
+                                           id="log_month"
+                                           value="{{ month_year }}"/>
+                                    <div className="row justify-content-center">
+                                      <div className="col-sm-3">
+                                        <div className="form-group">
+                                          <select name="start"
+                                                  defaultValue={formatDate(this.state.data.last_entry_day)}
+                                                  className="form-control custom-select-lg">
+                                            {this.state.data.dates.map((day, index) =>
+                                              <option key={index}
+                                                      value={formatDate(day)}
+                                              >{formatDate(day)}</option>
+                                            )}
+                                          </select>
+                                        </div>
+                                      </div>
+                                      <h3> to </h3>
+                                      <div className="col-sm-3">
+                                        <div className="form-group">
+                                          <select name="end"
+                                                  defaultValue={formatDate(this.state.data.today_day)}
+                                                  className="form-control custom-select-lg">
+                                            {this.state.data.dates.map((day, index) =>
+                                              <option key={index}
+                                                      value={formatDate(day)}
+                                              >{formatDate(day)}</option>
+                                            )}
+                                          </select>
+                                        </div>
+                                      </div>
+
+                                    </div>
+                                    <div className="row">
+
+                                      {this.state.data.m_register.length ? (
+                                        <div className="col-6">
+                                          <h5 className="mb-4">Morning Register</h5>
+                                          {this.state.data.m_register.map((entry, index) => {
+                                            return entry.status && (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile">{entry.name} | {entry.m_quantity} ML
+                                                <input name={`${entry.id}-morning`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <div className="col-6">
+                                          <h5 className="mb-4 text-success">Add Customer to
+                                            Morning Register</h5>
+                                          {this.state.data.autopilot_morning_register.map((entry, index) => {
+                                            return (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile text-success">
+                                                {entry.name} | {entry.m_quantity} ML
+                                                <input name={`${entry.id}-morning`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+
+                                      {this.state.data.e_register.length ? (
+                                        <div className="col-6">
+                                          <h5 className="mb-4">Evening Register</h5>
+                                          {this.state.data.e_register.map((entry, index) => {
+                                            return entry.status && (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile">{entry.name} | {entry.e_quantity} ML
+                                                <input name={`${entry.id}-evening`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <div className="col-6">
+                                          <h5 className="mb-4 text-success">Add Customer to
+                                            Evening Register</h5>
+                                          {this.state.data.autopilot_evening_register.map((entry, index) => {
+                                            return (
+                                              <label key={index}
+                                                     className="container autopilot-modal-content-mobile text-success">
+                                                {entry.name} | {entry.e_quantity} ML
+                                                <input name={`${entry.id}-evening`}
+                                                       type="checkbox" defaultChecked="checked"/>
+                                                <span className="checkmark"></span>
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                    {this.state.data.active_customers.length ?
+                                      <button type="submit"
+                                              className="btn btn-primary btn-lg btn-block"
+                                              autoFocus>Add Bulk Entry
+                                      </button>
+                                      :
+                                      <h4 className="text-danger text-center"> Please <a
+                                        href="{% url 'view_customers' %}">add
+                                        Customers</a> before you can add to register</h4>
+                                    }
+
+                                  </div>
+                                </form>
+
+                                :
+                                <img className="pilot-img" style={halfWidth40} id="auto-img"
+                                     src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
+                                     alt="HTML5 Icon"/>}
+                              <br/>
+                              {this.state.ajax_loading &&
+                                <div className="progress">
+                                  <div
+                                    className="progress-bar progress-bar-striped progress-bar-animated"
+                                    role="progressbar"
+                                    aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                                    style={fullWidth}></div>
+                                </div>}
+                              <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary btn-block"
+                                        data-dismiss="modal">Close
+                                </button>
+                              </div>
+
+                            </div>
+                          </div>
+                        </div>}
+
+
+                      <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
+                    </div>
+                  )}
+              </div>
+            </div>
+
+          </div>
+        );
+      }
+    }
+
+    class RegisterSheet extends React.Component {
+      constructor(props) {
+        super(props);
+        this.handler = this.handler.bind(this)
         this.openModal = this.openModal.bind(this);
         this.markAttendance = this.markAttendance.bind(this);
 
         this.state = {
-          m_register: null,
-          e_register: null,
-          is_loading: true,
-          dates: null,
-          default_price: null,
-          is_error: false,
+          registerPage: this.props.page,
+          dates: this.props.dates,
+          default_price: this.props.defaultPrice,
           show_tooltip: {{ show_tooltip }},
 
           att_customer_id: '',
@@ -314,9 +721,7 @@
         await fetch('{% url 'view_add_entry' %}', requestOptions)
           .then(response => response.json())
           .then(data => {
-            const current_state = data.entry.schedule.startsWith('morning')
-              ? this.state.m_register
-              : this.state.e_register;
+            const current_state = this.state.registerPage
 
             // Update state
             const updatedRegister = current_state.map((customer) => {
@@ -344,11 +749,8 @@
               return customer;
             });
 
-            if (data.entry.schedule.startsWith('morning')) {
-              this.setState({m_register: updatedRegister});
-            } else if (data.entry.schedule.startsWith('evening')) {
-              this.setState({e_register: updatedRegister});
-            }
+            this.setState({registerPage: updatedRegister});
+
             show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success');
           })
           .catch(error => {
@@ -358,36 +760,13 @@
               show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
             }
           })
-        $('#autopilotModal').modal('hide');
+        $('#singleEntryModal').modal('hide');
         leaveChange()
         this.setState({
           show_modal: false,
           ajax_loading: false
         })
       }
-
-      async componentDidMount() {
-        try {
-          let hostname = window.location.hostname === '127.0.0.1' ? window.location.hostname + ':8000' : window.location.hostname;
-          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/register/{{ register_date_year }}/{{ register_date_month }}/";
-          const response = await fetch(url);
-          const data = await response.json();
-          this.setState({
-            m_register: data.m_register,
-            e_register: data.e_register,
-            dates: data.dates,
-            default_price: data.default_price,
-            is_loading: false,
-          })
-
-        } catch (e) {
-          this.setState({
-            is_error: 'Something went wrong, please try again later. ' + e,
-            is_loading: false
-          })
-        }
-      }
-
 
       render() {
         const stickyHeader = {
@@ -400,163 +779,68 @@
           width: 100 + '%',
         }
 
-        const loadingComp = <div className="text-center m-xl-5 p-xl-5">
-          <div className="spinner-grow text-primary spinner-size-big" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-secondary spinner-size-big" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-success spinner-size-big" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-danger spinner-size-big" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-warning spinner-size-big" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-info spinner-size-big" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-dark spinner-size-big" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
-
         return (
           <div>
-            <div className='p-0'>
-              <div>
-                {this.state.is_loading ? loadingComp
-                  : (
-                    <div>
+            <div>
+              <h3 className="text-center mt-2">{this.props.title} Register</h3>
+              <div className="overflow-auto">
+                <table className='table table-hover'>
+                  <tbody>
+                  {this.state.registerPage.map((customer) => (
+                    <tr key={customer.id + 'morning'}>
+                      <td
+                        className='sticky text-nowrap px-1 font-weight-bold vertical-center'
+                        style={stickyHeader}>
+                        <a href={`profile/${customer.id}`}>{customer.name}</a>
+                      </td>
+                      {this.props.dates.map((date, i) => {
+                        const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
+                        const current_obj = {
+                          entry: filteredArray,
+                          date,
+                          customer,
+                          schedule: this.props.title,
+                        };
+                        const filteredArrayLength = filteredArray.length;
+                        const filteredArraySchedule = filteredArrayLength ? filteredArray[0].schedule : '';
+                        const isCalYes = filteredArrayLength && filteredArraySchedule.endsWith('yes');
 
-                      {this.state.is_error ?
-                        <div className="alert alert-danger text-center" role="alert">
-                          {this.state.is_error}
-                        </div> : ''}
-
-                      {this.state.m_register.length ? (
-                        <div>
-                          <h3 className="text-center mt-2">Morning Register</h3>
-                          <div className="overflow-auto">
-                            <table className='table table-hover'>
-                              <tbody>
-                              {this.state.m_register.map((customer) => (
-                                <tr key={customer.id + 'morning'}>
-                                  <td
-                                    className='sticky text-nowrap px-1 font-weight-bold vertical-center'
-                                    style={stickyHeader}>
-                                    <a href={`profile/${customer.id}`}>{customer.name}</a>
-                                  </td>
-                                  {this.state.dates.map((date, i) => {
-                                    const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
-                                    const current_obj = {
-                                      entry: filteredArray,
-                                      date,
-                                      customer,
-                                      schedule: 'Morning',
-                                    };
-                                    const filteredArrayLength = filteredArray.length;
-                                    const filteredArraySchedule = filteredArrayLength ? filteredArray[0].schedule : '';
-                                    const isCalYes = filteredArrayLength && filteredArraySchedule.endsWith('yes');
-
-                                    return (
-                                      <td key={`${customer.id}_morning_cel_${i + 1}`}
-                                          className={`text-center cel-tab ${filteredArray.length ? isCalYes ? 'cal-yes' : 'cal-no' : ''}`}
-                                          data-toggle={this.state.show_tooltip && filteredArrayLength && 'tooltip'}
-                                          data-placement="top"
-                                          data-original-title={`${customer.name} - ${isCalYes ? filteredArray[0].quantity : 'Absent'}`}>
-                                        <button type="button"
-                                                className={`btn register-button q-${isCalYes ? filteredArray[0].quantity : ''}`}
-                                                data-toggle="modal"
-                                                data-target="#autopilotModal"
-                                                onClick={() => this.openModal(current_obj)}>
-                                          {i + 1}
-                                          <span
-                                            className="milk-quantity text-secondary small d-none">
+                        return (
+                          <td key={`${customer.id}_${this.props.title}_cel_${i + 1}`}
+                              className={`text-center cel-tab ${filteredArray.length ? isCalYes ? 'cal-yes' : 'cal-no' : ''}`}
+                              data-toggle={this.state.show_tooltip && filteredArrayLength && 'tooltip'}
+                              data-placement="top"
+                              data-original-title={`${customer.name} - ${isCalYes ? filteredArray[0].quantity : 'Absent'}`}>
+                            <button type="button"
+                                    className={`btn register-button q-${isCalYes ? filteredArray[0].quantity : ''}`}
+                                    data-toggle="modal"
+                                    data-target="#singleEntryModal"
+                                    onClick={() => this.openModal(current_obj)}>
+                              {i + 1}
+                              <span
+                                className="milk-quantity text-secondary small d-none">
                                             {filteredArrayLength ? isCalYes ? filteredArray[0].quantity : 'Absent' : ''}
                                           </span>
-                                        </button>
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
-                              ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      ) : ''}
-                      {this.state.e_register.length ? (
-                        <div>
-                          <h3 className="text-center mt-2">Evening Register</h3>
-                          <div className="overflow-auto">
-                            <table className='table table-hover'>
-                              <tbody>
-                              {this.state.e_register.map((customer) => (
-                                <tr key={customer.id + 'evening'}>
-                                  <td
-                                    className='sticky text-nowrap px-1 font-weight-bold vertical-center'
-                                    style={stickyHeader}>
-                                    <a href={`profile/${customer.id}`}>{customer.name}</a>
-                                  </td>
-                                  {this.state.dates.map((date, i) => {
-                                    const filteredArray = customer.register_entry.filter((obj) => obj.log_date.substring(0, 10) === date);
-                                    const current_obj = {
-                                      entry: filteredArray,
-                                      date,
-                                      customer,
-                                      schedule: 'Evening',
-                                    };
-                                    const filteredArrayLength = filteredArray.length;
-                                    const filteredArraySchedule = filteredArrayLength ? filteredArray[0].schedule : '';
-                                    const isCalYes = filteredArrayLength && filteredArraySchedule.endsWith('yes');
-
-                                    return (
-                                      <td key={`${customer.id}_evening_cel_${i + 1}`}
-                                          className={`text-center cel-tab ${filteredArray.length ? isCalYes ? 'cal-yes' : 'cal-no' : ''}`}
-                                          data-toggle={this.state.show_tooltip && filteredArrayLength && 'tooltip'}
-                                          data-placement="top"
-                                          data-original-title={`${customer.name} - ${isCalYes ? filteredArray[0].quantity : 'Absent'}`}>
-                                        <button type="button"
-                                                className={`btn register-button q-${isCalYes ? filteredArray[0].quantity : ''}`}
-                                                data-toggle="modal"
-                                                data-target="#autopilotModal"
-                                                onClick={() => this.openModal(current_obj)}>
-                                          {i + 1}
-                                          <span
-                                            className="milk-quantity text-secondary small d-none">
-                                            {filteredArrayLength ? isCalYes ? filteredArray[0].quantity : 'Absent' : ''}
-                                          </span>
-                                        </button>
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
-                              ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      ) : ''}
-
-
-                      <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
-                    </div>
-                  )}
+                            </button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            {this.state.show_modal ?
-              <div className="modal fade" id="autopilotModal" tabIndex="-1" role="dialog"
+
+            {this.state.show_modal &&
+              <div className="modal fade" id="singleEntryModal" tabIndex="-1" role="dialog"
                    aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div className="modal-dialog" role="document">
                   <div className="modal-content">
                     <div className="modal-header">
-                      <h5 className="modal-title"
-                          id="exampleModalLabel">{this.state.att_name} - {this.state.att_log_date} - {this.state.att_schedule}</h5>
+                      <h6 className="modal-title"
+                          id="exampleModalLabel">{this.state.att_name} - {this.state.att_log_date} - {this.state.att_schedule}</h6>
                       <button type="button" className="close" data-dismiss="modal"
                               aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -625,9 +909,7 @@
                     </form>
                   </div>
                 </div>
-              </div> : ''}
-
-
+              </div>}
           </div>
         );
       }
@@ -641,196 +923,6 @@
 
 
   {#  React Component ends here #}
-  {# Add new Register Modal #}
-  <div class="modal fade" id="exampleModal1" tabindex="-1" role="dialog"
-       aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Add new Register Entry</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form name="add-new-entry" action="{% url 'view_add_entry' %}"
-              method="post">{% csrf_token %}
-          <div class="modal-body">
-            <input type="hidden" value='True' class="form-control" name="add-new-entry"
-                   id="add-new">
-            <div class="form-group">
-              <label for="exampleFormControlSelect1">Customer</label>
-              <select class="form-control" name="customer" id="exampleFormControlSelect1">
-                {% for customer in active_customers_not_in_register %}
-                  <option value="{{ customer.id }}">{{ customer.name }} |
-                    {% if  customer.m_quantity %}{{ customer.m_quantity }} ML
-                      (Morning). {% endif %}
-                    {% if  customer.e_quantity %}{{ customer.e_quantity }} ML
-                      (Evening). {% endif %}
-                  </option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="recipient-price" class="col-form-label">Price / L </label>
-              <input type="text" class="form-control" disabled name="selling_price"
-                     id="recipient-price" value="{{ default_price }}">
-            </div>
-
-            <div class="form-group">
-              <label for="myDate1" class="col-form-label">Date:</label>
-              <input class="form-control" type="date" name="log_date" id="my-date-1"
-                     min="{% now 'Y-m-01' %}" max="{{ max_date }}"
-                     value="{% now 'Y-m-d' %}"></div>
-          </div>
-          <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                 aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-                 style="width: 100%"></div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            {% if active_customers %}
-              <button type="submit" class="btn btn-primary" autofocus>Add Entry</button>
-            {% else %}
-              <h5 class="text-danger text-center"> Please <a href="{% url 'view_customers' %}">add
-                Customers</a> before you can add to register</h5>
-            {% endif %}
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  {#  Autopilot modal#}
-  <!-- The Modal -->
-  <div class="modal fade" id="autopilot">
-    <div class="modal-dialog modal-xl autopilot-modal-size-mobile">
-      <div class="modal-content">
-
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <h4 class="modal-title">Autopilot Mode</h4>
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-        </div>
-
-        <!-- Modal body -->
-
-        <form id="auto-pilot-form" action="{% url 'view_autopilot' %}"
-              method="post">{% csrf_token %}
-          <div class="modal-body">
-            <input type="hidden" class="form-control" name="log_month" id="log_month"
-                   value="{{ month_year }}">
-            <div class="row justify-content-center">
-              <div class="col-sm-3">
-                <div class="form-group">
-                  <select name="start" class="form-control custom-select-lg">
-                    {% for day in days %}
-                      <option {% if day == last_entry_day %} selected {% endif %}
-                                                             value="{{ day }}">{{ day }} {{ month_year }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <h3> to </h3>
-              <div class="col-sm-3">
-                <div class="form-group">
-                  <select name="end" class="form-control custom-select-lg">
-                    {% for day in days %}
-                      <option {% if day == today_day %} selected {% endif %}
-                                                        value="{{ day }}">{{ day }} {{ month_year }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-
-            </div>
-            <div class="row">
-              <div class="col-6">
-
-                {% if m_register %}
-                  <h3 class="mb-4">Morning Register</h3>
-                  {% for entry in m_register %}
-                    {% if entry.status %}
-                      <label
-                       class="container autopilot-modal-content-mobile">{{ entry.name }}
-                        | {{ entry.m_quantity }} ML
-                        <input name="{{ entry.id }}-morning" type="checkbox"
-                               checked="checked">
-                        <span class="checkmark"></span>
-                      </label>
-                    {% endif %}
-                  {% endfor %}
-                {% else %}
-                  <h3 class="mb-4 text-success">Add Customer to Morning Register</h3>
-                  {% for entry in autopilot_morning_register %}
-                    <label
-                     class="container autopilot-modal-content-mobile text-success">{{ entry.name }}
-                      | {{ entry.m_quantity }} ML
-                      <input name="{{ entry.id }}-morning" type="checkbox"
-                             checked="checked">
-                      <span class="checkmark"></span>
-                    </label>
-                  {% endfor %}
-                {% endif %}
-              </div>
-              <div class="col-6">
-                {% if e_register %}
-                  <h3 class="mb-4">Evening Register</h3>
-                  {% for entry in e_register %}
-                    {% if entry.status %}
-                      <label
-                       class="container autopilot-modal-content-mobile">{{ entry.name }}
-                        | {{ entry.e_quantity }} ML
-                        <input name="{{ entry.id }}-evening" type="checkbox"
-                               checked="checked">
-                        <span class="checkmark"></span>
-                      </label>
-                    {% endif %}
-                  {% endfor %}
-                {% else %}
-                  <h3 class="mb-4 text-success">Add Customer to Evening Register</h3>
-                  {% for entry in autopilot_evening_register %}
-                    <label
-                     class="container autopilot-modal-content-mobile text-success">{{ entry.name }}
-                      | {{ entry.e_quantity }} ML
-                      <input name="{{ entry.id }}-evening" type="checkbox"
-                             checked="checked">
-                      <span class="checkmark"></span>
-                    </label>
-                  {% endfor %}
-                {% endif %}
-              </div>
-            </div>
-            {% if active_customers %}
-              <button type="submit" class="btn btn-primary btn-lg btn-block" autofocus>Add Bulk
-                Entry
-              </button>
-            {% else %}
-              <h4 class="text-danger text-center"> Please <a href="{% url 'view_customers' %}">add
-                Customers</a> before you can add to register</h4>
-            {% endif %}
-
-          </div>
-        </form>
-
-        <img class="pilot-img" style="width:40%" id="auto-img"
-             src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
-             alt="HTML5 Icon">
-        <br>
-        <div class="progress">
-          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-               aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-               style="width: 100%"></div>
-        </div>
-        <!-- Modal footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Close
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
 
   <script>
     function leaveChange() {
@@ -863,11 +955,11 @@
       const divsToHide = document.querySelectorAll(".milk-quantity");
       const length = divsToHide.length;
 
-      if (selectedValue === "none") {
+      if (selectedValue === "No Effect") {
         for (let i = 0; i < length; i++) {
           divsToHide[i].style.display = "none";
         }
-      } else if (selectedValue === "quantity") {
+      } else if (selectedValue === "Show Quantity") {
         for (let i = 0; i < length; i++) {
           const divToHide = divsToHide[i];
           divToHide.style.display = "block";
@@ -883,7 +975,7 @@
             element.style.backgroundColor = 'white';
           }
         });
-      } else if (selectedValue === "difference") {
+      } else if (selectedValue === "Show Difference") {
         for (let i = 0; i < length; i++) {
           const divToHide = divsToHide[i];
           divToHide.style.display = "block";
@@ -903,53 +995,6 @@
 
     $('.modal').on('shown.bs.modal', function () {
       $(this).find('[autofocus]').focus();
-    });
-
-    {#    Ajax for register entry #}
-    $(document).ready(function () {
-      $('.modal form').on('submit', function (event) {
-        $(".progress").show();
-        $(".modal-footer").hide();
-        $("#auto-pilot-form").hide();
-        $("#auto-img").show();
-
-
-        event.preventDefault()
-        $.post($(this).attr('action'), $(this).serialize(), function (data) {
-          console.log(data)
-          if (data.return === true) {
-            // Success code here
-            if (data.reload === true) {
-              location.reload()
-            }
-            if (data.quantity != undefined) {
-              show_toast('Entry Saved', `${data.quantity} saved for ${data.customer_name} on ${data.logDate}`, 'success')
-            }
-          } else {
-            // Error code here
-            $('#autopilot').modal('hide');
-            $("#auto-img").hide();
-            $(".modal-backdrop").remove();
-            $(".progress").hide();
-            $(".modal-footer").show();
-            $("#auto-pilot-form").show();
-            if (data.showmessage === true) {
-              show_toast('Error', data.message, 'danger')
-            } else {
-              show_toast('Error', 'Something went wrong, we could not add register entry', 'danger')
-            }
-          }
-        }, 'json')
-      })
-
-      $("body").tooltip({
-        selector: "[data-toggle='tooltip']",
-        container: "body"
-      })
-
-      $(".progress").hide();
-      $("#auto-img").hide();
-
     });
 
   </script>

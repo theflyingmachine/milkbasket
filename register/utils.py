@@ -234,7 +234,6 @@ def send_sms_api(contact, sms_text, template_id):
                    'message': sms_text,
                    'template_id': template_id,
                    }
-        print(payload)
         response = requests.post(url, data=payload)
         logger.info(response.text)
     return response
