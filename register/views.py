@@ -792,6 +792,14 @@ def landing(request):
             username = username.lower()
             auth_user = authenticate(username=username, password=password)
             if auth_user:
+                if auth_user.is_superuser:
+                    # Redirect to setting for Admin user
+                    login(request, auth_user)
+                    logger.info(
+                        'Admin Login Accepted. IP:{2}'.format(username, password,
+                                                              get_client_ip(request)))
+                    return redirect('setting')
+
                 tenant = Tenant.objects.get(tenant_id=auth_user.id)
                 request.session['seller_id'] = auth_user.id
 
