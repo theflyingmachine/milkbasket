@@ -659,6 +659,7 @@
         this.openModal = this.openModal.bind(this);
         this.markAttendance = this.markAttendance.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.onRequestClose = this.onRequestClose.bind(this);
 
         this.state = {
           registerPage: this.props.page,
@@ -687,13 +688,12 @@
       }
 
       openModal(obj) {
-        const {customer, entry, schedule} = obj;
-        const defaultQuantity = schedule === 'Morning' ? customer.m_quantity : schedule === 'Evening' ? customer.e_quantity : null;
-        const options = {day: 'numeric', month: 'long', year: 'numeric'};
-        const formattedDate = new Date(obj.date).toLocaleDateString('en-US', options);
-        const dateArr = formattedDate.split(' ');
-        const day = dateArr[1].substring(0, 3);
-
+        let {customer, entry, schedule} = obj;
+        let defaultQuantity = schedule === 'Morning' ? customer.m_quantity : schedule === 'Evening' ? customer.e_quantity : null;
+        let options = {day: 'numeric', month: 'long', year: 'numeric'};
+        let formattedDate = new Date(obj.date).toLocaleDateString('en-US', options);
+        let dateArr = formattedDate.split(' ');
+        let day = dateArr[1].substring(0, 3);
         this.setState({
           att_customer_id: customer.id,
           att_name: customer.name,
@@ -712,6 +712,12 @@
           this.setState({att_attendance: target.value > 0})
         else if (target.type === 'number')
           this.setState({att_quantity: target.value})
+      }
+
+      onRequestClose() {
+        this.setState({
+          show_modal: false
+        });
       }
 
       async markAttendance(event) {
@@ -795,7 +801,7 @@
                 <table className='table table-hover'>
                   <tbody>
                   {this.state.registerPage.map((customer) => (
-                    <tr key={customer.id + 'morning'}>
+                    <tr key={customer.id}>
                       <td
                         className='sticky text-nowrap px-1 font-weight-bold vertical-center'
                         style={stickyHeader}>
@@ -809,9 +815,9 @@
                           customer,
                           schedule: this.props.title,
                         };
-                        const filteredArrayLength = filteredArray.length;
-                        const filteredArraySchedule = filteredArrayLength ? filteredArray[0].schedule : '';
-                        const isCalYes = filteredArrayLength && filteredArraySchedule.endsWith('yes');
+                        let filteredArrayLength = filteredArray.length;
+                        let filteredArraySchedule = filteredArrayLength ? filteredArray[0].schedule : '';
+                        let isCalYes = filteredArrayLength && filteredArraySchedule.endsWith('yes');
 
                         return (
                           <td key={`${customer.id}_${this.props.title}_cel_${i + 1}`}
@@ -842,9 +848,11 @@
 
 
             {this.state.show_modal &&
-              <div className="modal fade" id="singleEntryModal" tabIndex="-1" role="dialog"
+              <div key={this.state.att_customer_id + '_' + this.state.att_schedule}
+                   onClick={this.onRequestClose} className="modal fade" id="singleEntryModal"
+                   tabIndex="-1" role="dialog"
                    aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog" role="document">
+                <div className="modal-dialog" onClick={(e) => e.stopPropagation()} role="document">
                   <div className="modal-content">
                     <div className="modal-header">
                       <h4 className="modal-title"
@@ -909,7 +917,7 @@
                       </div>
                       <div className="modal-footer">
                         <button type="button" className="btn btn-secondary"
-                                data-dismiss="modal">Close
+                                onClick={this.onRequestClose} data-dismiss="modal">Close
                         </button>
                         <button type="submit" className="btn btn-primary"
                                 disabled={this.state.ajax_loading} autoFocus>
