@@ -505,7 +505,7 @@ def get_customer_due_amount_by_month(request, customer_id=None):
 
 
 def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_number=None):
-    url = f"https://graph.facebook.com/v13.0/{WA_NUMBER_ID}/messages"
+    url = f"https://graph.facebook.com/v16.0/{WA_NUMBER_ID}/messages"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {WA_TOKEN}",

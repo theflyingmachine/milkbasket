@@ -26,8 +26,8 @@ from django.views.generic import View
 
 from customer.models import WhatsAppMessage, LoginOTP
 from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
-from register.constant import DUE_TEMPLATE_ID, WA_DUE_MESSAGE, WA_DUE_MESSAGE_TEMPLATE, \
-    SMS_DUE_MESSAGE
+from register.constant import DUE_TEMPLATE_ID, WA_DUE_MESSAGE, \
+    SMS_DUE_MESSAGE, WA_DUE_MESSAGE_TEMPLATE_V2
 from register.forms import CustomerForm
 from register.forms import RegisterForm
 from register.models import Balance
@@ -1211,14 +1211,14 @@ def broadcast_send(request, cust_id=None):
         cust_number = get_customer_contact(request, cust_id)
         sms_body = SMS_DUE_MESSAGE.format(due[0]['name'], due[0]['due_month'],
                                           due[0]['to_be_paid'])
-        wa_body = WA_DUE_MESSAGE_TEMPLATE
+        wa_body = WA_DUE_MESSAGE_TEMPLATE_V2
         wa_body['to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{cust_number}"
         wa_body['template']['components'][0]['parameters'][0]['text'] = due[0]['to_be_paid']
         wa_body['template']['components'][1]['parameters'][0]['text'] = due[0]['name']
         wa_body['template']['components'][1]['parameters'][1]['text'] = due[0]['to_be_paid']
         wa_body['template']['components'][1]['parameters'][2]['text'] = due[0]['due_month']
-        wa_body['template']['components'][1]['parameters'][3][
-            'text'] = f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}"
+        wa_body['template']['components'][2]['parameters'][0]['text'] = bill.get('bill_number')
+
         wa_message = WA_DUE_MESSAGE.format(due[0]['name'], due[0]['to_be_paid'],
                                            due[0]['due_month'],
                                            f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}")
