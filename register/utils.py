@@ -28,7 +28,7 @@ from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN, DEV_NUMBER, RUN
 from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
-from register.constant import WA_PAYMENT_MESSAGE, WA_PAYMENT_MESSAGE_TEMPLATE
+from register.constant import WA_PAYMENT_MESSAGE, WA_PAYMENT_MESSAGE_TEMPLATE_V2
 from register.models import Balance, Payment
 from register.models import Bill
 from register.models import Customer
@@ -512,6 +512,7 @@ def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_nu
     }
     data = wa_body
     response = requests.post(url, headers=headers, json=data)
+    resp = {}
     if response.status_code == 200:
         resp = response.json()
         message_id = resp['messages'][0]['id']
@@ -537,7 +538,7 @@ def send_whatsapp_message(wa_body, wa_message, route=None, cust_id=None, cust_nu
             'Sending WhatsApp Message Failed. Cust_ID:{0} payload_to:{1} response:{2} payload:{3}'.format(
                 cust_id, cust_number, response.json(), wa_body))
 
-    return response.status_code == 200
+    return resp
 
 
 def get_whatsapp_media_by_id(media_id):
@@ -563,12 +564,12 @@ def get_customer_contact(request, cust_id):
 def send_wa_payment_notification(cust_number, cust_name, payment_amount, payment_time,
                                  transaction_number):
     """ Send WA notification for Payment received """
-    wa_body = WA_PAYMENT_MESSAGE_TEMPLATE
+    wa_body = WA_PAYMENT_MESSAGE_TEMPLATE_V2
     wa_body['to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{cust_number}"
-    wa_body['template']['components'][0]['parameters'][0]['text'] = cust_name
-    wa_body['template']['components'][0]['parameters'][1]['text'] = payment_amount
-    wa_body['template']['components'][0]['parameters'][2]['text'] = payment_time
-    wa_body['template']['components'][0]['parameters'][3]['text'] = transaction_number
+    wa_body['template']['components'][1]['parameters'][0]['text'] = cust_name
+    wa_body['template']['components'][1]['parameters'][1]['text'] = payment_amount
+    wa_body['template']['components'][1]['parameters'][2]['text'] = payment_time
+    wa_body['template']['components'][1]['parameters'][3]['text'] = transaction_number
     wa_message = WA_PAYMENT_MESSAGE.format(cust_name, payment_amount, payment_time,
                                            transaction_number)
     return send_whatsapp_message(wa_body, wa_message)
