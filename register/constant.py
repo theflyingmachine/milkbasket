@@ -75,7 +75,7 @@ WA_PAYMENT_MESSAGE_TEMPLATE_V2 = {
                     {
                         "type": "image",
                         "image": {
-                            "link": "https://cyberboy.in/repo/paid-img.png"
+                            "link": "https://milk.cyberboy.in/static/bill/paid_banner_v1.png"
                         }
                     }
                 ]
@@ -229,7 +229,7 @@ WA_DUE_MESSAGE_TEMPLATE_V3 = {
                     {
                         "type": "image",
                         "image": {
-                            "link": "https://cyberboy.in/repo/due-img.png"
+                            "link": "https://milk.cyberboy.in/static/bill/due_banner_v1.png"
                         }
                     }
                 ]

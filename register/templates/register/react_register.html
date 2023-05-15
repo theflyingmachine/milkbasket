@@ -1,6 +1,7 @@
 {% include "register/header.html" %}
 
 {# PROD Bundle #}
+{% load static %}
 <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
 
@@ -190,6 +191,15 @@
         border-color: #FFE6B9;
         border-width: medium;
     }
+
+    .auto-visible {
+        display: block;
+    }
+
+    .auto-hidden {
+        display: none;
+    }
+
 </style>
 
 {% block content %}
@@ -617,10 +627,12 @@
                                   </div>
                                 </form>
 
-                                :
-                                <img className="pilot-img" style={halfWidth40} id="auto-img"
-                                     src="https://assets.website-files.com/5740ed60762794412692d919/5ea8ce7f30c7f0aeb43c2fc4_Advertising-Services-3.gif"
-                                     alt="HTML5 Icon"/>}
+                                : null}
+                              <img
+                                className={`pilot-img ${this.state.ajax_loading ? 'auto-visible' : 'auto-hidden'}`}
+                                style={halfWidth40} id="auto-img"
+                                src="{% static "/autopilot-progress.gif" %}"
+                                alt="AutoPilot in Progress"/>
                               <br/>
                               {this.state.ajax_loading &&
                                 <div className="progress">
