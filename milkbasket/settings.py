@@ -39,7 +39,9 @@ ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1', '6c98-223-228-236-15.ngrok.io'
 LOGIN_URL = reverse_lazy('landing')
 
 # Application definition
+import sys
 
+sys.modules['fontawesome_free'] = __import__('fontawesome-free')
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -50,7 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'mathfilters',
     'maintenance_mode',
-    'fontawesome-free',
+    'fontawesome_free',
     'register',
     'bill',
     'customer',

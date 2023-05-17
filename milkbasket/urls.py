@@ -13,18 +13,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf.urls import url
 from django.contrib import admin
 from django.urls import include
-from django.urls import path
+from django.urls import re_path
+
+# admin.site.__class__ = OTPAdminSite
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    url(r'', include('register.urls')),
-    url(r'^bill/', include('bill.urls')),
-    url(r'^milkbasket/', include('register.urls')),
-    url(r'^customer/', include('customer.urls')),
-    url(r'^maintenance-mode/', include('maintenance_mode.urls')),
+    re_path('admin/', admin.site.urls),
+    re_path(r'', include('register.urls')),
+    re_path(r'^bill/', include('bill.urls')),
+    re_path(r'^milkbasket/', include('register.urls')),
+    re_path(r'^customer/', include('customer.urls')),
+    re_path(r'^maintenance-mode/', include('maintenance_mode.urls')),
 
 ]
 # Custom Error Handlers
