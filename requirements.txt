@@ -6,7 +6,6 @@ date-range==0.0.1
 dateutils==0.6.11
 dj-database-url==0.5.0
 Django==4.2.1
-django-mathfilters==1.0.0
 djangorestframework==3.14.0
 dnspython==2.0.0
 future==0.18.2

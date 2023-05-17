@@ -31,7 +31,7 @@
   </div>
   <h2 class="pt-2 text-center">Income and Expenses - {{ month_year }}</h2>
   <hr>
-  {% load mathfilters %}
+  {% load custom_filters %}
   <div class="p-0 mb-5">
     <div class="row justify-content-center">
       {% if expenses or due_customer or paid_customer or income %}
