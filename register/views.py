@@ -13,6 +13,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Sum, Q
@@ -23,6 +24,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import View
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from customer.models import WhatsAppMessage, LoginOTP
 from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
@@ -792,18 +794,50 @@ def landing(request):
             username = username.lower()
             auth_user = authenticate(username=username, password=password)
             if auth_user:
+                request.session['seller_id'] = auth_user.id
                 if auth_user.is_superuser:
-                    # Redirect to setting for Admin user
-                    login(request, auth_user)
-                    logger.info(
-                        'Admin Login Accepted. IP:{2}'.format(username, password,
-                                                              get_client_ip(request)))
-                    return redirect('setting')
+                    # Redirect to TOTO page for Admin users
+                    request.session['is_verified_superuser'] = auth_user.id
+                    context.update({'request_otp': 1,
+                                    'remaining_attempt': 3,
+                                    'current_username': username})
+                    return render(request, template, context)
 
                 tenant = Tenant.objects.get(tenant_id=auth_user.id)
-                request.session['seller_id'] = auth_user.id
 
         otp_password = request.POST.get("otp_password")
+        superuser_id = request.session.get('is_verified_superuser', None)
+        if otp_password and superuser_id is not None:
+            # Verify TOTP for Supper user
+            auth_user = User.objects.get(id=superuser_id)
+            try:  # Check if the TOTP is configured
+                totp_device = TOTPDevice.objects.get(user=auth_user)
+            except TOTPDevice.DoesNotExist:
+                context.update({
+                    'message': 'TOTP has not been set up yet. Please configure it and try again.',
+                })
+                return render(request, template, context)
+            # Verify the passed TOTP
+            if totp_device.verify_token(otp_password):
+                login(request, auth_user)
+                logger.info(
+                    'Admin Login Accepted. IP:{2}'.format(username, password,
+                                                          get_client_ip(request)))
+                del request.session['is_verified_superuser']
+                return redirect('setting')
+            else:  # Update the remaining attempt and request TOTP again
+                remaining_attempt = request.session.get('remaining_attempt', 3) - 1
+                request.session['remaining_attempt'] = remaining_attempt
+                logger.warning(
+                    'Failed Admin Login OTP Attempt - IP:{0}'.format(get_client_ip(request)))
+                context.update({
+                    'message': 'Invalid OTP',
+                    'request_otp': remaining_attempt > 0,
+                    'remaining_attempt': remaining_attempt,
+                    'current_username': username
+                })
+                return render(request, template, context)
+
         if otp_password:
             user_id = request.session.get('seller_id')
             tenant = Tenant.objects.get(tenant_id=user_id)

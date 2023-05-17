@@ -38,3 +38,4 @@ pycryptodome==3.15.0
 numpy==1.23.1
 sentry-sdk==1.12.1
 python-barcode==0.14.0
+django_otp==1.2.0
