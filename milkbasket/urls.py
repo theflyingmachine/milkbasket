@@ -17,8 +17,10 @@ from django.contrib import admin
 from django.urls import include
 from django.urls import re_path
 
-# admin.site.__class__ = OTPAdminSite
+from django_otp.admin import OTPAdminSite
 
+# Enforce TOTP login for Site Admin Panel
+admin.site.__class__ = OTPAdminSite
 
 urlpatterns = [
     re_path('admin/', admin.site.urls),
