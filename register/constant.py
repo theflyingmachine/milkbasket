@@ -57,12 +57,59 @@ WA_PAYMENT_MESSAGE_TEMPLATE = {
     }
 }
 
+WA_PAYMENT_MESSAGE_TEMPLATE_V2 = {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": {0},
+    "type": "template",
+    "template": {
+        "name": "payment_received_v2",
+        "language": {
+            "code": "en",
+            "policy": "deterministic"
+        },
+        "components": [
+            {
+                "type": "header",
+                "parameters": [
+                    {
+                        "type": "image",
+                        "image": {
+                            "link": "https://milk.cyberboy.in/static/bill/paid_banner_v1.png"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "body",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": {1}
+                    },
+                    {
+                        "type": "text",
+                        "text": {2}
+                    },
+                    {
+                        "type": "text",
+                        "text": {3}
+                    },
+                    {
+                        "type": "text",
+                        "text": {4}
+                    }
+                ]
+            }
+        ]
+    }
+}
+
 WA_DUE_MESSAGE = '''Dear {0},
 Your bill of ₹{1} for the month of {2} has been generated.
 
-You can view the bill at 🧾👉 {3}
-
-Thanks 🙏🐄🥛🧾'''
+Thanks 🙏🐄🥛🧾
+{3}'''
 
 WA_DUE_MESSAGE_TEMPLATE = {
     "messaging_product": "whatsapp",
@@ -104,6 +151,114 @@ WA_DUE_MESSAGE_TEMPLATE = {
                     {
                         "type": "text",
                         "text": {5}
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+WA_DUE_MESSAGE_TEMPLATE_V2 = {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": {0},
+    "type": "template",
+    "template": {
+        "name": "bill_generated_v2",
+        "language": {
+            "code": "en",
+            "policy": "deterministic"
+        },
+        "components": [
+            {
+                "type": "header",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": {1}
+                    }
+                ]
+            },
+            {
+                "type": "body",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": {2}
+                    },
+                    {
+                        "type": "text",
+                        "text": {3}
+                    },
+                    {
+                        "type": "text",
+                        "text": {4}
+                    }
+                ]
+            },
+            {
+                "type": "button",
+                "sub_type": "url",
+                "index": "0",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": {5}
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+WA_DUE_MESSAGE_TEMPLATE_V3 = {
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": {0},
+    "type": "template",
+    "template": {
+        "name": "bill_generated_v3",
+        "language": {
+            "code": "en",
+            "policy": "deterministic"
+        },
+        "components": [
+            {
+                "type": "header",
+                "parameters": [
+                    {
+                        "type": "image",
+                        "image": {
+                            "link": "https://milk.cyberboy.in/static/bill/due_banner_v1.png"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "body",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": {1}
+                    },
+                    {
+                        "type": "text",
+                        "text": {2}
+                    },
+                    {
+                        "type": "text",
+                        "text": {3}
+                    }
+                ]
+            },
+            {
+                "type": "button",
+                "sub_type": "url",
+                "index": "0",
+                "parameters": [
+                    {
+                        "type": "text",
+                        "text": {4}
                     }
                 ]
             }

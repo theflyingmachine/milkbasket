@@ -7,7 +7,7 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q, Prefetch, F, FloatField, Func
+from django.db.models import Sum, Q, Prefetch, F, Func, Value, DecimalField
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.urls import reverse
@@ -165,12 +165,13 @@ class RegisterAPI():
             register__schedule__endswith='yes',
         ).annotate(
             due_amount=Sum(F('register__current_price') * F('register__quantity'),
-                           output_field=FloatField()),
+                           output_field=DecimalField()),
             due_prev_amount=Coalesce(
                 Sum(F('register__current_price') * F('register__quantity'),
                     filter=Q(register__log_date__lt=first_day_of_month),
-                    output_field=FloatField()), 0),
-            balance_amount=Coalesce(F('balance__balance_amount'), 0),
+                    output_field=DecimalField()), Value(0, output_field=DecimalField())),
+            balance_amount=Coalesce(F('balance__balance_amount'),
+                                    Value(0, output_field=DecimalField())),
         ).order_by('name')
         due_customers = due_customers.annotate(
             abs_balance_amount=Func(F('balance_amount'), function='ABS')
@@ -236,12 +237,13 @@ class RegisterAPI():
             register__schedule__endswith='yes',
         ).annotate(
             due_amount=Sum(F('register__current_price') * F('register__quantity'),
-                           output_field=FloatField()),
+                           output_field=DecimalField()),
             due_prev_amount=Coalesce(
                 Sum(F('register__current_price') * F('register__quantity'),
                     filter=Q(register__log_date__lt=date.today().replace(day=1)),
-                    output_field=FloatField()), 0),
-            balance_amount=Coalesce(F('balance__balance_amount'), 0),
+                    output_field=DecimalField()), Value(0, output_field=DecimalField())),
+            balance_amount=Coalesce(F('balance__balance_amount'),
+                                    Value(0, output_field=DecimalField())),
         )
         if not due_customers:
             due_customers_default = {

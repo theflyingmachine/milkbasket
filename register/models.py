@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 # Create your models here.
@@ -29,6 +29,7 @@ class Tenant(models.Model):
 
 
 class Customer(models.Model):
+    id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     name = models.CharField(max_length=50, unique=True)
     contact = models.CharField(max_length=10, null=True, blank=True, default='')
@@ -42,6 +43,7 @@ class Customer(models.Model):
 
 
 class Payment(models.Model):
+    id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -52,6 +54,7 @@ class Payment(models.Model):
 
 
 class Register(models.Model):
+    id = models.BigAutoField(primary_key=True)
     SCHEDULE_OPTIONS = [
         ('morning-yes', _('Morning Present')),
         ('morning-no', _('Morning Absent')),
@@ -70,6 +73,7 @@ class Register(models.Model):
 
 
 class Expense(models.Model):
+    id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
@@ -89,6 +93,7 @@ class Balance(models.Model):
 
 
 class Income(models.Model):
+    id = models.BigAutoField(primary_key=True)
     tenant = models.ForeignKey(Tenant, on_delete=models.PROTECT)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=1000, null=False, default='Description')
@@ -96,6 +101,7 @@ class Income(models.Model):
 
 
 class Bill(models.Model):
+    id = models.BigAutoField(primary_key=True)
     customer_id = models.ForeignKey(Customer, on_delete=models.PROTECT)
     bill_number = models.CharField(max_length=25, null=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2)

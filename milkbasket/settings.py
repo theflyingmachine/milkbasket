@@ -39,7 +39,9 @@ ALLOWED_HOSTS = ['milk.cyberboy.in', '127.0.0.1', '6c98-223-228-236-15.ngrok.io'
 LOGIN_URL = reverse_lazy('landing')
 
 # Application definition
+import sys
 
+sys.modules['fontawesome_free'] = __import__('fontawesome-free')
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -48,9 +50,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'mathfilters',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
     'maintenance_mode',
-    'fontawesome-free',
+    'fontawesome_free',
     'register',
     'bill',
     'customer',
@@ -62,6 +65,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'maintenance_mode.middleware.MaintenanceModeMiddleware',

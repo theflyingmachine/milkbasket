@@ -104,7 +104,7 @@
         </div>
       </div>
 
-      {% load mathfilters %}
+      {% load custom_filters %}
       <div class="col-12 p-0">
         <!-- Payment Due Table-->
         {% if payment_due_amount_till_date %}
@@ -231,7 +231,6 @@
               <th class="p-2 text-center" colspan="2">Description</th>
               <th class="p-2 text-right">Amount</th>
             </tr>
-            {% load mathfilters %}
             {% for bill in bill_summary %}
               {% if forloop.last %}
                 <tr>
@@ -260,7 +259,7 @@
                         <p
                          class="m-2">{{ bill_month.quantity }} ML
                           <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }} unit(s)
-                          = {{ bill_month.total_units|div:1000 }} L</p>
+                          = {{ bill_month.total_units|divide_by_1000 }} L</p>
 
                       {% endif %}
                     {% endfor %}

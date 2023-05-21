@@ -1,12 +1,11 @@
 arabic-reshaper==2.1.1
-asgiref==3.2.10
+asgiref==3.6.0
 certifi==2020.11.8
 chardet==3.0.4
 date-range==0.0.1
 dateutils==0.6.11
 dj-database-url==0.5.0
-Django==3.1.2
-django-mathfilters==1.0.0
+Django==4.2.1
 djangorestframework==3.14.0
 dnspython==2.0.0
 future==0.18.2
@@ -38,3 +37,4 @@ pycryptodome==3.15.0
 numpy==1.23.1
 sentry-sdk==1.12.1
 python-barcode==0.14.0
+django_otp==1.2.0

@@ -171,7 +171,7 @@
 
       {#  Bill Summary #}
       {% if bill_summary %}
-        {% load mathfilters %}
+        {% load custom_filters %}
         <!--    Bill Summary -->
         <div class="mt-4 mb-4 ml-1 mr-1">
           <h5 class="pt-2 mt-2 text-center">Bill Summary</h5>
@@ -207,7 +207,7 @@
                       {% else %}
                         <span class="pr-2">{{ bill_month.quantity }} ML
                          <strong>&nbsp;X&nbsp;</strong> {{ bill_month.desc }} unit
-                        = {{ bill_month.total_units|div:1000 }} L</span><br>
+                        = {{ bill_month.total_units|divide_by_1000 }} L</span><br>
                       {% endif %}
                     {% endfor %}
                   </td>

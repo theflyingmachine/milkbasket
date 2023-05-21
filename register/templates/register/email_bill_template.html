@@ -477,7 +477,7 @@
       </div>
 
 
-      {% load mathfilters %}
+      {% load custom_filters %}
 
       {% for month in raw_data.bill_summary %}
         {% if forloop.last %}
@@ -577,7 +577,7 @@
                                 <div class="v-text-align"
                                      style="color: #615e5e; line-height: 140%; text-align: left; word-wrap: break-word;">
                                   <p style="font-size: 14px; line-height: 140%;"><span
-                                   style="font-size: 14px; line-height: 19.6px;">{{ desc.quantity }} ML  X  {{ desc.desc }} unit = {{ desc.total_units|div:1000 }} L</span>
+                                   style="font-size: 14px; line-height: 19.6px;">{{ desc.quantity }} ML  X  {{ desc.desc }} unit = {{ desc.total_units|divide_by_1000 }} L</span>
                                   </p>
                                 </div>
 

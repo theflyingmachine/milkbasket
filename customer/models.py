@@ -70,6 +70,7 @@ class WhatsAppMessage(models.Model):
 
 
 class LoginOTP(models.Model):
+    id = models.BigAutoField(primary_key=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     seller = models.ForeignKey(Tenant, on_delete=models.CASCADE, null=True, blank=True)
     otp_password = models.CharField(max_length=6)
