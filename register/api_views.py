@@ -98,7 +98,10 @@ class RegisterAPI():
                                                       log_date__month=register_date.month,
                                                       log_date__year=register_date.year).latest(
                 'log_date__day')
-            last_entry_date = int(last_entry_date.log_date.strftime("%d")) + 1
+            last_entry_date = int(last_entry_date.log_date.strftime("%d"))
+            if last_entry_date < calendar.monthrange(register_date.year, register_date.month)[1]:
+                last_entry_date += 1
+
         except Register.DoesNotExist:
             last_entry_date = 1
 
@@ -113,7 +116,7 @@ class RegisterAPI():
                              'register_date_year': register_date.year,
                              'month_year': month_year,
                              'today_day': date.today(),
-                             'last_entry_day': date.today().replace(day=last_entry_date),
+                             'last_entry_day': register_date.replace(day=last_entry_date),
                              'autopilot_morning_register': CustomerSerializer(
                                  instance=autopilot_morning_register,
                                  many=True).data if not m_cust else [],
