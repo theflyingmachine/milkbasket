@@ -82,7 +82,7 @@
         let uuid = Math.random().toString(36).substr(2);
         this.fetchStatus(hostname, uuid);
         const url =
-          "{{protocol}}://" + hostname + "/milkbasket/report-data/" + uuid;
+          "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data/" + uuid;
         const responce = await fetch(url);
         const data = await responce.json();
         this.setState({reportData: data, isLoading: false});
@@ -90,7 +90,7 @@
 
       async fetchStatus(hostname, token) {
         const url =
-          "{{protocol}}://" + hostname + "/milkbasket/report-data-status/" + token;
+          "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data-status/" + token;
         const responce = await fetch(url);
         const data = await responce.json();
         if (data.status !== null) {
