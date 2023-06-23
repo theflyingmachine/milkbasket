@@ -1,4 +1,5 @@
 import calendar
+import json
 import logging
 from calendar import monthrange
 from collections import defaultdict
@@ -11,6 +12,7 @@ from django.db.models import Sum, Q, Prefetch, F, Func, Value, DecimalField
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from register.models import Customer, Payment, Tenant
 from register.models import Expense
@@ -21,7 +23,7 @@ from register.serializer import CustomerRegisterSerializer, CustomerSerializer, 
     IncomeSerializer, PaidCustomerSerializer, CustomerProfileSerializer, TenantSerializer
 from register.utils import get_tenant_perf, is_last_day_of_month, get_milk_current_price, \
     is_transaction_revertible, customer_register_last_updated, get_active_month, \
-    get_customer_balance_amount, get_bill_summary
+    get_customer_balance_amount, get_bill_summary, get_customer_due_amount_by_month
 
 logger = logging.getLogger()
 
@@ -298,3 +300,155 @@ class RegisterAPI():
             'month_year': date.today().strftime("%B, %Y"),
             'print_bill_url': reverse('print_bill', args=[customer.id]),
         })
+
+    @login_required()
+    def get_report_data_api(request, poll_id):
+        """
+        This function returns JSON data for the Report page.
+        """
+        chart_data = []
+        d1 = date.today()
+        percent = 0
+        milk_delivered = ['morning-yes', 'evening-yes']
+        twelve_month_ago = d1.replace(day=1).replace(year=d1.year - 1)
+        # Fetch all Expenses and Incomes
+        tenant = Q(tenant_id=request.user.id)
+        expense_data = Expense.objects.filter(tenant).values('log_date__month',
+                                                             'log_date__year').annotate(
+            expense=Sum('cost')).values('log_date__month', 'log_date__year', 'expense')
+
+        income_data = Income.objects.filter(tenant).values('log_date__month',
+                                                           'log_date__year').annotate(
+            income=Sum('amount')).values('log_date__month', 'log_date__year', 'income')
+
+        # Fetch all Registers
+        register_query = Q(tenant, schedule__in=milk_delivered, log_date__gte=twelve_month_ago)
+        all_register_entry = Register.objects.filter(register_query)
+
+        for i in range(-12, 1):
+            percent += 3.75
+            graph_month = d1 + relativedelta(months=i)
+            month_str = graph_month.strftime("%B-%Y")
+            month_abbr = graph_month.strftime("%b-%y")
+            request.session[poll_id] = f'Income and Expense ({graph_month.strftime("%B-%Y")})'
+            request.session[f'{poll_id}_percent'] = percent
+            request.session.save()
+
+            # Retrieve Expense for the current month
+            month_expense = next((item['expense'] for item in expense_data if
+                                  item['log_date__month'] == graph_month.month and item[
+                                      'log_date__year'] == graph_month.year), 0)
+
+            # Retrieve Income for the current month
+            month_extra_income = next((item['income'] for item in income_data if
+                                       item['log_date__month'] == graph_month.month and item[
+                                           'log_date__year'] == graph_month.year), 0)
+
+            month_register_sale = sum(
+                [entry.quantity * entry.current_price for entry in all_register_entry if
+                 entry.log_date.month == graph_month.month and entry.log_date.year == graph_month.year]) / 1000
+
+            month_register_sale += month_extra_income
+
+            month_paid = sum(
+                [entry.quantity * entry.current_price for entry in all_register_entry if
+                 entry.log_date.month == graph_month.month and entry.log_date.year == graph_month.year and entry.paid]) / 1000
+
+            month_paid += month_extra_income
+            month_due = month_register_sale - month_paid
+
+            profit = float(
+                max(month_paid - month_expense, 0)) if month_paid > month_expense else False
+            loss = float(
+                max(month_expense - month_paid, 0)) if month_paid <= month_expense else False
+
+            current_month = {
+                "monthName": month_str,
+                "month": month_abbr,
+                "income": float(month_register_sale),
+                "paid": float(month_paid),
+                "due": float(month_due),
+                "expense": float(month_expense),
+                "profit": profit,
+                "loss": loss,
+            }
+            chart_data.append(current_month)
+
+        #     Get milk production over past 365 days
+        chart_data_milk = []
+        all_milk_production = defaultdict(
+            int)  # Using defaultdict to automatically initialize values to 0
+        for entry in all_register_entry:
+            all_milk_production[(entry.schedule, entry.log_date.date())] += entry.quantity
+
+        for i in range(-365, 1):
+            percent += 0.123
+            d1 = date.today()
+            graph_day = d1 + relativedelta(days=i)
+            request.session[poll_id] = f'Milk Production ({graph_day.strftime("%d-%B-%Y")})'
+            request.session[f'{poll_id}_percent'] = percent
+            request.session.save()
+            milk_production_morning = all_milk_production[('morning-yes', graph_day)]
+            milk_production_evening = all_milk_production[('evening-yes', graph_day)]
+
+            current_day = {
+                "dayName": graph_day.strftime('%d-%B-%Y'),
+                'milkMorning': round(float(milk_production_morning / 1000), 2),
+                'milkEvening': round(float(milk_production_evening / 1000), 2),
+                "milkQuantity": round(float(milk_production_morning / 1000), 2) + round(
+                    float(milk_production_evening / 1000), 2),
+            }
+            chart_data_milk.append(current_day)
+
+        percent += 5
+        request.session[f'{poll_id}_percent'] = percent
+        request.session.save()
+        # Calculate all time Expenses
+        all_time_expense = \
+            Expense.objects.filter(tenant_id=request.user.id).aggregate(Sum('cost'))[
+                'cost__sum'] or 0
+
+        # Calculate all time Income
+        all_time_milk_income = \
+            Payment.objects.filter(tenant_id=request.user.id).aggregate(Sum('amount'))[
+                'amount__sum'] or 0
+        all_time_extra_income = \
+            Income.objects.filter(tenant_id=request.user.id).aggregate(Sum('amount'))[
+                'amount__sum'] or 0
+        all_time_income = all_time_milk_income + all_time_extra_income
+
+        # Calculate all time profit or loss
+        is_profit = True if all_time_expense < all_time_income else False
+        all_time_profit_or_loss = abs(all_time_income - all_time_expense)
+        percent += 5
+        request.session[f'{poll_id}_percent'] = percent
+        request.session.save()
+        due_list, due_month = get_customer_due_amount_by_month(request)
+        context = {
+            'graph_data': mark_safe(json.dumps(chart_data)),
+            'table_data': chart_data,
+            'chart_data_milk': mark_safe(json.dumps(chart_data_milk)),
+            'all_time_expense': all_time_expense,
+            'all_time_income': all_time_income,
+            'is_profit': is_profit,
+            'all_time_profit_or_loss': all_time_profit_or_loss,
+            'due_customers': mark_safe(json.dumps(due_list)),
+            'due_month': mark_safe(json.dumps(due_month)),
+        }
+        request.session[poll_id] = 'Done'
+        request.session.save()
+        return JsonResponse(context)
+
+    @login_required()
+    def get_report_data_status_api(request, poll_id):
+        retry = 30
+        status = None
+        while retry:
+            status = {'status': request.session.get(poll_id, None),
+                      'percent': request.session.get(f'{poll_id}_percent')
+                      }
+            if status:
+                return JsonResponse(status)
+            else:
+                retry -= 1
+        return JsonResponse(status)

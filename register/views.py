@@ -878,7 +878,7 @@ def landing(request):
 
 @login_required
 def report_initial(request):
-    template = 'register/report_react_new.html'
+    template = 'register/react_report.html'
     context = {'loading': True,
                'page_title': 'Milk Basket - Report',
                'is_mobile': is_mobile(request),
@@ -887,24 +887,9 @@ def report_initial(request):
                }
     return render(request, template, context)
 
-
-@login_required
-def report_data_status(request, poll_id=None):
-    retry = 30
-    status = None
-    while retry:
-        status = {'status': request.session.get(poll_id, None),
-                  'percent': request.session.get(f'{poll_id}_percent')
-                  }
-        if status:
-            return JsonResponse(status)
-        else:
-            retry -= 1
-    return JsonResponse(status)
-
-
 @login_required
 def report_data(request, poll_id=None):
+    # TODO: Remove this view and cleanup the URL for it.
     chart_data = []
     d1 = date.today()
     percent = 0
