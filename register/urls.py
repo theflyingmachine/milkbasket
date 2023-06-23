@@ -34,8 +34,6 @@ urlpatterns = [
     path('report', views.report_initial, name='view_report'),  # Report initial page load
     # Report AJAX call endpoint
     path('report-data/<str:poll_id>', views.report_data, name='view_report_data'),
-    # Report AJAX call status endpoint
-    path('report-data-status/<str:poll_id>', views.report_data_status, name='view_report_data'),
 
     path('accept-payment', views.accept_payment, name='accept_payment'),
     path('settle-up-payment', views.customer_settle_up, name='customer_settle_up'),
@@ -76,6 +74,10 @@ urlpatterns = [
          name='get_account_api'),
     path('api/v1/customers/<int:customer_id>/', api_views.RegisterAPI.get_profile_api,
          name='get_profile_api'),
+    path('api/v1/report-data/<str:poll_id>', api_views.RegisterAPI.get_report_data_api,
+         name='view_report_data_api'),
+    path('api/v1/report-data-status/<str:poll_id>',
+         api_views.RegisterAPI.get_report_data_status_api, name='view_report_data_status_api'),
 
 ]
 

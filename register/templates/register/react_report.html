@@ -82,7 +82,7 @@
         let uuid = Math.random().toString(36).substr(2);
         this.fetchStatus(hostname, uuid);
         const url =
-          "{{protocol}}://" + hostname + "/milkbasket/report-data/" + uuid;
+          "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data/" + uuid;
         const responce = await fetch(url);
         const data = await responce.json();
         this.setState({reportData: data, isLoading: false});
@@ -90,7 +90,7 @@
 
       async fetchStatus(hostname, token) {
         const url =
-          "{{protocol}}://" + hostname + "/milkbasket/report-data-status/" + token;
+          "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data-status/" + token;
         const responce = await fetch(url);
         const data = await responce.json();
         if (data.status !== null) {
@@ -119,27 +119,26 @@
         let graph_data = null;
         let due_customers = null;
         let due_month = null;
-        let loading_component = <div className="text-center m-xl-5 p-xl-5">
-
-          <div className="spinner-grow text-primary spinner-size-big" role="status">
+        let loading_component = <div className="text-center mt-5 m-xl-5 p-xl-5">
+          <div className="spinner-grow text-primary" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <div className="spinner-grow text-secondary spinner-size-big" role="status">
+          <div className="spinner-grow text-secondary" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <div className="spinner-grow text-success spinner-size-big" role="status">
+          <div className="spinner-grow text-success" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <div className="spinner-grow text-danger spinner-size-big" role="status">
+          <div className="spinner-grow text-danger" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <div className="spinner-grow text-warning spinner-size-big" role="status">
+          <div className="spinner-grow text-warning" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <div className="spinner-grow text-info spinner-size-big" role="status">
+          <div className="spinner-grow text-info" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <div className="spinner-grow text-dark spinner-size-big" role="status">
+          <div className="spinner-grow text-dark" role="status">
             <span className="sr-only">Loading...</span>
           </div>
           <div>
