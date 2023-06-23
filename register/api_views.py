@@ -324,11 +324,6 @@ class RegisterAPI():
         # Fetch all Registers
         register_query = Q(tenant, schedule__in=milk_delivered, log_date__gte=twelve_month_ago)
         all_register_entry = Register.objects.filter(register_query)
-        register_data = all_register_entry.annotate(
-            total=(F('current_price') * F('quantity'))
-        ).values('log_date__month', 'log_date__year', 'paid').annotate(
-            monthly_total=Sum('total')
-        )
 
         for i in range(-12, 1):
             percent += 3.75
@@ -345,23 +340,22 @@ class RegisterAPI():
                                       'log_date__year'] == graph_month.year), 0)
 
             # Retrieve Income for the current month
-            month_income = next((item['income'] for item in income_data if
-                                 item['log_date__month'] == graph_month.month and item[
-                                     'log_date__year'] == graph_month.year), 0)
+            month_extra_income = next((item['income'] for item in income_data if
+                                       item['log_date__month'] == graph_month.month and item[
+                                           'log_date__year'] == graph_month.year), 0)
 
-            month_register_sale = next((item['monthly_total'] for item in register_data if
-                                        item['log_date__month'] == graph_month.month and item[
-                                            'log_date__year'] == graph_month.year and item[
-                                            'paid'] in (0, 1)), 0) / 1000
+            month_register_sale = sum(
+                [entry.quantity * entry.current_price for entry in all_register_entry if
+                 entry.log_date.month == graph_month.month and entry.log_date.year == graph_month.year]) / 1000
 
-            month_income += month_register_sale
+            month_register_sale += month_extra_income
 
-            month_paid = next((item['monthly_total'] for item in register_data if
-                               item['log_date__month'] == graph_month.month and item[
-                                   'log_date__year'] == graph_month.year and item['paid']),
-                              0) / 1000
+            month_paid = sum(
+                [entry.quantity * entry.current_price for entry in all_register_entry if
+                 entry.log_date.month == graph_month.month and entry.log_date.year == graph_month.year and entry.paid]) / 1000
 
-            month_due = month_income - month_paid
+            month_paid += month_extra_income
+            month_due = month_register_sale - month_paid
 
             profit = float(
                 max(month_paid - month_expense, 0)) if month_paid > month_expense else False
@@ -371,7 +365,7 @@ class RegisterAPI():
             current_month = {
                 "monthName": month_str,
                 "month": month_abbr,
-                "income": float(month_income),
+                "income": float(month_register_sale),
                 "paid": float(month_paid),
                 "due": float(month_due),
                 "expense": float(month_expense),
