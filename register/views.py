@@ -1,13 +1,11 @@
 import ast
 import decimal
-import json
 import logging
 import threading
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
 
-from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
@@ -16,13 +14,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum, Q
+from django.db.models import Q
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.safestring import mark_safe
 from django.views.generic import View
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -40,11 +37,10 @@ from register.models import Payment
 from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
-    get_whatsapp_media_by_id, get_client_ip, calculate_milk_price, is_dev
+    get_whatsapp_media_by_id, get_client_ip, is_dev
 from register.utils import generate_bill
 from register.utils import get_customer_all_due
 from register.utils import get_customer_due_amount
-from register.utils import get_customer_due_amount_by_month
 from register.utils import get_last_autopilot
 from register.utils import get_last_transaction
 from register.utils import get_mongo_client
@@ -887,139 +883,6 @@ def report_initial(request):
                }
     return render(request, template, context)
 
-@login_required
-def report_data(request, poll_id=None):
-    # TODO: Remove this view and cleanup the URL for it.
-    chart_data = []
-    d1 = date.today()
-    percent = 0
-    milk_delivered = ['morning-yes', 'evening-yes']
-    for i in range(-12, 1):
-        percent += 3.75
-        graph_month = d1 + relativedelta(months=i)
-        request.session[poll_id] = f'Income and Expense ({graph_month.strftime("%B-%Y")})'
-        request.session[f'{poll_id}_percent'] = percent
-        request.session.save()
-        # Fetch Expenses
-        month_expense = \
-            Expense.objects.filter(tenant_id=request.user.id, log_date__month=graph_month.month,
-                                   log_date__year=graph_month.year).aggregate(
-                Sum('cost'))['cost__sum'] or 0
-
-        # Fetch Income
-        month_income = 0
-        month_extra_income = float(
-            Income.objects.filter(tenant_id=request.user.id, log_date__month=graph_month.month,
-                                  log_date__year=graph_month.year).aggregate(
-                Sum('amount'))['amount__sum'] or 0)
-        month_income += month_extra_income
-        month_income_entry = Register.objects.filter(tenant_id=request.user.id,
-                                                     log_date__month=graph_month.month,
-                                                     log_date__year=graph_month.year,
-                                                     schedule__in=milk_delivered)
-        month_income += calculate_milk_price(month_income_entry)
-
-        # Fetch due per month
-        month_due_entry = Register.objects.filter(tenant_id=request.user.id,
-                                                  log_date__month=graph_month.month,
-                                                  log_date__year=graph_month.year, paid=0,
-                                                  schedule__in=milk_delivered)
-        month_due = calculate_milk_price(month_due_entry)
-
-        # Fetch paid per month
-        month_paid = 0
-        month_paid += month_extra_income
-        month_paid_entry = Register.objects.filter(tenant_id=request.user.id,
-                                                   log_date__month=graph_month.month,
-                                                   log_date__year=graph_month.year, paid=1)
-        month_paid += calculate_milk_price(month_paid_entry)
-
-        # Calculate Profit and Loss value
-        if month_paid > month_expense:
-            profit = float(month_paid) - float(month_expense)
-            loss = False
-        else:
-            loss = float(month_expense) - float(month_paid)
-            profit = False
-
-        current_month = {
-            "monthName": graph_month.strftime('%B-%Y'),
-            "month": graph_month.strftime('%b-%y'),
-            "income": round(float(month_income), 2),
-            "paid": round(float(month_paid), 2),
-            "due": round(float(month_due), 2),
-            "expense": round(float(month_expense), 2),
-            "profit": profit,
-            "loss": loss,
-        }
-        chart_data.append(current_month)
-
-    #     Get milk production over past 365 days
-    chart_data_milk = []
-    all_register_entry = Register.objects.filter(tenant_id=request.user.id)
-    all_milk_production = [{'quantity': x.quantity, 'schedule': x.schedule, 'log_date': x.log_date}
-                           for x in all_register_entry]
-    for i in range(-365, 1):
-        percent += 0.123
-        d1 = date.today()
-        graph_day = d1 + relativedelta(days=i)
-        request.session[poll_id] = f'Milk Production ({graph_day.strftime("%d-%B-%Y")})'
-        request.session[f'{poll_id}_percent'] = percent
-        request.session.save()
-        milk_production_morning = sum(item['quantity'] for item in all_milk_production if
-                                      item['schedule'] == 'morning-yes' and item[
-                                          'log_date'].date() == graph_day)
-        milk_production_evening = sum(item['quantity'] for item in all_milk_production if
-                                      item['schedule'] == 'evening-yes' and item[
-                                          'log_date'].date() == graph_day)
-
-        current_day = {
-            "dayName": graph_day.strftime('%d-%B-%Y'),
-            'milkMorning': round(float(milk_production_morning / 1000), 2),
-            'milkEvening': round(float(milk_production_evening / 1000), 2),
-            "milkQuantity": round(float(milk_production_morning / 1000), 2) + round(
-                float(milk_production_evening / 1000), 2),
-        }
-        chart_data_milk.append(current_day)
-
-    percent += 5
-    request.session[f'{poll_id}_percent'] = percent
-    request.session.save()
-    # Calculate all time Expenses
-    all_time_expense = Expense.objects.filter(tenant_id=request.user.id).aggregate(Sum('cost'))[
-                           'cost__sum'] or 0
-
-    # Calculate all time Income
-    all_time_milk_income = \
-        Payment.objects.filter(tenant_id=request.user.id).aggregate(Sum('amount'))[
-            'amount__sum'] or 0
-    all_time_extra_income = \
-        Income.objects.filter(tenant_id=request.user.id).aggregate(Sum('amount'))[
-            'amount__sum'] or 0
-    all_time_income = all_time_milk_income + all_time_extra_income
-
-    # Calculate all time profit or loss
-    is_profit = True if all_time_expense < all_time_income else False
-    all_time_profit_or_loss = abs(all_time_income - all_time_expense)
-    percent += 5
-    request.session[f'{poll_id}_percent'] = percent
-    request.session.save()
-    due_list, due_month = get_customer_due_amount_by_month(request)
-    context = {
-        'graph_data': mark_safe(json.dumps(chart_data)),
-        'table_data': chart_data,
-        'chart_data_milk': mark_safe(json.dumps(chart_data_milk)),
-        'all_time_expense': all_time_expense,
-        'all_time_income': all_time_income,
-        'is_profit': is_profit,
-        'all_time_profit_or_loss': all_time_profit_or_loss,
-        'due_customers': mark_safe(json.dumps(due_list)),
-        'due_month': mark_safe(json.dumps(due_month)),
-    }
-    request.session[poll_id] = 'Done'
-    request.session.save()
-    return JsonResponse(context)
-
 
 @login_required
 def setting(request):
@@ -1066,6 +929,7 @@ def setting(request):
         'tenant': tenant,
         'alert_class': request.session.get('alert_class', None),
         'alert_message': request.session.get('alert_message', None),
+        'run_env': RUN_ENVIRONMENT,
     }
     try:
         del request.session['alert_class']

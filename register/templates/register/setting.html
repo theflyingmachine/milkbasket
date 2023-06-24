@@ -160,6 +160,11 @@
 
     {% else %}
 
+      {% if not run_env == 'production' %}
+        <h5 class="text-secondary text-uppercase font-weight-bold">Run Environment: {{ run_env }}
+          📳</h5>
+      {% endif %}
+
       <div class="row justify-content-center mb-5">
         <div class="col">
           <form name="setting" method="post" action="{% url 'setting' %}">{% csrf_token %}
