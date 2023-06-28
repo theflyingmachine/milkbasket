@@ -376,6 +376,12 @@ def add_entry(request, year=None, month=None):
                 entry.save()
                 entry_status = True if entry.id else False
             else:
+                # Check if the entry is already marked paid. if yes, don't allow updating.
+                if entry.paid:
+                    return JsonResponse({
+                        'return': False,
+                        'message': f'Paid entry cannot be updated. Please contact Admin to make any changes.',
+                    })
                 entry.schedule = full_schedule
                 entry.quantity = quantity
                 entry.save()
