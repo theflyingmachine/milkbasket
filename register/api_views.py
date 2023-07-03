@@ -1,4 +1,5 @@
 import calendar
+import decimal
 import json
 import logging
 from calendar import monthrange
@@ -355,6 +356,7 @@ class RegisterAPI():
                  entry.log_date.month == graph_month.month and entry.log_date.year == graph_month.year and entry.paid]) / 1000
 
             month_paid += month_extra_income
+            month_paid = decimal.Decimal(month_paid)
             month_due = month_register_sale - month_paid
 
             profit = float(
