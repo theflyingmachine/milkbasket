@@ -430,75 +430,74 @@ def autopilot(request, year=None, month=None):
         return redirect('setting')
     if request.method == "POST":
         current_price = tenant.milk_price
-        autopilot_data = []
         # Get autopilot form data
-        for key in request.POST:
-            value = request.POST[key]
-            if value == 'on':
-                auto = {
-                    'id': key.split('-')[0],
-                    'schedule': key.split('-')[1],
-                }
-                autopilot_data.append(auto)
-        log_month = request.POST.get("log_month", None)
-        start_date = request.POST['start']
-        start = datetime.strptime(start_date, '%b %d, %Y')
-        end_date = request.POST['end']
-        end = datetime.strptime(end_date, '%b %d, %Y')
-
+        autopilot_data = [{
+            'id': int(key.split('-')[0]),
+            'schedule': key.split('-')[1],
+        } for key in request.POST if request.POST[key] == 'on']
+        start_date = datetime.strptime(request.POST['start'], '%b %d, %Y')
+        end_date = datetime.strptime(request.POST['end'], '%b %d, %Y')
         today = date.today()
-        if start > end or (start.year, start.month) != (today.year, today.month) or (
-            end.year, end.month) != (today.year, today.month):
-            if start > end:
-                message = f'You have selected {start_date} start and {end_date} end date. End date cannot be before start date.'
-            else:
-                message = 'Autopilot can only be run for current month.'
-
+        if start_date > end_date or (start_date.year, start_date.month) != (
+            today.year, today.month) or (
+            end_date.year, end_date.month) != (today.year, today.month):
+            message = f'You have selected {start_date} start and {end_date} end date. End date cannot be before start date.' if start_date > end_date else 'Autopilot can only be run for current month.'
             response = {
-                'showmessage': True,
+                'show_message': True,
                 'message': message,
                 'status': False,
             }
             return JsonResponse(response)
 
-        delta = end - start  # as timedelta
-        for i in range(delta.days + 1):
-            day = start + timedelta(days=i)
-            print(day)
-            for cust in autopilot_data:
-                customer = Customer.objects.filter(tenant_id=request.user.id,
-                                                   id=cust['id']).first()
-                full_log_date = datetime.strptime(str(day), '%Y-%m-%d %H:%M:%S')
-                check_record = Register.objects.filter(tenant_id=request.user.id,
-                                                       customer_id=customer.id,
-                                                       log_date=full_log_date,
-                                                       schedule__startswith=cust[
-                                                           'schedule']).first()
-                add_quantity = customer.m_quantity if cust[
-                                                          "schedule"] == 'morning' else customer.e_quantity
-                if not check_record and add_quantity:
-                    full_schedule = f'{cust["schedule"]}-yes'
-                    entry = Register(tenant_id=request.user.id, customer_id=customer.id,
-                                     log_date=full_log_date,
-                                     schedule=full_schedule,
-                                     quantity=add_quantity,
-                                     current_price=current_price)
-                    entry.save()
-                else:
-                    print('Skipping: ', customer.name, 'Day: ', day)
+        #  Get all register entry for given date range
+        schedule_to_attr = {
+            'morning': 'm_quantity',
+            'evening': 'e_quantity',
+        }
+        register_entries = []
+        delta = end_date - start_date
+        date_list = [start_date + timedelta(days=i) for i in range(delta.days + 1)]
+        active_customers = Customer.objects.filter(tenant=tenant,
+                                                   id__in=set([u['id'] for u in autopilot_data]),
+                                                   status=True)
+        all_register_entry = Register.objects.filter(tenant=tenant, customer__in=active_customers,
+                                                     log_date__in=date_list)
 
+        # loop over each requested entry
+        for current_date in date_list:
+            for cust in autopilot_data:
+                try:
+                    customer = next(c for c in active_customers if c.id == cust['id'] and c.status)
+                except StopIteration:
+                    continue  # Customer does not exist or is Inactive. Skip over.
+                try:
+                    _ = next(e for e in all_register_entry if e.customer_id == cust['id'] and
+                             e.log_date == current_date and e.schedule.startswith(
+                        cust['schedule']))
+                except StopIteration:
+                    register_entries.append(Register(tenant=tenant,
+                                                     customer_id=customer.id,
+                                                     log_date=current_date,
+                                                     schedule=f'{cust["schedule"]}-yes',
+                                                     quantity=getattr(customer,
+                                                                      schedule_to_attr.get(
+                                                                          cust['schedule'],
+                                                                          'm_quantity')),
+                                                     current_price=current_price))
+
+        Register.objects.bulk_create(register_entries)  # Create bulk Register entry
         response = {
-            'showmessage': False,
+            'show_message': False,
             'message': f'Success',
             'return': True,
             'reload': True,
         }
         messages.add_message(request, messages.SUCCESS,
-                             f'Autopilot completed from {start.strftime("%d %b")} to {end.strftime("%d %b")}')
+                             f'Autopilot completed from {start_date.strftime("%d %b")} to {end_date.strftime("%d %b")}')
         return JsonResponse(response)
     # return invalid response if already not returned data
     response = {
-        'showmessage': True,
+        'show_message': True,
         'message': 'Invalid Request',
         'return': False,
     }
