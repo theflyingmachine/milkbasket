@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from django.conf import settings
 from django.shortcuts import redirect
+from django.urls import reverse
 
 
 class SessionExpiryMiddleware:
@@ -19,7 +19,7 @@ class SessionExpiryMiddleware:
                 if days_since_last_visit > 45:
                     # If it's been more than 45 days since the last visit, log the user out
                     request.session.flush()
-                    return redirect(settings.LOGOUT_REDIRECT_URL)
+                    return redirect(reverse('view_register'))
             else:
                 # Set the last visit time if it's not already set
                 request.session['last_visit'] = now.strftime(timestamp_format)
