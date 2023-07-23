@@ -19,6 +19,7 @@ class DecimalEncoder(json.JSONEncoder):
         return super().default(o)
 
 
+@login_required()
 def loan_dashboard(request):
     template = 'loan/react_loan.html'
     context = {
@@ -65,6 +66,7 @@ class LoanAPI():
             if form.is_valid():
                 saved_transaction = form.save()
                 # todo; Update Loan Status to 0, when all the added transactions add up to loan_amount
+                # todo; Validate Principal amount not exceeding loan amount
                 return JsonResponse({'status': 'success',
                                      'saved_transaction': TransactionSerializer(
                                          instance=saved_transaction,
