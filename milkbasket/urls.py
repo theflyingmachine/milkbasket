@@ -28,6 +28,7 @@ urlpatterns = [
     re_path(r'^bill/', include('bill.urls')),
     re_path(r'^milkbasket/', include('register.urls')),
     re_path(r'^customer/', include('customer.urls')),
+    re_path(r'^loan/', include('loan.urls')),
     re_path(r'^maintenance-mode/', include('maintenance_mode.urls')),
 
 ]

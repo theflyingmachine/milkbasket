@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'register',
     'bill',
     'customer',
+    'loan',
 ]
 
 MIDDLEWARE = [
