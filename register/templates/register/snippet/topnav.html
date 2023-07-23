@@ -22,6 +22,8 @@
            href="{% url 'view_account' %}">Accounts</a>
         <a class="nav-item nav-link mr-3 {% if menu_report %} active {% endif %}"
            href="{% url 'view_report' %}">Report</a>
+        <a class="nav-item nav-link mr-3 {% if menu_loan %} active {% endif %}"
+           href="{% url 'loan_dashboard' %}">Loan</a>
         <a class="nav-item nav-link mr-3 {% if menu_setting %} active {% endif %}"
            href="{% url 'setting' %}">Setting</a>
         <a class="nav-item nav-link mr-3 {% if menu_whatsapp %} active {% endif %}"

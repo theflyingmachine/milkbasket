@@ -1,0 +1,533 @@
+{% include "register/header.html" %}
+
+{# PROD Bundle #}
+<script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+
+{# Dev Bundle #}
+{#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
+{#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>#}
+
+
+<style>
+    .card {
+        background-color: #e3e3e3 !important; /* or #f0f0f0 */
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    .custom-select {
+        appearance: none; /* Remove default dropdown arrow on some browsers */
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 8px 30px 8px 12px;
+        font-size: 16px;
+        font-family: Arial, sans-serif;
+        width: 200px; /* Adjust the width as needed */
+    }
+
+    /* Style the dropdown icon */
+    .custom-select .icon {
+        margin-right: 10px;
+    }
+
+    /* Hover effect */
+    .custom-select:hover {
+        background-color: #e5e5e5;
+        cursor: pointer;
+    }
+
+    /* Focus effect */
+    .custom-select:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px #b3d7ff;
+    }
+
+    h6.polygon-backfill {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 7% 100%, 0 43%);
+    }
+</style>
+{% block content %}
+
+
+  <div id="report"></div>
+
+  {# React Report Starts #}
+
+  <script type="text/babel">
+
+    function formatDate(log_date) {
+      return new Date(log_date).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function total(data, type) {
+      if (type === "INTEREST") {
+        const interestTransactions = data.transaction_entry.filter(entry => entry.type === "INTEREST");
+        const totalInterest = interestTransactions.reduce((total, entry) => total + parseFloat(entry.transaction_amount), 0);
+        return totalInterest;
+      } else if (type === "REMAINING") {
+        const principalTransactions = data.transaction_entry.filter(entry => entry.type === "PRINCIPAL");
+        const totalPrincipal = principalTransactions.reduce((total, entry) => total + parseFloat(entry.transaction_amount), 0);
+        const remainingAmount = parseFloat(data.amount) - totalPrincipal;
+        return remainingAmount;
+      } else if (type === "PAID") {
+        const interestTransactions = data.transaction_entry.filter(entry => entry.type === "PRINCIPAL");
+        const totalInterest = interestTransactions.reduce((total, entry) => total + parseFloat(entry.transaction_amount), 0);
+        return totalInterest;
+      } else {
+        return 0; // If an invalid type is provided, return 0 or any other appropriate default value
+      }
+    }
+
+    function formatNumber(val) {
+      const decimalPart = val.split('.')[1];
+      if (decimalPart === '00') {
+        return val.split('.')[0];
+      }
+      return val;
+    }
+
+    function formatCurrency(val) {
+      const formattedCur = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).format(val);
+      return formatNumber(formattedCur)
+    }
+
+    class LoanDashboard extends React.Component {
+
+      constructor(props) {
+        super(props);
+        this.addLoan = this.addLoan.bind(this);
+        this.addLoanTransaction = this.addLoanTransaction.bind(this);
+        this.state = {
+          data: null,
+          is_loading: true,
+          is_error: false,
+          ajax_loading: false,
+          selected_loan: false,
+          show_interest_modal: false,
+          show_history_modal: false,
+          selectedItem: null,
+
+        };
+      }
+
+      async componentDidMount() {
+        try {
+          const response = await fetch('{% url 'list_loan_api' %}');
+          const data = await response.json();
+          this.setState({
+            data: data,
+            is_loading: false,
+          })
+        } catch (e) {
+          this.setState({
+            is_error: 'Something went wrong, please try again later. ' + e,
+            is_loading: false
+          })
+        }
+      }
+
+      async addLoan(event) {
+        event.preventDefault();
+        this.setState({ajax_loading: true})
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch('{% url 'add_loan_api' %}', requestOptions)
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              let current_state = this.state.data || [];
+              current_state.all_loans.unshift(data.saved_loan);
+              this.setState({data: current_state});
+              show_toast('Success', `New Loan saved for ${data.saved_loan.name} of ${formatCurrency(data.saved_loan.amount)}`, 'success');
+            } else {
+              show_toast('Error', `${data.error}`, 'danger');
+            }
+          })
+        $('#myModalAddLoan').modal('hide');
+        this.setState({ajax_loading: false})
+      }
+
+      async addLoanTransaction(event) {
+        event.preventDefault();
+        this.setState({ajax_loading: true})
+        const formData = new FormData(event.target);
+        const requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
+        await fetch('{% url 'add_loan_transaction_api' %}', requestOptions)
+          .then(response => response.json())
+          .then(res => {
+              if (res.status === 'success') {
+                const loanToUpdateId = res.saved_transaction.loan_id;
+                let current_loans = this.state.data;
+                // Find the index of the loan with a matching ID in the all_loans array
+                const loanIndexToUpdate = current_loans.all_loans.findIndex((loan) => loan.id === loanToUpdateId);
+                // create a new object with the updated transaction_entry
+                const updatedLoan = {
+                  ...current_loans.all_loans[loanIndexToUpdate],
+                  transaction_entry: [...current_loans.all_loans[loanIndexToUpdate].transaction_entry, res.saved_transaction],
+                };
+                // Create a new object with the updated all_loans array
+                const updatedCurrentLoans = {
+                  ...current_loans,
+                  all_loans: current_loans.all_loans.map((loan, index) => (index === loanIndexToUpdate ? updatedLoan : loan)),
+                };
+                this.setState({data: updatedCurrentLoans})
+                show_toast('Success', `${res.saved_transaction.type} Transaction of ${formatCurrency(res.saved_transaction.transaction_amount)} saved for ${updatedLoan.name}`, 'success');
+              } else {
+                show_toast('Error', `${data.error}`, 'danger');
+              }
+            }
+          )
+        $('#myModalTransaction').modal('hide');
+        this.setState({ajax_loading: false})
+      }
+
+      handleHistoryButtonClick = (item) => {
+        this.setState({selectedItem: item, show_history_modal: true});
+      };
+      handleTransactionButtonClick = (item) => {
+        this.setState({selectedItem: item, show_transaction_modal: true});
+      };
+
+
+      render() {
+
+        const loadingComp = <div className="text-center m-xl-5 p-xl-5">
+          <div className="spinner-grow text-primary" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-secondary" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-success" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-danger" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-warning" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-info" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className="spinner-grow text-dark" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+
+        return (
+          <div>
+            <div className='p-0'>
+              <div>
+                <button type="button" className="btn btn-primary m-1" data-toggle="modal"
+                        data-target="#myModalAddLoan">
+                  Add New Loan
+                </button>
+                {this.state.is_loading ? <div className="pt-5 mt-5">{loadingComp}</div>
+                  : (
+                    <div>
+
+                      {this.state.is_error &&
+                        <div className="alert alert-danger text-center" role="alert">
+                          {this.state.is_error}
+                        </div>}
+
+
+                      {this.state.data.all_loans && this.state.data.all_loans.length ? (
+
+                        this.state.data.all_loans.map((loan) => (
+                          <div
+                            key={loan.id}
+                            className="card p-1 m-2"
+                          >
+
+                            <div className="card-body py-2">
+                              <div className="row">
+                                <div className="col-6 p-0">
+                                  <h5 className="card-title">{loan.name}</h5>
+                                  <p
+                                    className="card-text font-italic mb-0">{formatDate(loan.lending_date)} @ {formatNumber(loan.interest_rate)}%</p>
+                                  <p className="card-text text-secondary">{loan.notes}</p>
+                                </div>
+                                <div className="col-6 text-right p-0">
+                                  <h3
+                                    className="card-title text-secondary p-0 m-0">{formatCurrency(loan.amount)}</h3>
+                                  {total(loan, "REMAINING") > 0 ? (
+                                      <h6
+                                        className="card-title text-danger p-0 m-0">Remaining {formatCurrency(total(loan, "REMAINING"))}</h6>) :
+                                    (<h6
+                                      className="card-title bg-success text-white polygon-backfill p-0 m-0">COMPLETED</h6>)
+                                  }
+                                  <h6
+                                    className="card-title text-info p-0 m-0">Paid {formatCurrency(total(loan, "PAID"))}</h6>
+                                  <h6
+                                    className="card-title text-success p-0 m-0">Interest {formatCurrency(total(loan, "INTEREST"))}</h6>
+
+                                </div>
+                              </div>
+
+                              <div className="row">
+                                <button type="button" className="btn btn-primary mx-2"
+                                        data-toggle="modal" data-target="#myModalHistory"
+                                        onClick={() => this.handleHistoryButtonClick(loan)}>
+                                  History
+                                </button>
+                                <button type="button"
+                                        className={`btn ${total(loan, "REMAINING") > 0 ? 'btn-primary' : 'btn-secondary'} mx-2`}
+                                        data-toggle="modal"
+                                        data-target="#myModalTransaction"
+                                        onClick={() => this.handleTransactionButtonClick(loan)}
+                                >
+                                  Add Transaction
+                                </button>
+                              </div>
+
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="mt-5 alert alert-primary text-center" role="alert">
+                          Nothing to display at the moment
+                        </div>
+                      )}
+
+                      <p className="text-center mb-5 text-secondary"> --- END OF PAGE ---</p>
+                    </div>
+                  )}
+              </div>
+            </div>
+
+            <div className="modal fade" id="myModalAddLoan">
+              <div className="modal-dialog">
+                <div className="modal-content">
+
+                  <div className="modal-header">
+                    <h4 className="modal-title">Add New Loan</h4>
+                    <button type="button" className="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  <form onSubmit={this.addLoan} name="add-new-entry">
+
+                    <div className="modal-body">
+                      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"/>
+                      <div className="form-group">
+                        <label htmlFor="name">Name:</label>
+                        <input type="text" className="form-control" id="name" name="name"
+                               placeholder="Enter Name"/>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="amount">Amount:</label>
+                        <input type="number" className="form-control" id="amount" name="amount"
+                               placeholder="Enter Amount"/>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="interest_rate">Interest Rate:</label>
+                        <input type="number" className="form-control" id="interest_rate"
+                               name="interest_rate"
+                               placeholder="Enter Interest Rate"/>
+                      </div>
+
+
+                      <div className="form-group">
+                        <label htmlFor="datepicker-input1">Loan Date</label>
+                        <input type="date" className="form-control datepicker-input"
+                               id="datepicker-input1"
+                               name="lending_date"
+                               placeholder="Select a date"/>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="notes1">Notes:</label>
+                        <textarea className="form-control" id="notes1" rows="3" name="notes"
+                                  placeholder="Enter Notes (optional)"></textarea>
+                      </div>
+                    </div>
+
+                    <div className="modal-footer">
+                      <button type="button" className="btn btn-secondary"
+                              data-dismiss="modal">Close
+                      </button>
+                      <button type="submit" className="btn btn-primary"
+                              disabled={this.state.ajax_loading} autoFocus>
+                        {this.state.ajax_loading ? <span><i
+                          className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Add Entry'}
+                      </button>
+                    </div>
+                  </form>
+
+                </div>
+              </div>
+            </div>
+
+            <div className="modal fade" id="myModalTransaction">
+              <div className="modal-dialog">
+                <div className="modal-content">
+
+                  <div className="modal-header">
+                    <h4 className="modal-title">Add Transactions</h4>
+                    <button type="button" className="close"
+                            data-dismiss="modal">&times;</button>
+                  </div>
+                  <form onSubmit={this.addLoanTransaction} name="add-new-entry">
+                    <div className="modal-body">
+                      <input type="hidden" name="csrfmiddlewaretoken"
+                             value="{{ csrf_token }}"/>
+                      <input type="hidden" name="loan_id"
+                             defaultValue={this.state.show_transaction_modal && this.state.selectedItem.id}/>
+                      <h5
+                        className="text-info text-center">{this.state.show_transaction_modal && this.state.selectedItem.name}</h5>
+
+                      <label htmlFor="type">Transaction Type: </label>
+                      <select
+                        id="type"
+                        name="type"
+                        className="custom-select"
+                      >
+                        <option key='INTEREST' value='INTEREST'>Interest</option>
+                        <option key='PRINCIPAL' value='PRINCIPAL'>Principal</option>
+                      </select>
+
+
+                      <div className="form-group">
+                        <label htmlFor="amount">Amount:</label>
+                        <input type="number" className="form-control" id="amount"
+                               name="transaction_amount"
+                               placeholder="Enter Amount"/>
+                      </div>
+
+
+                      <div className="form-group">
+                        <label htmlFor="datepicker-input2">Transaction Date</label>
+                        <input type="date" className="form-control datepicker-input"
+                               id="datepicker-input2"
+                               name="lending_date"
+                               placeholder="Select a date"/>
+
+
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="notes1">Notes:</label>
+                        <textarea className="form-control" id="notes1" rows="3" name="notes"
+                                  placeholder="Enter Notes (optional)"></textarea>
+                      </div>
+
+
+                    </div>
+
+                    <div className="modal-footer">
+                      <button type="button" className="btn btn-secondary"
+                              data-dismiss="modal">Close
+                      </button>
+                      <button type="submit" className="btn btn-primary"
+                              disabled={this.state.ajax_loading} autoFocus>
+                        {this.state.ajax_loading ? <span><i
+                          className="fa fa-spinner fa-spin"></i> Please Wait… </span> : 'Add Transaction'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            {this.state.show_history_modal && (
+              <div className="modal fade" id="myModalHistory">
+                <div className="modal-dialog">
+                  <div className="modal-content">
+
+                    <div className="modal-header">
+                      <h4 className="modal-title">Transaction History</h4>
+                      <button type="button" className="close"
+                              data-dismiss="modal">&times;</button>
+                    </div>
+                    <form onSubmit={this.addLoanTransaction} name="add-new-entry">
+
+                      <div className="modal-body">
+                        <h4 className="text-info text-center">{this.state.selectedItem.name}</h4>
+                        <table>
+                          <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {this.state.selectedItem.transaction_entry.map((transaction, index) => (
+                            <tr key={index}>
+                              <td>
+                                <h6>{formatDate(transaction.transaction_date)}</h6>
+                                <span className="text-muted">{transaction.notes}</span>
+                              </td>
+                              <td
+                                className={transaction.type === 'INTEREST' ? 'text-success' : 'text-info'}>{transaction.type}</td>
+                              <td>{formatCurrency(transaction.transaction_amount)}</td>
+                            </tr>
+                          ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary"
+                                data-dismiss="modal">Close
+                        </button>
+                      </div>
+                    </form>
+
+                  </div>
+                </div>
+              </div>)}
+
+          </div>
+        );
+      }
+    }
+
+    ReactDOM
+      .render(<LoanDashboard/>, document.getElementById("report"));
+  </script>
+  {#  React Component ends here #}
+
+  <script>
+    $(document).ready(function () {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('datepicker-input1').value = today;
+      document.getElementById('datepicker-input2').value = today;
+    });
+  </script>
+
+{% endblock %}
+{% include "register/footer.html" %}
