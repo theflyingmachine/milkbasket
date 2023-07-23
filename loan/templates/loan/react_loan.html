@@ -183,17 +183,17 @@
           method: 'POST',
           body: formData,
         };
-        await fetch('{% url 'add_loan_transaction_api' %}', requestOptions)
+        await fetch('{% url 'add_transaction_api' %}', requestOptions)
           .then(response => response.json())
           .then(res => {
-              if (res.status === 'success') {
-                const loanToUpdateId = res.saved_transaction.loan_id;
-                let current_loans = this.state.data;
-                // Find the index of the loan with a matching ID in the all_loans array
-                const loanIndexToUpdate = current_loans.all_loans.findIndex((loan) => loan.id === loanToUpdateId);
-                // create a new object with the updated transaction_entry
-                const updatedLoan = {
-                  ...current_loans.all_loans[loanIndexToUpdate],
+            if (res.status === 'success') {
+              const loanToUpdateId = res.saved_transaction.loan_id;
+              let current_loans = this.state.data;
+              // Find the index of the loan with a matching ID in the all_loans array
+              const loanIndexToUpdate = current_loans.all_loans.findIndex((loan) => loan.id === loanToUpdateId);
+              // create a new object with the updated transaction_entry
+              const updatedLoan = {
+                ...current_loans.all_loans[loanIndexToUpdate],
                   transaction_entry: [...current_loans.all_loans[loanIndexToUpdate].transaction_entry, res.saved_transaction],
                 };
                 // Create a new object with the updated all_loans array

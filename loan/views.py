@@ -31,8 +31,22 @@ def loan_dashboard(request):
 
 
 class LoanAPI():
+
     @login_required()
-    def add_loan_api(request):
+    def list_loan(request):
+        """
+        This function returns JSON data for the loan entry
+        """
+        all_loan = Loan.objects.prefetch_related(
+            Prefetch('transaction_set',
+                     queryset=Transaction.objects.all().order_by('transaction_date'))
+        ).filter(tenant_id=request.user.id, status=True).distinct().order_by('-lending_date')
+        return JsonResponse({'status': 'success',
+                             'all_loans': LoanSerializer(instance=all_loan, many=True).data,
+                             })
+
+    @login_required()
+    def add_loan(request):
         """
         This function records new loan entry
         """
@@ -57,7 +71,7 @@ class LoanAPI():
                                  })
 
     @login_required()
-    def add_loan_transaction_api(request):
+    def add_transaction(request):
         """
         This function records new transaction entry
         """
@@ -77,14 +91,17 @@ class LoanAPI():
                                  })
 
     @login_required()
-    def get_loan_api(request):
+    def delete_transaction(request, transaction_id):
         """
-        This function returns JSON data for the loan entry
+        This functions used to delete transaction
         """
-        all_loan = Loan.objects.prefetch_related(
-            Prefetch('transaction_set',
-                     queryset=Transaction.objects.all().order_by('transaction_date'))
-        ).filter(tenant_id=request.user.id, status=True).distinct().order_by('-lending_date')
-        return JsonResponse({'status': 'success',
-                             'all_loans': LoanSerializer(instance=all_loan, many=True).data,
-                             })
+        try:
+            Transaction.objects.get(id=transaction_id,
+                                    loan_id__tenant_id=request.user.id).delete()
+            return JsonResponse({'status': 'success',
+                                 'deleted': transaction_id,
+                                 })
+        except Transaction.DoesNotExist:
+            return JsonResponse({'status': 'false',
+                                 'error': 'Transaction does not exist',
+                                 })
