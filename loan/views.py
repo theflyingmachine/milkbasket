@@ -2,7 +2,8 @@ import json
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Sum, Q, DecimalField
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -40,7 +41,7 @@ class LoanAPI():
         all_loan = Loan.objects.prefetch_related(
             Prefetch('transaction_set',
                      queryset=Transaction.objects.all().order_by('transaction_date'))
-        ).filter(tenant_id=request.user.id, status=True).distinct().order_by('-lending_date')
+        ).filter(tenant_id=request.user.id).distinct().order_by('-lending_date')
         return JsonResponse({'status': 'success',
                              'all_loans': LoanSerializer(instance=all_loan, many=True).data,
                              })
@@ -78,9 +79,31 @@ class LoanAPI():
         if request.method == 'POST':
             form = TransactionForm(request.POST)
             if form.is_valid():
+                # Fetch loan data with principal sum using annotations
+                loan_data = Loan.objects.filter(tenant_id=request.user.id,
+                                                id=form.data['loan_id']).annotate(
+                    principal_sum=Coalesce(Sum('transaction__transaction_amount',
+                                               filter=Q(transaction__type='PRINCIPAL')), 0,
+                                           output_field=DecimalField())
+                ).values('amount', 'principal_sum').first()
+                if not loan_data:
+                    return JsonResponse({'status': 'false', 'error': 'Loan not found.'})
+
+                transaction_amount = Decimal(form.data['transaction_amount'])
+                if form.data['type'] == 'PRINCIPAL':
+                    total_principal = loan_data['principal_sum'] + transaction_amount
+                    if total_principal > loan_data['amount']:
+                        return JsonResponse({
+                            'status': 'false',
+                            'error': f'Cannot accept ₹{transaction_amount} principal transaction. '
+                                     f'It will exceed the principal amount of ₹{loan_data["amount"]}',
+                        })
+
+                    if total_principal == loan_data['amount']:
+                        Loan.objects.filter(id=form.data['loan_id']).update(status=False)
+
+                # Save the transaction
                 saved_transaction = form.save()
-                # todo; Update Loan Status to 0, when all the added transactions add up to loan_amount
-                # todo; Validate Principal amount not exceeding loan amount
                 return JsonResponse({'status': 'success',
                                      'saved_transaction': TransactionSerializer(
                                          instance=saved_transaction,
