@@ -357,7 +357,7 @@ class RegisterAPI():
 
             month_paid += month_extra_income
             month_paid = decimal.Decimal(month_paid)
-            month_due = month_register_sale - month_paid
+            month_due = decimal.Decimal(month_register_sale) - month_paid
 
             profit = float(
                 max(month_paid - month_expense, 0)) if month_paid > month_expense else False
