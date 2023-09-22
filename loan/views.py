@@ -41,7 +41,7 @@ class LoanAPI():
         all_loan = Loan.objects.prefetch_related(
             Prefetch('transaction_set',
                      queryset=Transaction.objects.all().order_by('transaction_date'))
-        ).filter(tenant_id=request.user.id).distinct().order_by('-lending_date')
+        ).filter(tenant_id=request.user.id).distinct().order_by('-status', '-lending_date')
         return JsonResponse({'status': 'success',
                              'all_loans': LoanSerializer(instance=all_loan, many=True).data,
                              })
