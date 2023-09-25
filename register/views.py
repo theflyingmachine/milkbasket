@@ -475,15 +475,14 @@ def autopilot(request, year=None, month=None):
                              e.log_date == current_date and e.schedule.startswith(
                         cust['schedule']))
                 except StopIteration:
-                    register_entries.append(Register(tenant=tenant,
-                                                     customer_id=customer.id,
-                                                     log_date=current_date,
-                                                     schedule=f'{cust["schedule"]}-yes',
-                                                     quantity=getattr(customer,
-                                                                      schedule_to_attr.get(
-                                                                          cust['schedule'],
-                                                                          'm_quantity')),
-                                                     current_price=current_price))
+                    quantity = getattr(customer,schedule_to_attr[cust['schedule']])
+                    if quantity is not None:
+                        register_entries.append(Register(tenant=tenant,
+                                                         customer_id=customer.id,
+                                                         log_date=current_date,
+                                                         schedule=f'{cust["schedule"]}-yes',
+                                                         quantity=quantity,
+                                                         current_price=current_price))
 
         Register.objects.bulk_create(register_entries)  # Create bulk Register entry
         response = {

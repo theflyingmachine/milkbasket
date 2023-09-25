@@ -553,7 +553,7 @@
                                         <div className="col-6">
                                           <h5 className="mb-4">Morning Register</h5>
                                           {this.state.data.m_register.map((entry, index) => {
-                                            return entry.status && (
+                                            return entry.status && entry.m_quantity && (
                                               <label key={index}
                                                      className="container-register autopilot-modal-content-mobile">{entry.name} | {entry.m_quantity} ML
                                                 <input name={`${entry.id}-morning`}
@@ -585,7 +585,7 @@
                                         <div className="col-6">
                                           <h5 className="mb-4">Evening Register</h5>
                                           {this.state.data.e_register.map((entry, index) => {
-                                            return entry.status && (
+                                            return entry.status && entry.e_quantity && (
                                               <label key={index}
                                                      className="container-register autopilot-modal-content-mobile">{entry.name} | {entry.e_quantity} ML
                                                 <input name={`${entry.id}-evening`}
