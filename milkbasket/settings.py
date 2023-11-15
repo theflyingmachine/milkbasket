@@ -34,7 +34,7 @@ SECRET_KEY = '06^)^*-!6m9pp_21aq)(j#a5yv^#7y5&c8o+l#4hmgy+s!eekk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENV_DEBUG
 
-ALLOWED_HOSTS = ['milk.cyberboy.in', 'milkcrt.cyberboy.in', '127.0.0.1', 'm.cyberboy.in']
+ALLOWED_HOSTS = ['milk.cyberboy.in', 'milkcrt.cyberboy.in', '127.0.0.1', '140.238.228.149', '146.56.53.63']
 
 LOGIN_URL = reverse_lazy('landing')
 
@@ -166,7 +166,7 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 90
 
 # Sentry Logging
 sentry_sdk.init(
-    dsn=SENTRY_DSN_DEV if RUN_ENVIRONMENT == 'dev' else SENTRY_DSN_PROD,
+    dsn=SENTRY_DSN_PROD if RUN_ENVIRONMENT == 'production' else SENTRY_DSN_DEV,
     integrations=[
         DjangoIntegration(),
     ],
@@ -182,7 +182,7 @@ sentry_sdk.init(
     # Sentry Env Config
     environment="production",
     auto_session_tracking=True,
-    # environment="dev" if RUN_ENVIRONMENT == 'dev' else "production",
+    # environment="dev" if is_non_prod() else "production",
     # Profiling
     _experiments={
         "profiles_sample_rate": 1.0,

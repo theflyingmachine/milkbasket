@@ -565,7 +565,7 @@ def send_wa_payment_notification(cust_number, cust_name, payment_amount, payment
                                  transaction_number):
     """ Send WA notification for Payment received """
     wa_body = WA_PAYMENT_MESSAGE_TEMPLATE_V2
-    wa_body['to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{cust_number}"
+    wa_body['to'] = f"91{DEV_NUMBER}" if is_non_prod() else f"91{cust_number}"
     wa_body['template']['components'][1]['parameters'][0]['text'] = cust_name
     wa_body['template']['components'][1]['parameters'][1]['text'] = payment_amount
     wa_body['template']['components'][1]['parameters'][2]['text'] = payment_time
@@ -595,9 +595,14 @@ def calculate_milk_price(register_qs):
     return total_due / 1000 if total_due else 0
 
 
-def is_dev():
+def is_non_prod():
     """ Helper function to check the current environment. Reruns Boolean"""
-    return RUN_ENVIRONMENT == 'dev'
+    return RUN_ENVIRONMENT != 'production'
+
+
+def get_protocol():
+    """ Helper function to get the correct protocol for respective environment. Reruns String"""
+    return 'http' if RUN_ENVIRONMENT == 'dev' else 'https'
 
 
 #  ===================== Custom Error Handler Views ==============================

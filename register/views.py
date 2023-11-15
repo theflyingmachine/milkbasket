@@ -37,7 +37,7 @@ from register.models import Payment
 from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
-    get_whatsapp_media_by_id, get_client_ip, is_dev
+    get_whatsapp_media_by_id, get_client_ip, is_non_prod, get_protocol
 from register.utils import generate_bill
 from register.utils import get_customer_all_due
 from register.utils import get_customer_due_amount
@@ -78,7 +78,7 @@ def index(request, year=None, month=None):
         'month_year': month_year,
         'register_date_month': register_date.month,
         'register_date_year': register_date.year,
-        'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
+        'protocol': get_protocol(),
         'show_tooltip': str(not is_mobile(request)).lower(),
     })
     return render(request, template, context)
@@ -578,7 +578,7 @@ def account(request, year=None, month=None):
         'menu_account': True,
         'register_date_month': register_date.month,
         'register_date_year': register_date.year,
-        'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
+        'protocol': get_protocol(),
     }
     return render(request, template, context)
 
@@ -883,7 +883,7 @@ def report_initial(request):
                'page_title': 'Milk Basket - Report',
                'is_mobile': is_mobile(request),
                'menu_report': True,
-               'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http'
+               'protocol': get_protocol()
                }
     return render(request, template, context)
 
@@ -960,7 +960,7 @@ def customer_profile(request, cust_id=None):
         context.update({
             'menu_customer': True,
             'customer_id': cust_id,
-            'protocol': 'https' if RUN_ENVIRONMENT == 'production' else 'http',
+            'protocol': get_protocol(),
         })
         return render(request, template, context)
     return redirect('view_customers')
@@ -1099,7 +1099,7 @@ def broadcast_send(request, cust_id=None):
         sms_body = SMS_DUE_MESSAGE.format(due[0]['name'], due[0]['due_month'],
                                           due[0]['to_be_paid'])
         wa_body = WA_DUE_MESSAGE_TEMPLATE_V3
-        wa_body['to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{cust_number}"
+        wa_body['to'] = f"91{DEV_NUMBER}" if is_non_prod() else f"91{cust_number}"
         wa_body['template']['components'][1]['parameters'][0]['text'] = due[0]['name']
         wa_body['template']['components'][1]['parameters'][1]['text'] = due[0]['to_be_paid']
         wa_body['template']['components'][1]['parameters'][2]['text'] = due[0]['due_month']
@@ -1112,7 +1112,7 @@ def broadcast_send(request, cust_id=None):
         res = {'sms': False, 'whatsapp': False}
 
         def proxy_send_sms_api():
-            res['sms'] = send_sms_api(DEV_NUMBER if is_dev() else cust_number,
+            res['sms'] = send_sms_api(DEV_NUMBER if is_non_prod() else cust_number,
                                       sms_body,
                                       DUE_TEMPLATE_ID)
 

@@ -95,10 +95,10 @@ class LoginOTP(models.Model):
 
             # send OTP Notification
             from register.utils import send_whatsapp_message
-            from register.utils import is_dev
+            from register.utils import is_non_prod
             wa_body = WA_OTP_MESSAGE_TEMPLATE
             wa_body[
-                'to'] = f"91{DEV_NUMBER}" if is_dev() else f"91{user.contact}"
+                'to'] = f"91{DEV_NUMBER}" if is_non_prod() else f"91{user.contact}"
             wa_body['template']['components'][0]['parameters'][0]['text'] = user.name.title()
             wa_body['template']['components'][0]['parameters'][1][
                 'text'] = current_otp.otp_password
