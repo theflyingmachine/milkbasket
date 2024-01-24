@@ -2,17 +2,14 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+Versions currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2023.x  | :white_check_mark: |
+| [![Latest Release](https://img.shields.io/github/release/theflyingmachine/milkbasket.svg)](https://github.com/theflyingmachine/milkbasket/releases/latest)  | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
-
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Please submit your findings by sending an email to [ericabraham.ea@gmail.com](mailto:ericabraham.ea@gmail.com) OR [Create an issue](https://github.com/theflyingmachine/milkbasket/issues/new/choose). Ensure that you provide a detailed description
+of the vulnerability, including steps to reproduce it and any supporting materials such as screenshots or
+proof-of-concept code.
