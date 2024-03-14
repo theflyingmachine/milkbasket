@@ -21,7 +21,7 @@ class Transaction(models.Model):
         ('PRINCIPAL', 'Principal'),
         ('INTEREST', 'Interest'),
     )
-    loan_id = models.ForeignKey(Loan, on_delete=models.PROTECT)
+    loan_id = models.ForeignKey(Loan, on_delete=models.CASCADE)
     transaction_amount = models.DecimalField(max_digits=8, decimal_places=2,
                                              validators=[MinValueValidator(1)])
     type = models.CharField(max_length=10, choices=CHOICES, default='INTEREST')

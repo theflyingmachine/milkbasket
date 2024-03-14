@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
                 (
                     "loan_id",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT, to="loan.loan"
+                        on_delete=django.db.models.deletion.CASCADE, to="loan.loan"
                     ),
                 ),
             ],

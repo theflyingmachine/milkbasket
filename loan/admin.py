@@ -14,8 +14,8 @@ class LoanAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_filter = ('status', 'tenant__tenant')
     list_display = (
-        'tenant_name',
         'name',
+        'tenant_name',
         'amount',
         'interest_rate',
         'lending_date',
