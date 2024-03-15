@@ -2,6 +2,7 @@ import base64
 import logging
 import random
 import re
+import smtplib
 import string
 import threading
 from calendar import monthrange
@@ -13,6 +14,7 @@ import requests
 from barcode.writer import ImageWriter
 from dateutil.relativedelta import relativedelta
 from django.contrib import messages
+from django.core.exceptions import ImproperlyConfigured
 from django.core.mail import EmailMessage
 from django.db.models import Q, Sum, F, FloatField
 from django.http import HttpResponse
@@ -300,16 +302,20 @@ def check_customer_is_active(cust_id):
     return is_active
 
 
-def send_email_api(to_email, subject, data):
+def send_email_api(to_email, subject, data, template):
     """ Send email message """
     status = {'status': 'failed'}
     if to_email and data:
-        email_body = get_template('register/email_bill_template.html').render(data)
-        email = EmailMessage(subject, email_body, to=[to_email])
-        email.content_subtype = "html"
-        if email.send():
-            logger.info('Email Sent Successfully {0}, {1}'.format(to_email, subject))
-            status['status'] = 'success'
+        email_body = get_template(template).render(data)
+        try:
+            email = EmailMessage(subject, email_body, to=[to_email])
+            email.content_subtype = "html"
+            if email.send():
+                logger.info('Email Sent Successfully {0}, {1}'.format(to_email, subject))
+                status['status'] = 'success'
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error('SMTPAuthenticationError', e)
+            raise ImproperlyConfigured("SMTP Authentication Error: Check your email settings.")
     return status
 
 
