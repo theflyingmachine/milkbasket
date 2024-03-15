@@ -249,7 +249,7 @@ def add_customer(request):
                                      f'Customer details updated successfully for {customer_name.name}')
         else:
             form = CustomerForm(request.POST)
-            name = form['name'].value()
+            name = form['name'].value().strip().title()
             contact = form['contact'].value()
             email = form['email'].value()
             morning = form['morning'].value() or False
