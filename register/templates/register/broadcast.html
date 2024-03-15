@@ -14,158 +14,184 @@
 <!-- Navbar content -->
 
 {% block content %}
-  <style>
+    <style>
 
-      .spinner-size-big {
-          width: 5rem;
-          height: 5rem;
-      }
+        .spinner-size-big {
+            width: 5rem;
+            height: 5rem;
+        }
 
 
-  </style>
+    </style>
 
-  <script type="text/babel">
-    class Report extends React.Component {
-      constructor(props) {
-        super(props);
-        this.sendNotification = this.sendNotification.bind(this);
-        this.state = {
-          isLoading: true,
-          reportData: null,
-          reportStatus: JSON.parse(localStorage.getItem('myData')) || {},
-        };
-      }
-
-      async componentDidMount() {
-        const url = "{% url 'broadcast_metadata' %}";
-        const response = await fetch(url);
-        const data = await response.json();
-        this.setState({reportData: data, isLoading: false});
-      }
-
-      async sendNotification(cust) {
-        const url = "{% url 'broadcast_send' 123456789 %}".replace(/123456789/, cust.id);
-        const response = await fetch(url);
-        const data = await response.json();
-        let reportStatus = JSON.parse(localStorage.getItem('myData')) || {};
-        reportStatus[cust.id] = data
-        localStorage.setItem('myData', JSON.stringify(reportStatus));
-        this.setState({reportStatus: reportStatus});
-      };
-
-      triggerSend(cust) {
-        let reportStatus = JSON.parse(localStorage.getItem('myData')) || {};
-        reportStatus[cust.id] = {"sms": 1, "wa": 1}
-        localStorage.setItem('myData', JSON.stringify(reportStatus));
-        this.setState({reportStatus: reportStatus});
-        this.sendNotification(cust);
-        let now = new Date().getTime();
-        localStorage.setItem('setupTime', now)
-      };
-
-      render() {
-        let component = <div className="{% if not is_mobile %}container{% endif %}">
-          {#  Proft and loss table #}
-          <h3 className="text-center mt-2 mt-lg-5">Broadcast Bills</h3>
-          <table className="table mb-5 table-sm table-striped">
-            <thead>
-            <tr className="bg-info text-white">
-              <th className="py-2 col-1" scope="col">#</th>
-              <th className="py-2 col-4" scope="col">Name</th>
-              <th className="py-2 col-2" scope="col">Amount</th>
-              <th className="py-2 col-2" scope="col">SMS</th>
-              <th className="py-2 col-2" scope="col">WA</th>
-              <th className="py-2 col-2" scope="col">Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {
-              this.state.reportData ?
-                this.state.reportData.due_customer.map((customer, index) => (
-                  <tr key={customer.id}>
-                    <th className="py-2 col-1" scope="row">{index + 1}</th>
-                    <td className="py-2 col-4" scope="row">{customer.name}</td>
-                    <td className="py-2 col-2" scope="row">{customer.to_be_paid} <span
-                      className="text-info">{customer.due_month}</span></td>
-                    <td className="py-2 col-2" scope="row">
-                      {this.state.reportStatus && this.state.reportStatus[customer.id] ?
-                        this.state.reportStatus[customer.id].sms === 1 ?
-                          <div className="spinner-grow text-warning" role="status">
-                            <span className="sr-only">Loading...</span>
-                          </div> :
-                          this.state.reportStatus[customer.id].sms === 2 ?
-                            <span className="text-success"> ✅ </span> :
-                            this.state.reportStatus[customer.id].sms === 3 ?
-                              <span className="text-danger"> ❌ </span> : '' : ''
-                      }
-                    </td>
-                    <td className="py-2 col-2" scope="row">
-                      {this.state.reportStatus && this.state.reportStatus[customer.id] ?
-                        this.state.reportStatus[customer.id].wa === 1 ?
-                          <div className="spinner-grow text-warning" role="status">
-                            <span className="sr-only">Loading...</span>
-                          </div> :
-                          this.state.reportStatus[customer.id].wa === 2 ?
-                            <span className="text-success"> ✅ </span> :
-                            this.state.reportStatus[customer.id].wa === 3 ?
-                              <span className="text-danger"> ❌ </span> : '' : ''
-                      }</td>
-                    <td className="py-2 col-2" scope="row">
-                      <button id={`button_sent_${customer.id}`}
-                              onClick={() => this.triggerSend(customer)} type="button"
-                              className="text-center btn btn-primary p-0 p-md-1 p-xl-2 text-">Send
-                        Bill
-                      </button>
-                    </td>
-                  </tr>
-                ))
-                :
-                <tr></tr>
+    <script type="text/babel">
+        class Report extends React.Component {
+            constructor(props) {
+                super(props);
+                this.sendNotification = this.sendNotification.bind(this);
+                this.state = {
+                    isLoading: true,
+                    reportData: null,
+                    reportStatus: JSON.parse(localStorage.getItem('myData')) || {},
+                };
             }
-            </tbody>
-          </table>
-        </div>;
 
-        let loading_component = <div className="text-center m-xl-5 p-xl-5">
+            async componentDidMount() {
+                const url = "{% url 'broadcast_metadata' %}";
+                const response = await fetch(url);
+                const data = await response.json();
+                this.setState({reportData: data, isLoading: false});
+            }
 
-          <div className="spinner-grow text-primary" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-secondary" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-success" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-danger" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-warning" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-info" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <div className="spinner-grow text-dark" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>;
+            async sendNotification(cust) {
+                const url = "{% url 'broadcast_send' 123456789 %}".replace(/123456789/, cust.id);
+                const response = await fetch(url);
+                const data = await response.json();
+                let reportStatus = JSON.parse(localStorage.getItem('myData')) || {};
+                reportStatus[cust.id] = data
+                localStorage.setItem('myData', JSON.stringify(reportStatus));
+                this.setState({reportStatus: reportStatus});
+            };
 
-        return <div className="report">
-          {component}
-          {this.state.isLoading ? loading_component : ''}
-          {this.state.isLoading ? '' :
-            <p className="p-5 text-center text-secondary"> --- END OF PAGE ---</p>}
-        </div>;
-      }
-    }
+            triggerSend(cust) {
+                let reportStatus = JSON.parse(localStorage.getItem('myData')) || {};
+                reportStatus[cust.id] = {"sms": 1, "wa": 1, "email": 1}
+                localStorage.setItem('myData', JSON.stringify(reportStatus));
+                this.setState({reportStatus: reportStatus});
+                this.sendNotification(cust);
+                let now = new Date().getTime();
+                localStorage.setItem('setupTime', now)
+            };
 
-    ReactDOM.render(
-      <Report/>,
-      document.getElementById('report')
-    );
-  </script>
-  <div id="report"></div>
+            render() {
+                let component = <div className="{% if not is_mobile %}container{% endif %}">
+                    {#  Proft and loss table #}
+                    <h3 className="text-center mt-2 mt-lg-5">Broadcast Bills</h3>
+                    <table className="table mb-5 table-sm table-striped">
+                        <thead>
+                        <tr className="bg-info text-white">
+                            <th className="py-2 col-1" scope="col">#</th>
+                            <th className="py-2 col-4" scope="col">Name</th>
+                            <th className="py-2 col-2" scope="col">Amount</th>
+                            {% if tenant.sms_pref %}
+                                <th className="py-2 col-2" scope="col">SMS</th>
+                            {% endif %}
+                            {% if tenant.whatsapp_pref %}
+                                <th className="py-2 col-2" scope="col">WA</th>
+                            {% endif %}
+                            {% if tenant.email_pref %}
+                                <th className="py-2 col-2" scope="col">Email</th>
+                            {% endif %}
+                            <th className="py-2 col-2" scope="col">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {
+                            this.state.reportData ?
+                                this.state.reportData.due_customer.map((customer, index) => (
+                                    <tr key={customer.id}>
+                                        <th className="py-2 col-1" scope="row">{index + 1}</th>
+                                        <td className="py-2 col-4" scope="row">{customer.name}</td>
+                                        <td className="py-2 col-2" scope="row">{customer.to_be_paid} <span
+                                            className="text-info">{customer.due_month}</span></td>
+
+                                        {% if tenant.sms_pref %}
+                                            <td className="py-2 col-2" scope="row">
+                                                {this.state.reportStatus && this.state.reportStatus[customer.id] ?
+                                                    this.state.reportStatus[customer.id].sms === 1 ?
+                                                        <div className="spinner-grow text-warning" role="status">
+                                                            <span className="sr-only">Loading...</span>
+                                                        </div> :
+                                                        this.state.reportStatus[customer.id].sms === 2 ?
+                                                            <span className="text-success"> ✅ </span> :
+                                                            this.state.reportStatus[customer.id].sms === 3 ?
+                                                                <span className="text-danger"> ❌ </span> : '' : ''
+                                                }
+                                            </td>
+                                        {% endif %}
+                                        {% if tenant.whatsapp_pref %}
+
+                                            <td className="py-2 col-2" scope="row">
+                                                {this.state.reportStatus && this.state.reportStatus[customer.id] ?
+                                                    this.state.reportStatus[customer.id].wa === 1 ?
+                                                        <div className="spinner-grow text-warning" role="status">
+                                                            <span className="sr-only">Loading...</span>
+                                                        </div> :
+                                                        this.state.reportStatus[customer.id].wa === 2 ?
+                                                            <span className="text-success"> ✅ </span> :
+                                                            this.state.reportStatus[customer.id].wa === 3 ?
+                                                                <span className="text-danger"> ❌ </span> : '' : ''
+                                                }</td>
+                                        {% endif %}
+                                        {% if tenant.email_pref %}
+                                            <td className="py-2 col-2" scope="row">
+                                                {this.state.reportStatus && this.state.reportStatus[customer.id] ?
+                                                    this.state.reportStatus[customer.id].email === 1 ?
+                                                        <div className="spinner-grow text-warning" role="status">
+                                                            <span className="sr-only">Loading...</span>
+                                                        </div> :
+                                                        this.state.reportStatus[customer.id].email === 2 ?
+                                                            <span className="text-success"> ✅ </span> :
+                                                            this.state.reportStatus[customer.id].email === 3 ?
+                                                                <span className="text-danger"> ❌ </span> : '' : ''
+                                                }</td>
+                                        {% endif %}
+                                        <td className="py-2 col-2" scope="row">
+                                            <button id={`button_sent_${customer.id}`}
+                                                    onClick={() => this.triggerSend(customer)} type="button"
+                                                    className="text-center btn btn-primary p-0 p-md-1 p-xl-2 text-">Send
+                                                Bill
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                                :
+                                <tr></tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>;
+
+                let loading_component = <div className="text-center m-xl-5 p-xl-5">
+
+                    <div className="spinner-grow text-primary" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
+                    <div className="spinner-grow text-secondary" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
+                    <div className="spinner-grow text-success" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
+                    <div className="spinner-grow text-danger" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
+                    <div className="spinner-grow text-warning" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
+                    <div className="spinner-grow text-info" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
+                    <div className="spinner-grow text-dark" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </div>
+                </div>;
+
+                return <div className="report">
+                    {component}
+                    {this.state.isLoading ? loading_component : ''}
+                    {this.state.isLoading ? '' :
+                        <p className="p-5 text-center text-secondary"> --- END OF PAGE ---</p>}
+                </div>;
+            }
+        }
+
+        ReactDOM.render(
+            <Report/>,
+            document.getElementById('report')
+        );
+    </script>
+    <div id="report"></div>
 {% endblock %}
 {# PROD Bundle #}
 <script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
@@ -175,17 +201,17 @@
 {#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
 {#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
 <script>
-  let hours = 24; // to clear the localStorage after 8 hour - This clears the previous sent status
-  let now = new Date().getTime();
-  let setupTime = localStorage.getItem('setupTime');
-  if (setupTime == null) {
-    localStorage.setItem('setupTime', now)
-  } else {
-    if (now - setupTime > hours * 60 * 60 * 1000) {
-      localStorage.clear()
-      localStorage.setItem('setupTime', now);
+    let hours = 24; // to clear the localStorage after 8 hour - This clears the previous sent status
+    let now = new Date().getTime();
+    let setupTime = localStorage.getItem('setupTime');
+    if (setupTime == null) {
+        localStorage.setItem('setupTime', now)
+    } else {
+        if (now - setupTime > hours * 60 * 60 * 1000) {
+            localStorage.clear()
+            localStorage.setItem('setupTime', now);
+        }
     }
-  }
 </script>
 {% include "register/footer.html" %}
 

@@ -14,8 +14,9 @@ import requests
 from barcode.writer import ImageWriter
 from dateutil.relativedelta import relativedelta
 from django.contrib import messages
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.mail import EmailMessage
+from django.core.validators import validate_email
 from django.db.models import Q, Sum, F, FloatField
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -26,7 +27,7 @@ from pymongo import MongoClient
 from xhtml2pdf import pisa
 
 from customer.models import WhatsAppMessage
-from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT
+from milkbasket.secret import ALEXA_KEY, WA_NUMBER_ID, WA_TOKEN, DEV_NUMBER, RUN_ENVIRONMENT, DEV_EMAIL
 from milkbasket.secret import MONGO_COLLECTION
 from milkbasket.secret import MONGO_DATABASE
 from milkbasket.secret import MONGO_KEY
@@ -219,10 +220,11 @@ def get_base_64_barcode(barcode_text):
         barcode_file_base64 = base64.b64encode(rv.getvalue()).decode()
     return barcode_file_base64
 
+
 def send_sms_api(contact, sms_text, template_id):
     """ Send SMS api """
     response = None
-
+    contact = DEV_NUMBER if is_non_prod() else contact
     try:
         from milkbasket.secret import SMS_API_KEY
     except ModuleNotFoundError as e:
@@ -305,7 +307,8 @@ def check_customer_is_active(cust_id):
 def send_email_api(to_email, subject, data, template):
     """ Send email message """
     status = {'status': 'failed'}
-    if to_email and data:
+    to_email = DEV_EMAIL if is_non_prod() else to_email
+    if is_valid_email(to_email) and data:
         email_body = get_template(template).render(data)
         try:
             email = EmailMessage(subject, email_body, to=[to_email])
@@ -373,7 +376,7 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
     elif raw_data:
         return (
             {'status': 'success', 'amount': bill_sum_total['sum_total'],
-             'bill_number': data['bill_number'], 'raw_data': data})
+             'bill_number': data['bill_number'], 'month_year': bill_month, 'raw_data': data})
     return data
 
 
@@ -417,6 +420,7 @@ def is_mobile(request):
     """Return True if the request comes from a mobile device."""
     MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
     return MOBILE_AGENT_RE.match(request.META.get('HTTP_USER_AGENT', '')) is not None
+
 
 def authenticate_alexa(request):
     """ Authenticates the key for get request from Alexa """
@@ -604,6 +608,24 @@ def calculate_milk_price(register_qs):
 def is_non_prod():
     """ Helper function to check the current environment. Reruns Boolean"""
     return RUN_ENVIRONMENT != 'production'
+
+
+def is_valid_email(email):
+    """ Helper function to validate email"""
+    try:
+        validate_email(email)
+        return True
+    except ValidationError:
+        return False
+
+
+def is_valid_contact(contact):
+    """ Helper function to validate contact number"""
+    # Remove any non-digit characters from the input number
+    number_str = str(contact)
+    number = ''.join(filter(str.isdigit, number_str))
+    # Check if the number is exactly 10 digits long
+    return len(number) == 10
 
 
 def get_protocol():

@@ -5,7 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from customer.constant import WA_OTP_MESSAGE_TEMPLATE, WA_OTP_MESSAGE
-from milkbasket.secret import DEV_NUMBER, DEV_EMAIL
 from register.models import Customer, Tenant
 
 
@@ -110,12 +109,10 @@ class LoginOTP(models.Model):
 
             # Send OTP notification Email
             from register.utils import send_email_api
-            from register.utils import is_non_prod
 
-            to_email = DEV_EMAIL if is_non_prod() else user.email
-            if to_email:
+            if user.email:
                 bill_otp_template = 'register/snippet/email_otp_template.html'
-                send_email_api(to_email, 'MilkBasket Login OTP', {'otp_password': current_otp.otp_password},
+                send_email_api(user.email, 'MilkBasket Login OTP', {'otp_password': current_otp.otp_password},
                                bill_otp_template)
 
         return current_otp

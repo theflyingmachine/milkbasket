@@ -37,7 +37,7 @@ from register.models import Payment
 from register.models import Register
 from register.models import Tenant
 from register.utils import authenticate_alexa, get_customer_contact, send_wa_payment_notification, \
-    get_whatsapp_media_by_id, get_client_ip, is_non_prod, get_protocol
+    get_whatsapp_media_by_id, get_client_ip, is_non_prod, get_protocol, is_valid_email, is_valid_contact
 from register.utils import generate_bill
 from register.utils import get_customer_all_due
 from register.utils import get_customer_due_amount
@@ -439,8 +439,8 @@ def autopilot(request, year=None, month=None):
         end_date = datetime.strptime(request.POST['end'], '%b %d, %Y')
         today = date.today()
         if start_date > end_date or (start_date.year, start_date.month) != (
-            today.year, today.month) or (
-            end_date.year, end_date.month) != (today.year, today.month):
+                today.year, today.month) or (
+                end_date.year, end_date.month) != (today.year, today.month):
             message = f'You have selected {start_date} start and {end_date} end date. End date cannot be before start date.' if start_date > end_date else 'Autopilot can only be run for current month.'
             response = {
                 'show_message': True,
@@ -475,7 +475,7 @@ def autopilot(request, year=None, month=None):
                              e.log_date == current_date and e.schedule.startswith(
                         cust['schedule']))
                 except StopIteration:
-                    quantity = getattr(customer,schedule_to_attr[cust['schedule']])
+                    quantity = getattr(customer, schedule_to_attr[cust['schedule']])
                     if quantity is not None:
                         register_entries.append(Register(tenant=tenant,
                                                          customer_id=customer.id,
@@ -999,7 +999,7 @@ def send_EMAIL(request, cust_id=None):
     if cust_id:
         customer = Customer.objects.get(id=cust_id)
         data = generate_bill(request, cust_id, raw_data=True)
-        subject = f'🛍️🥛 Bill due for ₹ {data["raw_data"]["bill_summary"][-1]["sum_total"]} 🧾'
+        subject = f'🛍️🥛 Milk Bill due for ₹{data["raw_data"]["bill_summary"][-1]["sum_total"]} 🧾'
         bill_email_template = 'register/email_bill_template.html'
         status = send_email_api(customer.email, subject, data, bill_email_template)
         return JsonResponse(status)
@@ -1075,8 +1075,11 @@ def product(request):
 
 @login_required()
 def broadcast_bulk_bill(request):
+    tenant = get_tenant_perf(request)
+    if tenant is None:
+        return redirect('setting')
     template = 'register/broadcast.html'
-    context = {'page_title': 'Generate Bills - Milk Basket', 'is_mobile': is_mobile(request)}
+    context = {'page_title': 'Generate Bills - Milk Basket', 'is_mobile': is_mobile(request), 'tenant': tenant}
     return render(request, template, context)
 
 
@@ -1092,11 +1095,14 @@ def broadcast_metadata(request):
 
 @login_required
 def broadcast_send(request, cust_id=None):
+    tenant = get_tenant_perf(request)
+    if tenant is None:
+        return redirect('setting')
     if cust_id:
         due = get_customer_all_due(request, cust_id)
-        bill_byte = generate_bill(request, cust_id, no_download=True)
-        bill = ast.literal_eval(bill_byte.content.decode('utf-8'))
-        cust_number = get_customer_contact(request, cust_id)
+        bill = generate_bill(request, cust_id, raw_data=True)
+        cust = Customer.objects.filter(tenant_id=request.user.id, id=cust_id).first()
+        cust_number = cust.contact
         sms_body = SMS_DUE_MESSAGE.format(due[0]['name'], due[0]['due_month'],
                                           due[0]['to_be_paid'])
         wa_body = WA_DUE_MESSAGE_TEMPLATE_V3
@@ -1110,10 +1116,10 @@ def broadcast_send(request, cust_id=None):
                                            due[0]['due_month'],
                                            f"https://milk.cyberboy.in/bill/{bill.get('bill_number')}")
 
-        res = {'sms': False, 'whatsapp': False}
+        res = {'sms': False, 'whatsapp': False, 'email': False}
 
         def proxy_send_sms_api():
-            res['sms'] = send_sms_api(DEV_NUMBER if is_non_prod() else cust_number,
+            res['sms'] = send_sms_api(cust_number,
                                       sms_body,
                                       DUE_TEMPLATE_ID)
 
@@ -1121,15 +1127,38 @@ def broadcast_send(request, cust_id=None):
             res['whatsapp'] = send_whatsapp_message(wa_body, wa_message, cust_id=cust_id,
                                                     cust_number=cust_number)
 
-        sms_thread = threading.Thread(target=proxy_send_sms_api, args=())
-        wa_thread = threading.Thread(target=proxy_send_whatsapp_message, args=())
-        sms_thread.start()
-        wa_thread.start()
-        sms_thread.join()
-        wa_thread.join()
+        def proxy_send_email_message():
+            subject = f'🛍️🥛 Milk Bill due for ₹{bill["raw_data"]["bill_summary"][-1]["sum_total"]} 🧾'
+            bill_email_template = 'register/email_bill_template.html'
+            res['email'] = send_email_api(cust.email, subject, bill, bill_email_template)
 
-        return JsonResponse({"sms": 2 if res['sms'].text.__contains__('"status":"success"') else 3,
-                             "wa": 2 if res['whatsapp'] else 3})
+        threads = []
+
+        if tenant.sms_pref and is_valid_contact(cust.contact):
+            threads.append(threading.Thread(target=proxy_send_sms_api))
+
+        if tenant.whatsapp_pref and is_valid_contact(cust.contact):
+            threads.append(threading.Thread(target=proxy_send_whatsapp_message))
+
+        if tenant.email_pref and is_valid_email(cust.email):
+            threads.append(threading.Thread(target=proxy_send_email_message))
+
+        # Start Threads
+        for thread in threads:
+            thread.start()
+
+        # Join Threads
+        for thread in threads:
+            thread.join()
+
+        if not isinstance(res['sms'], bool):
+            res['sms'] = res['sms'].text.__contains__('"status":"success"')
+        if not isinstance(res['email'], bool):
+            res['email'] = res['email']['status'] == "success"
+
+        return JsonResponse({"sms": 2 if res['sms'] else 3,
+                             "wa": 2 if res['whatsapp'] else 3,
+                             "email": 2 if res['email'] else 3})
 
 
 @login_required()
