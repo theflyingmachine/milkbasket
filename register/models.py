@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 class Tenant(models.Model):
     tenant = models.OneToOneField(
         User,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         primary_key=True, default=1,
     )
     download_pdf_pref = models.BooleanField(default=True)
