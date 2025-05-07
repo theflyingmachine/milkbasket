@@ -2,63 +2,67 @@ name: MilkBasket Deploy
 
 env:
   project: MilkBasket
-  server: https://cyberboy.octopus.app/
-  version: $(date +%Y.%m.%d).i
+  jenkins_url: https://vm2.cyberboy.in/jenkins
+  jenkins_user: ${{ secrets.JENKINS_USER }}
+  jenkins_token: ${{ secrets.JENKINS_API_TOKEN }}
 
 on:
   push:
-    branches: master
-    
+    branches:
+      - master
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Octopus Command-Line Interface
-        run: sudo apt update && sudo apt install --no-install-recommends gnupg curl ca-certificates jq apt-transport-https &&
-          curl -sSfL https://apt.octopus.com/public.key | sudo apt-key add - &&
-          sudo sh -c "echo deb https://apt.octopus.com/ stable main > /etc/apt/sources.list.d/octopus.com.list" &&
-          sudo apt update && sudo apt install octopuscli
-
-      - name: Create Octopus release
+      - name: Trigger Jenkins Job
         run: |
-          octo create-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version ${{ env.version }}
+          crumb=$(curl -s -u "${{ env.jenkins_user }}:${{ env.jenkins_token }}" "${{ env.jenkins_url }}/crumbIssuer/api/json" | jq -r '.crumb')
+          build_response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ env.jenkins_url }}/job/MilkBasket/build" \
+            -u "${{ env.jenkins_user }}:${{ env.jenkins_token }}" \
+            -H "Jenkins-Crumb:$crumb")
 
-      - name: Deploy to environment
-        run: |
-          octo deploy-release --server ${{ env.server }} --apiKey ${{ secrets.OCTOPUS_API_KEY }} --project ${{ env.project }} --version=latest --deployTo Production
-
-      - name: Wait 60 Sec to complete the deploy
-        run: |
-          sleep 60
-
-      - name: Get latest release version from Octopus
-        id: octopus
-        run: |
-          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].Version')
-          echo "::set-output name=release-version::$release_metadata"
+          if [ "$build_response" != "201" ]; then
+            echo "Jenkins job trigger failed with status $build_response"
+            exit 1
+          fi
           
-          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].Assembled')
-          echo "::set-output name=assembled::$release_metadata"
-          
-          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].State')
-          echo "::set-output name=state::$release_metadata"
-          
-          release_metadata=$(octo list-latestDeployments --server=${{ env.server }} --project="MilkBasket" --environment="Production" --apikey=${{ secrets.OCTOPUS_API_KEY }} --space="milk-space" --outputFormat=json  | tail -n +2 | jq -r '.[0].Duration')
-          echo "::set-output name=duration::$release_metadata"
-      
+          echo "Jenkins job triggered successfully"
+
+      - name: Wait for Jenkins build to finish (sleep 60s)
+        run: sleep 60
+
+      - name: Get Jenkins build info
+        id: jenkins
+        run: |
+          last_build=$(curl -s -u "${{ env.jenkins_user }}:${{ env.jenkins_token }}" \
+            "${{ env.jenkins_url }}/job/MilkBasket/lastBuild/api/json")
+
+          version=$(echo "$last_build" | jq -r '.id')
+          timestamp=$(echo "$last_build" | jq -r '.timestamp')
+          duration=$(echo "$last_build" | jq -r '.duration')
+          result=$(echo "$last_build" | jq -r '.result')
+
+          echo "Jenkins Build ID: $version"
+          echo "Build Result: $result"
+
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "timestamp=$timestamp" >> $GITHUB_OUTPUT
+          echo "duration=$duration" >> $GITHUB_OUTPUT
+          echo "result=$result" >> $GITHUB_OUTPUT
 
       - name: Create GitHub release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ steps.octopus.outputs.release-version }}
-          release_name: MilkBasket-${{ steps.octopus.outputs.release-version }}
+          tag_name: ${{ steps.jenkins.outputs.version }}
+          release_name: MilkBasket-${{ steps.jenkins.outputs.version }}
           body: |
             Release Info:
-            MilkBasket Release Version: ${{ steps.octopus.outputs.release-version }}
-            Assembled: ${{ steps.octopus.outputs.assembled }}
-            State: ${{ steps.octopus.outputs.state }}
-            Duration: ${{ steps.octopus.outputs.duration }}
+            Jenkins Build Version: ${{ steps.jenkins.outputs.version }}
+            Timestamp: ${{ steps.jenkins.outputs.timestamp }}
+            Result: ${{ steps.jenkins.outputs.result }}
+            Duration: ${{ steps.jenkins.outputs.duration }} ms
           draft: false
           prerelease: false
         env:

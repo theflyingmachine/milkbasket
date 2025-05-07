@@ -75,7 +75,7 @@ WA_PAYMENT_MESSAGE_TEMPLATE_V2 = {
                     {
                         "type": "image",
                         "image": {
-                            "link": "https://milk.cyberboy.in/static/bill/thankyou_golden_edition_v1.jpg"
+                            "link": "https://milk.cyberboy.in/static/bill/paid_banner_v1.png"
                         }
                     }
                 ]
