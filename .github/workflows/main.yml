@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set date version
+        id: version
+        run: echo "date_version=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+
       - name: Trigger Jenkins Job
         run: |
           crumb=$(curl -s -u "${{ env.jenkins_user }}:${{ env.jenkins_token }}" "${{ env.jenkins_url }}/crumbIssuer/api/json" | jq -r '.crumb')
@@ -27,10 +31,9 @@ jobs:
             echo "Jenkins job trigger failed with status $build_response"
             exit 1
           fi
-          
           echo "Jenkins job triggered successfully"
 
-      - name: Wait for Jenkins build to finish (sleep 60s)
+      - name: Wait for Jenkins build to finish
         run: sleep 60
 
       - name: Get Jenkins build info
@@ -44,9 +47,6 @@ jobs:
           duration=$(echo "$last_build" | jq -r '.duration')
           result=$(echo "$last_build" | jq -r '.result')
 
-          echo "Jenkins Build ID: $version"
-          echo "Build Result: $result"
-
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "timestamp=$timestamp" >> $GITHUB_OUTPUT
           echo "duration=$duration" >> $GITHUB_OUTPUT
@@ -56,7 +56,7 @@ jobs:
         uses: actions/create-release@v1
         with:
           tag_name: ${{ steps.jenkins.outputs.version }}
-          release_name: MilkBasket-${{ steps.jenkins.outputs.version }}
+          release_name: MilkBasket-${{ steps.version.outputs.date_version }}-${{ steps.jenkins.outputs.version }}
           body: |
             Release Info:
             Jenkins Build Version: ${{ steps.jenkins.outputs.version }}
