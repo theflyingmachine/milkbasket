@@ -1,18 +1,13 @@
 {% include "register/header.html" %}
 
 {# PROD Bundle #}
-<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone@7.26.0/babel.min.js"></script>
 {# Dev Bundle #}
 {#<script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>#}
 {#<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>#}
 
-<link rel="stylesheet" type="text/css"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
 <!-- Navbar content -->
 
 {% block content %}
@@ -22,23 +17,15 @@
           width: 100%;
       }
 
-      #chartdiv1 {
+      .chart-box {
           width: 100%;
-          height: 400px;;
       }
 
-      #chartdiv2 {
-          width: 100%;
-          height: 400px;;
-      }
-
-      #chartdiv3 {
-          width: 100%;
+      .chart-box-md {
           height: 400px;
       }
 
       #chartdiv4 {
-          width: 100%;
           height: 600px;
       }
 
@@ -50,76 +37,552 @@
           font-size: x-large;
       }
 
-      .spinner-size-big {
-          width: 5rem;
-          height: 5rem;
-      }
-
       .overflow-div {
           overflow-x: auto;
       }
   </style>
 
+  <div id="report"></div>
+
+  <script defer src="https://cdn.amcharts.com/lib/4/core.js"></script>
+  <script defer src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+  <script defer src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
   <script type="text/babel">
     class Report extends React.Component {
       constructor(props) {
         super(props);
+
         this.state = {
           isLoading: true,
           reportData: null,
           reportStatus: null,
+          error: null,
         };
+
+        this.statusTimeoutId = null;
+        this.chartInitTimeoutId = null;
+        this.statusAbortController = null;
+        this.reportAbortController = null;
+
+        this.charts = {};
+        this.chartsInitialized = false;
+        this.amChartsThemeApplied = false;
+        this.isMountedRef = false;
+
+        this.statusPollAttempt = 0;
+        this.statusErrorCount = 0;
+        this.maxStatusPollErrors = 8;
+        this.basePollIntervalMs = 700;
+        this.maxPollIntervalMs = 5000;
+
+        this.currencyFormatter = new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR'
+        });
       }
 
-      async componentDidMount() {
-        let hostname;
-        if (window.location.hostname === '127.0.0.1') {
-          hostname = window.location.hostname + ':8000';
-        } else {
-          hostname = window.location.hostname;
+      componentDidMount() {
+        this.isMountedRef = true;
+        const hostname = this.getHostname();
+        const token = this.generateToken();
+
+        this.fetchStatus(hostname, token);
+        this.loadReportData(hostname, token);
+      }
+
+      componentDidUpdate(prevProps, prevState) {
+        if (
+          !this.state.isLoading &&
+          this.state.reportData &&
+          !this.chartsInitialized &&
+          prevState.reportData !== this.state.reportData
+        ) {
+          this.initializeChartsWithRetry();
+        }
+      }
+
+      componentWillUnmount() {
+        this.isMountedRef = false;
+
+        if (this.statusTimeoutId) {
+          clearTimeout(this.statusTimeoutId);
         }
 
-        let uuid = Math.random().toString(36).substr(2);
-        this.fetchStatus(hostname, uuid);
-        const url =
-          "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data/" + uuid;
-        const responce = await fetch(url);
-        const data = await responce.json();
-        this.setState({reportData: data, isLoading: false});
+        if (this.chartInitTimeoutId) {
+          clearTimeout(this.chartInitTimeoutId);
+        }
+
+        if (this.statusAbortController) {
+          this.statusAbortController.abort();
+        }
+
+        if (this.reportAbortController) {
+          this.reportAbortController.abort();
+        }
+
+        this.disposeCharts();
+      }
+
+      getHostname() {
+        return window.location.hostname === '127.0.0.1'
+          ? window.location.hostname + ':8000'
+          : window.location.hostname;
+      }
+
+      generateToken() {
+        return Math.random().toString(36).slice(2);
+      }
+
+      getNextPollDelay(hasError) {
+        if (!hasError) {
+          this.statusPollAttempt = 0;
+          return this.basePollIntervalMs;
+        }
+
+        this.statusPollAttempt += 1;
+        return Math.min(
+          this.basePollIntervalMs * Math.pow(2, this.statusPollAttempt),
+          this.maxPollIntervalMs
+        );
+      }
+
+      scheduleStatusPoll(hostname, token, hasError) {
+        if (!this.isMountedRef) {
+          return;
+        }
+
+        if (this.statusTimeoutId) {
+          clearTimeout(this.statusTimeoutId);
+        }
+
+        const delay = this.getNextPollDelay(hasError);
+        this.statusTimeoutId = setTimeout(() => {
+          this.fetchStatus(hostname, token);
+        }, delay);
+      }
+
+      safeParseJson(input, fallback) {
+        if (Array.isArray(input) || (typeof input === 'object' && input !== null)) {
+          return input;
+        }
+
+        try {
+          const parsed = JSON.parse(input);
+          return parsed == null ? fallback : parsed;
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      normalizeReportData(data) {
+        return Object.assign({}, data, {
+          chartDataMilk: this.safeParseJson(data.chart_data_milk, []),
+          graphData: this.safeParseJson(data.graph_data, []),
+          dueCustomers: this.safeParseJson(data.due_customers, []),
+          dueMonth: this.safeParseJson(data.due_month, []),
+        });
+      }
+
+      async fetchJson(url, controller) {
+        const response = await fetch(url, {signal: controller.signal});
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status);
+        }
+
+        return response.json();
+      }
+
+      async loadReportData(hostname, token) {
+        if (this.reportAbortController) {
+          this.reportAbortController.abort();
+        }
+
+        this.reportAbortController = new AbortController();
+
+        try {
+          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data/" + token;
+          const data = await this.fetchJson(url, this.reportAbortController);
+          const normalizedData = this.normalizeReportData(data);
+
+          if (this.isMountedRef) {
+            this.setState({
+              reportData: normalizedData,
+              isLoading: false,
+              error: null,
+            });
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError' && this.isMountedRef) {
+            this.setState({
+              isLoading: false,
+              error: 'Unable to load report data. Please refresh and try again.',
+            });
+          }
+        }
       }
 
       async fetchStatus(hostname, token) {
-        const url =
-          "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data-status/" + token;
-        const responce = await fetch(url);
-        const data = await responce.json();
-        if (data.status !== null) {
-          this.setState({reportStatus: data});
+        let data = null;
+        let hasError = false;
+
+        if (this.statusAbortController) {
+          this.statusAbortController.abort();
         }
-        if (data.percent == null || data.percent < 100 || this.state.isLoading) {
-          await this.fetchStatus(hostname, token);
+
+        this.statusAbortController = new AbortController();
+
+        try {
+          const url = "{{protocol}}://" + hostname + "/milkbasket/api/v1/report-data-status/" + token;
+          data = await this.fetchJson(url, this.statusAbortController);
+
+          if (this.isMountedRef && data.status != null) {
+            this.setState({reportStatus: data});
+          }
+
+          this.statusErrorCount = 0;
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            hasError = true;
+            this.statusErrorCount += 1;
+          }
+        }
+
+        const percent = data && typeof data.percent === 'number' ? data.percent : null;
+        const shouldContinuePolling =
+          this.isMountedRef &&
+          this.statusErrorCount < this.maxStatusPollErrors &&
+          (this.state.isLoading || percent == null || percent < 100);
+
+        if (shouldContinuePolling) {
+          this.scheduleStatusPoll(hostname, token, hasError);
         }
       }
 
+      initializeChartsWithRetry(attempt = 0) {
+        if (!this.isMountedRef || this.chartsInitialized || !this.state.reportData) {
+          return;
+        }
 
-      currencyFormat(val) {
-        return new Intl.NumberFormat('en-IN', {
-          style: 'currency',
-          currency: 'INR'
-        }).format(val);
+        if (!(window.am4core && window.am4charts && window.am4themes_animated)) {
+          if (attempt < 10) {
+            this.chartInitTimeoutId = setTimeout(() => {
+              this.initializeChartsWithRetry(attempt + 1);
+            }, 300);
+          }
+          return;
+        }
+
+        this.initializeCharts();
+      }
+
+      initializeCharts() {
+        const reportData = this.state.reportData;
+        if (!reportData) {
+          return;
+        }
+
+        this.disposeCharts();
+
+        if (!this.amChartsThemeApplied) {
+          am4core.useTheme(am4themes_animated);
+          this.amChartsThemeApplied = true;
+        }
+
+        const chart1 = this.createIncomeExpenseChart(reportData.graphData);
+        const chart2 = this.createTrendLineChart(reportData.graphData);
+        const chart3 = this.createMilkProductionChart(reportData.chartDataMilk);
+        const chart4 = this.createDueCustomersChart(reportData.dueCustomers, reportData.dueMonth);
+
+        this.charts = {chart1, chart2, chart3, chart4};
+        this.chartsInitialized = true;
+      }
+
+      createMilkProductionChart(milkChartData) {
+        const chart = am4core.create('chartdiv3', am4charts.XYChart);
+        chart.legend = new am4charts.Legend();
+        chart.legend.position = 'top';
+        chart.data = Array.isArray(milkChartData) ? milkChartData : [];
+
+        const dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+        dateAxis.renderer.minGridDistance = 60;
+        chart.yAxes.push(new am4charts.ValueAxis());
+
+        const seriesTotal = chart.series.push(new am4charts.LineSeries());
+        seriesTotal.dataFields.valueY = 'milkQuantity';
+        seriesTotal.name = 'Total Production';
+        seriesTotal.dataFields.dateX = 'dayName';
+        seriesTotal.tooltipText = 'Total: {milkQuantity} Liter';
+        seriesTotal.stroke = am4core.color('#3256a8');
+        seriesTotal.fill = am4core.color('#3256a8');
+        seriesTotal.strokeWidth = 5;
+
+        const seriesMorning = chart.series.push(new am4charts.LineSeries());
+        seriesMorning.dataFields.valueY = 'milkMorning';
+        seriesMorning.name = 'Morning';
+        seriesMorning.dataFields.dateX = 'dayName';
+        seriesMorning.tooltipText = 'Morning: {milkMorning} Liter';
+        seriesMorning.stroke = am4core.color('#47D4D4');
+        seriesMorning.fill = am4core.color('#47D4D4');
+        seriesMorning.strokeWidth = 2;
+
+        const seriesEvening = chart.series.push(new am4charts.LineSeries());
+        seriesEvening.dataFields.valueY = 'milkEvening';
+        seriesEvening.name = 'Evening';
+        seriesEvening.dataFields.dateX = 'dayName';
+        seriesEvening.tooltipText = 'Evening: {milkEvening} Liter';
+        seriesEvening.stroke = am4core.color('#deb94b');
+        seriesEvening.fill = am4core.color('#deb94b');
+        seriesEvening.strokeWidth = 2;
+
+        seriesTotal.tooltip.pointerOrientation = 'vertical';
+        seriesMorning.tooltip.pointerOrientation = 'vertical';
+        seriesEvening.tooltip.pointerOrientation = 'vertical';
+
+        chart.cursor = new am4charts.XYCursor();
+        chart.cursor.xAxis = dateAxis;
+        chart.scrollbarX = new am4core.Scrollbar();
+
+        return chart;
+      }
+
+      createTrendLineChart(graphData) {
+        const chart = am4core.create('chartdiv2', am4charts.XYChart);
+        chart.legend = new am4charts.Legend();
+        chart.legend.position = 'top';
+        chart.data = Array.isArray(graphData) ? graphData : [];
+
+        const categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = 'month';
+        categoryAxis.renderer.cellStartLocation = 0.1;
+        categoryAxis.renderer.cellEndLocation = 0.9;
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.minGridDistance = 15;
+        categoryAxis.renderer.labels.template.valign = 'down';
+
+        const valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis.renderer.inversed = false;
+        valueAxis.title.text = 'Amount';
+        valueAxis.renderer.minLabelPosition = 0.01;
+
+        chart.scrollbarX = new am4core.Scrollbar();
+
+        const series1 = chart.series.push(new am4charts.LineSeries());
+        series1.dataFields.valueY = 'income';
+        series1.dataFields.categoryX = 'month';
+        series1.name = 'Income';
+        series1.bullets.push(new am4charts.CircleBullet());
+        series1.tooltipText = 'Income: {valueY}';
+        series1.visible = false;
+        series1.strokeWidth = 3;
+
+        const series2 = chart.series.push(new am4charts.LineSeries());
+        series2.dataFields.valueY = 'expense';
+        series2.dataFields.categoryX = 'month';
+        series2.name = 'Expense';
+        series2.bullets.push(new am4charts.CircleBullet());
+        series2.tooltipText = 'Expense: {valueY}';
+        series2.fill = am4core.color('red');
+        series2.stroke = am4core.color('red');
+        series2.strokeWidth = 3;
+
+        const series3 = chart.series.push(new am4charts.LineSeries());
+        series3.dataFields.valueY = 'due';
+        series3.dataFields.categoryX = 'month';
+        series3.name = 'Due';
+        series3.bullets.push(new am4charts.CircleBullet());
+        series3.tooltipText = 'Due: {valueY}';
+        series3.fill = am4core.color('orange');
+        series3.stroke = am4core.color('orange');
+        series3.strokeWidth = 3;
+
+        const series4 = chart.series.push(new am4charts.LineSeries());
+        series4.dataFields.valueY = 'paid';
+        series4.dataFields.categoryX = 'month';
+        series4.name = 'Paid';
+        series4.bullets.push(new am4charts.CircleBullet());
+        series4.tooltipText = 'Paid: {valueY}';
+        series4.fill = am4core.color('green');
+        series4.stroke = am4core.color('green');
+        series4.strokeWidth = 3;
+
+        chart.cursor = new am4charts.XYCursor();
+        chart.cursor.behavior = 'zoomY';
+
+        const hs1 = series1.segments.template.states.create('hover');
+        hs1.properties.strokeWidth = 5;
+        series1.segments.template.strokeWidth = 1;
+
+        const hs2 = series2.segments.template.states.create('hover');
+        hs2.properties.strokeWidth = 5;
+        series2.segments.template.strokeWidth = 1;
+
+        return chart;
+      }
+
+      createIncomeExpenseChart(graphData) {
+        const chart = am4core.create('chartdiv1', am4charts.XYChart);
+        chart.colors.step = 2;
+        chart.legend = new am4charts.Legend();
+        chart.legend.position = 'top';
+        chart.maskBullets = false;
+        chart.fontSize = 13;
+
+        const xAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+        xAxis.dataFields.category = 'month';
+        xAxis.renderer.cellStartLocation = 0.1;
+        xAxis.renderer.cellEndLocation = 0.9;
+        xAxis.renderer.grid.template.location = 0;
+        xAxis.renderer.minGridDistance = 15;
+        xAxis.renderer.labels.template.valign = 'down';
+        xAxis.renderer.labels.template.fontSize = 15;
+
+        const yAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        yAxis.min = 0;
+
+        const arrangeColumns = () => {
+          const firstSeries = chart.series.getIndex(0);
+          if (!firstSeries || firstSeries.dataItems.length <= 1) {
+            return;
+          }
+
+          const w = 1 - xAxis.renderer.cellStartLocation - (1 - xAxis.renderer.cellEndLocation);
+          const x0 = xAxis.getX(firstSeries.dataItems.getIndex(0), 'categoryX');
+          const x1 = xAxis.getX(firstSeries.dataItems.getIndex(1), 'categoryX');
+          const delta = ((x1 - x0) / chart.series.length) * w;
+
+          if (!am4core.isNumber(delta)) {
+            return;
+          }
+
+          const middle = chart.series.length / 2;
+          let visibleIndex = 0;
+
+          chart.series.each((series) => {
+            if (!series.isHidden && !series.isHiding) {
+              series.dummyData = visibleIndex;
+              visibleIndex += 1;
+            } else {
+              series.dummyData = chart.series.indexOf(series);
+            }
+          });
+
+          const newMiddle = visibleIndex / 2;
+
+          chart.series.each((series) => {
+            const trueIndex = chart.series.indexOf(series);
+            const shiftedIndex = series.dummyData;
+            const dx = (shiftedIndex - trueIndex + middle - newMiddle) * delta;
+
+            series.animate({property: 'dx', to: dx}, series.interpolationDuration, series.interpolationEasing);
+            series.bulletsContainer.animate({property: 'dx', to: dx}, series.interpolationDuration, series.interpolationEasing);
+          });
+        };
+
+        const createSeries = (value, name) => {
+          const series = chart.series.push(new am4charts.ColumnSeries());
+          series.dataFields.valueY = value;
+          series.dataFields.categoryX = 'month';
+          series.name = name;
+
+          series.events.on('hidden', arrangeColumns);
+          series.events.on('shown', arrangeColumns);
+
+          const bullet = series.bullets.push(new am4charts.LabelBullet());
+          bullet.interactionsEnabled = false;
+          bullet.label.rotation = 90;
+          bullet.dy = 30;
+          bullet.label.text = '{valueY}';
+          bullet.label.truncate = false;
+          bullet.label.hideOversized = false;
+          bullet.label.fill = am4core.color('#ffffff');
+
+          return series;
+        };
+
+        chart.data = Array.isArray(graphData) ? graphData : [];
+        createSeries('income', 'Income');
+        createSeries('expense', 'Expense');
+        chart.scrollbarX = new am4core.Scrollbar();
+
+        return chart;
+      }
+
+      createDueCustomersChart(dueCustomers, dueMonth) {
+        const chart = am4core.create('chartdiv4', am4charts.XYChart);
+        chart.data = Array.isArray(dueCustomers) ? dueCustomers : [];
+        chart.legend = new am4charts.Legend();
+        chart.legend.position = 'top';
+
+        const categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = 'customer_name';
+        categoryAxis.renderer.grid.template.opacity = 0;
+
+        const valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.renderer.grid.template.opacity = 0;
+        valueAxis.renderer.ticks.template.strokeOpacity = 0.5;
+        valueAxis.renderer.ticks.template.stroke = am4core.color('#495C43');
+        valueAxis.renderer.ticks.template.length = 10;
+        valueAxis.renderer.line.strokeOpacity = 0.5;
+        valueAxis.renderer.baseGrid.disabled = true;
+        valueAxis.renderer.minGridDistance = 40;
+
+        chart.scrollbarX = new am4core.Scrollbar();
+        chart.scrollbarX.parent = chart.bottomAxesContainer;
+        chart.scrollbarY = new am4core.Scrollbar();
+        chart.scrollbarY.parent = chart.leftAxesContainer;
+
+        const createSeriesDue = (field, name) => {
+          const series = chart.series.push(new am4charts.ColumnSeries());
+          series.dataFields.valueX = field;
+          series.dataFields.categoryY = 'customer_name';
+          series.stacked = true;
+          series.name = name;
+
+          const labelBullet = series.bullets.push(new am4charts.LabelBullet());
+          labelBullet.locationX = 0.5;
+          labelBullet.tooltipText = '{customer_name}\n{name}: {valueX}\nTotal: {total_due}';
+          labelBullet.label.text = '{valueX}';
+          labelBullet.label.fill = am4core.color('#fff');
+        };
+
+        const legendMonths = Array.isArray(dueMonth) ? dueMonth : [];
+        for (let i = 0; i < legendMonths.length; i++) {
+          const monthKey = legendMonths[i];
+          if (typeof monthKey === 'string' && monthKey.length > 0) {
+            createSeriesDue(monthKey, monthKey.split('-')[0]);
+          }
+        }
+
+        return chart;
+      }
+
+      disposeCharts() {
+        const chartKeys = Object.keys(this.charts);
+        for (let i = 0; i < chartKeys.length; i++) {
+          const chart = this.charts[chartKeys[i]];
+          if (chart && typeof chart.dispose === 'function') {
+            chart.dispose();
+          }
+        }
+
+        this.charts = {};
+        this.chartsInitialized = false;
+      }
+
+      currencyFormat(value) {
+        return this.currencyFormatter.format(Number(value) || 0);
       }
 
       render() {
-        const myStyle = {
-          width: `${this.state.reportStatus ? this.state.reportStatus.percent : 0}%`,
-        };
+        const {isLoading, reportStatus, reportData, error} = this.state;
+        const tableData = reportData && Array.isArray(reportData.table_data) ? reportData.table_data : [];
+        const progressPercent = Math.max(0, Math.min(100, Number(reportStatus ? reportStatus.percent : 0) || 0));
 
-        let component;
-        let milk_chart = null;
-        let graph_data = null;
-        let due_customers = null;
-        let due_month = null;
-        let loading_component = <div className="text-center mt-5 m-xl-5 p-xl-5">
+        const progressStyle = {width: progressPercent + '%'};
+
+        const loadingComponent = <div className="text-center mt-5 m-xl-5 p-xl-5">
           <div className="spinner-grow text-primary" role="status">
             <span className="sr-only">Loading...</span>
           </div>
@@ -141,29 +604,30 @@
           <div className="spinner-grow text-dark" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <div>
-            {
-              <h3>Processing: {this.state.reportStatus ? this.state.reportStatus.status : 'Starting'}</h3>}
-          </div>
-          <div className="progress">
+
+          <h3>Processing: {reportStatus && reportStatus.status ? reportStatus.status : 'Starting'}</h3>
+
+          <div className="progress" aria-label="Report generation progress">
             <div
               className="progress-bar progress-bar-striped progress-bar-animated progress-percent"
-              style={myStyle} role="progressbar" aria-valuenow="75" aria-valuemin="0"
-              aria-valuemax="100"></div>
+              style={progressStyle}
+              role="progressbar"
+              aria-valuenow={progressPercent}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label={`Processing progress ${progressPercent}%`}
+            ></div>
           </div>
         </div>;
 
+        let component;
 
-        if (this.state.isLoading) {
-          component = <div className="text-center">
-          </div>;
+        if (error) {
+          component = <div className="alert alert-danger mt-4" role="alert">{error}</div>;
+        } else if (isLoading || !reportData) {
+          component = <div className="text-center"></div>;
         } else {
-          milk_chart = this.state.reportData.chart_data_milk
-          graph_data = this.state.reportData.graph_data
-          due_customers = this.state.reportData.due_customers
-          due_month = this.state.reportData.due_month
           component = <div>
-            {#  Proft and loss table #}
             <h3 className="text-center mt-5">Profit and Loss</h3>
 
             <div className="mb-1 overflow-div">
@@ -176,26 +640,28 @@
                 </thead>
                 <tbody>
                 <tr>
-                  <td
-                    className="income-expense-total text-success">{this.currencyFormat(this.state.reportData.all_time_income)}</td>
-                  <td
-                    className="income-expense-total text-danger">{this.currencyFormat(this.state.reportData.all_time_expense)}</td>
+                  <td className="income-expense-total text-success">{this.currencyFormat(reportData.all_time_income)}</td>
+                  <td className="income-expense-total text-danger">{this.currencyFormat(reportData.all_time_expense)}</td>
                 </tr>
                 <tr>
-                  <td colSpan="2"
-                      className={`profit-or-loss font-weight-bold text-${this.state.reportData.is_profit ? 'success' : 'danger'}`}>
-                    {this.currencyFormat(this.state.reportData.all_time_profit_or_loss)} {this.state.reportData.is_profit ? 'Profit' : 'Loss'}</td>
+                  <td
+                    colSpan="2"
+                    className={`profit-or-loss font-weight-bold text-${reportData.is_profit ? 'success' : 'danger'}`}>
+                    {this.currencyFormat(reportData.all_time_profit_or_loss)} {reportData.is_profit ? 'Profit' : 'Loss'}
+                  </td>
                 </tr>
                 </tbody>
               </table>
             </div>
+
             <h5 className="text-center">Trend over last 12 months</h5>
+
             <div className="mb-5 overflow-div">
               <table className="table table-bordered text-center">
                 <thead>
                 <tr>
                   <th>Month</th>
-                  {this.state.reportData.table_data.map((month) => (
+                  {tableData.map((month) => (
                     <th key={month.monthName}>{month.monthName}</th>
                   ))}
                 </tr>
@@ -203,317 +669,58 @@
                 <tbody>
                 <tr>
                   <td>Profit</td>
-                  {this.state.reportData.table_data.map((month) => (
-                    <td key={month.monthName} className="text-success font-weight-bold">
-                      {month.profit > 0 ? this.currencyFormat(month.profit) : ''}</td>
+                  {tableData.map((month) => (
+                    <td key={month.monthName + '-profit'} className="text-success font-weight-bold">
+                      {month.profit > 0 ? this.currencyFormat(month.profit) : ''}
+                    </td>
                   ))}
                 </tr>
                 <tr>
                   <td>Loss</td>
-                  {this.state.reportData.table_data.map((month) => (
-                    <td key={month.monthName} className="text-danger font-weight-bold">
-                      {month.loss > 0 ? this.currencyFormat(month.loss) : ''}</td>
+                  {tableData.map((month) => (
+                    <td key={month.monthName + '-loss'} className="text-danger font-weight-bold">
+                      {month.loss > 0 ? this.currencyFormat(month.loss) : ''}
+                    </td>
                   ))}
                 </tr>
                 </tbody>
               </table>
-
             </div>
 
             <h3 className="text-center mt-5">Total Milk Production</h3>
             <h5 className="text-center">Trend over last 365 days</h5>
-
-
-            {# Graph 3 - Milk Production#}
-            {am4core.ready(function () {
-// Themes begin
-              am4core.useTheme(am4themes_animated);
-// Themes end
-              let chart = am4core.create("chartdiv3", am4charts.XYChart);
-              chart.legend = new am4charts.Legend()
-              chart.legend.position = 'top'
-              chart.data = JSON.parse(milk_chart)
-// Create axes
-              let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-              dateAxis.renderer.minGridDistance = 60;
-              valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-// Create series
-              let seriesTotal = chart.series.push(new am4charts.LineSeries());
-              seriesTotal.dataFields.valueY = "milkQuantity";
-              seriesTotal.name = "Total Production";
-              seriesTotal.dataFields.dateX = "dayName";
-              seriesTotal.tooltipText = "Total: {milkQuantity} Liter"
-              seriesTotal.stroke = am4core.color("#3256a8");
-              seriesTotal.fill = am4core.color("#3256a8");
-              seriesTotal.strokeWidth = "5";
-              // Create series morning
-              let seriesMorning = chart.series.push(new am4charts.LineSeries());
-              seriesMorning.dataFields.valueY = "milkMorning";
-              seriesMorning.name = "Morning";
-              seriesMorning.dataFields.dateX = "dayName";
-              seriesMorning.tooltipText = "Morning: {milkMorning} Liter"
-              seriesMorning.stroke = am4core.color("#47D4D4");
-              seriesMorning.fill = am4core.color("#47D4D4");
-              seriesMorning.strokeWidth = "2";
-              // Create series evening
-              let seriesEvening = chart.series.push(new am4charts.LineSeries());
-              seriesEvening.dataFields.valueY = "milkEvening";
-              seriesEvening.name = "Evening";
-              seriesEvening.dataFields.dateX = "dayName";
-              seriesEvening.tooltipText = "Evening: {milkEvening} Liter"
-              seriesEvening.stroke = am4core.color("#deb94b");
-              seriesEvening.fill = am4core.color("#deb94b");
-              seriesEvening.strokeWidth = "2";
-              seriesTotal.tooltip.pointerOrientation = "vertical";
-              seriesMorning.tooltip.pointerOrientation = "vertical";
-              seriesEvening.tooltip.pointerOrientation = "vertical";
-              chart.cursor = new am4charts.XYCursor();
-              chart.cursor.xAxis = dateAxis;
-              chart.scrollbarX = new am4core.Scrollbar();
-
-
-              {# Graph 2 #}
-              chart = am4core.create("chartdiv2", am4charts.XYChart);
-              chart.legend = new am4charts.Legend()
-              chart.legend.position = 'top'
-// Add data line graph
-              chart.data = JSON.parse(graph_data);
-// Create category axis
-              categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-              categoryAxis.dataFields.category = "month";
-              categoryAxis.renderer.cellStartLocation = 0.1
-              categoryAxis.renderer.cellEndLocation = 0.9
-              categoryAxis.renderer.grid.template.location = 0;
-              categoryAxis.renderer.minGridDistance = 15;
-              categoryAxis.renderer.labels.template.valign = "down";
-// Create value axis
-              valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-              valueAxis.renderer.inversed = false;
-              valueAxis.title.text = "Amount";
-              valueAxis.renderer.minLabelPosition = 0.01;
-              chart.scrollbarX = new am4core.Scrollbar();
-
-// Create series
-              let series1 = chart.series.push(new am4charts.LineSeries());
-              series1.dataFields.valueY = "income";
-              series1.dataFields.categoryX = "month";
-              series1.name = "Income";
-              series1.bullets.push(new am4charts.CircleBullet());
-              series1.tooltipText = "Income: {valueY}";
-              series1.visible = false;
-              series1.strokeWidth = "3";
-              let series2 = chart.series.push(new am4charts.LineSeries());
-              series2.dataFields.valueY = "expense";
-              series2.dataFields.categoryX = "month";
-              series2.name = 'Expense';
-              series2.bullets.push(new am4charts.CircleBullet());
-              series2.tooltipText = "Expense: {valueY}";
-              series2.fill = am4core.color("red");
-              series2.stroke = am4core.color("red");
-              series2.strokeWidth = "3";
-              let series3 = chart.series.push(new am4charts.LineSeries());
-              series3.dataFields.valueY = "due";
-              series3.dataFields.categoryX = "month";
-              series3.name = 'Due';
-              series3.bullets.push(new am4charts.CircleBullet());
-              series3.tooltipText = "Due: {valueY}";
-              series3.fill = am4core.color("orange");
-              series3.stroke = am4core.color("orange");
-              series3.strokeWidth = "3";
-              let series4 = chart.series.push(new am4charts.LineSeries());
-              series4.dataFields.valueY = "paid";
-              series4.dataFields.categoryX = "month";
-              series4.name = 'Paid';
-              series4.bullets.push(new am4charts.CircleBullet());
-              series4.tooltipText = "Paid: {valueY}";
-              series4.fill = am4core.color("green");
-              series4.stroke = am4core.color("green");
-              series4.strokeWidth = "3";
-// Add chart cursor
-              chart.cursor = new am4charts.XYCursor();
-              chart.cursor.behavior = "zoomY";
-              let hs1 = series1.segments.template.states.create("hover")
-              hs1.properties.strokeWidth = 5;
-              series1.segments.template.strokeWidth = 1;
-              let hs2 = series2.segments.template.states.create("hover")
-              hs2.properties.strokeWidth = 5;
-              series2.segments.template.strokeWidth = 1;
-
-              {# Graph 1 #}
-              chart = am4core.create('chartdiv1', am4charts.XYChart)
-              chart.colors.step = 2;
-              chart.legend = new am4charts.Legend()
-              chart.legend.position = 'top'
-              chart.maskBullets = false;
-              chart.fontSize = 13;
-
-              let xAxis = chart.xAxes.push(new am4charts.CategoryAxis())
-              xAxis.dataFields.category = 'month'
-              xAxis.renderer.cellStartLocation = 0.1
-              xAxis.renderer.cellEndLocation = 0.9
-              xAxis.renderer.grid.template.location = 0;
-              xAxis.renderer.minGridDistance = 15;
-
-              xAxis.renderer.labels.template.valign = "down";
-              xAxis.renderer.labels.template.fontSize = 15
-
-              let yAxis = chart.yAxes.push(new am4charts.ValueAxis());
-              yAxis.min = 0;
-
-              function createSeries(value, name) {
-                let series = chart.series.push(new am4charts.ColumnSeries())
-                series.dataFields.valueY = value
-                series.dataFields.categoryX = 'month'
-                series.name = name
-
-                series.events.on("hidden", arrangeColumns);
-                series.events.on("shown", arrangeColumns);
-
-                let bullet = series.bullets.push(new am4charts.LabelBullet())
-                bullet.interactionsEnabled = false
-                bullet.label.rotation = 90;
-                bullet.dy = 30;
-                bullet.label.text = '{valueY}'
-                bullet.label.truncate = false;
-                bullet.label.hideOversized = false;
-                bullet.label.fill = am4core.color('#ffffff')
-                return series;
-              }
-
-// Add data line graph
-              chart.data = JSON.parse(graph_data);
-
-              createSeries('income', 'Income');
-              createSeries('expense', 'Expense');
-              chart.scrollbarX = new am4core.Scrollbar();
-
-              function arrangeColumns() {
-
-                let series = chart.series.getIndex(0);
-
-                let w = 1 - xAxis.renderer.cellStartLocation - (1 - xAxis.renderer.cellEndLocation);
-                if (series.dataItems.length > 1) {
-                  let x0 = xAxis.getX(series.dataItems.getIndex(0), "categoryX");
-                  let x1 = xAxis.getX(series.dataItems.getIndex(1), "categoryX");
-                  let delta = ((x1 - x0) / chart.series.length) * w;
-                  if (am4core.isNumber(delta)) {
-                    let middle = chart.series.length / 2;
-
-                    let newIndex = 0;
-                    chart.series.each(function (series) {
-                      if (!series.isHidden && !series.isHiding) {
-                        series.dummyData = newIndex;
-                        newIndex++;
-                      } else {
-                        series.dummyData = chart.series.indexOf(series);
-                      }
-                    })
-                    let visibleCount = newIndex;
-                    let newMiddle = visibleCount / 2;
-
-                    chart.series.each(function (series) {
-                      let trueIndex = chart.series.indexOf(series);
-                      let newIndex = series.dummyData;
-
-                      let dx = (newIndex - trueIndex + middle - newMiddle) * delta
-
-                      series.animate({
-                        property: "dx",
-                        to: dx
-                      }, series.interpolationDuration, series.interpolationEasing);
-                      series.bulletsContainer.animate({
-                        property: "dx",
-                        to: dx
-                      }, series.interpolationDuration, series.interpolationEasing);
-                    })
-                  }
-                }
-              }
-
-              {# Graph 4 #}
-              // Create chart instance
-              chart = am4core.create("chartdiv4", am4charts.XYChart);
-
-// Add data
-              chart.data = JSON.parse(due_customers);
-              chart.legend = new am4charts.Legend();
-              chart.legend.position = "top";
-
-// Create axes
-              let categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-              categoryAxis.dataFields.category = "customer_name";
-              categoryAxis.renderer.grid.template.opacity = 0;
-
-              let valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
-              valueAxis.min = 0;
-              valueAxis.renderer.grid.template.opacity = 0;
-              valueAxis.renderer.ticks.template.strokeOpacity = 0.5;
-              valueAxis.renderer.ticks.template.stroke = am4core.color("#495C43");
-              valueAxis.renderer.ticks.template.length = 10;
-              valueAxis.renderer.line.strokeOpacity = 0.5;
-              valueAxis.renderer.baseGrid.disabled = true;
-              valueAxis.renderer.minGridDistance = 40;
-//Add scrollbar
-              chart.scrollbarX = new am4core.Scrollbar();
-              chart.scrollbarX.parent = chart.bottomAxesContainer;
-              chart.scrollbarY = new am4core.Scrollbar();
-              chart.scrollbarY.parent = chart.leftAxesContainer;
-
-// Create series
-              function createSeriesDue(field, name) {
-                let series = chart.series.push(new am4charts.ColumnSeries());
-                series.dataFields.valueX = field;
-                series.dataFields.categoryY = "customer_name";
-                series.stacked = true;
-                series.name = name;
-
-                let labelBullet = series.bullets.push(new am4charts.LabelBullet());
-                labelBullet.locationX = 0.5;
-                labelBullet.tooltipText = "{customer_name}\n{name}: {valueX}\nTotal: {total_due}"
-                labelBullet.label.text = "{valueX}";
-                labelBullet.label.fill = am4core.color("#fff");
-              }
-
-              let legend_month = JSON.parse(due_month);
-              for (let i = 0; i < legend_month.length; i++) {
-                createSeriesDue(legend_month[i], legend_month[i].split("-")[0]);
-              }
-
-
-            })
-            }
-
-
-          </div>
+          </div>;
         }
 
-
         return <div className="report">
-          {this.state.isLoading ? loading_component : ''}
+          {isLoading && !error ? loadingComponent : ''}
+
           <div className="row">
             <div className="col-lg-6 col-sm-12">
-              <div id="chartdiv1"></div>
+              <div id="chartdiv1" className="chart-box chart-box-md"></div>
             </div>
             <div className="col-lg-6 col-sm-12">
-              <div id="chartdiv2"></div>
+              <div id="chartdiv2" className="chart-box chart-box-md"></div>
             </div>
           </div>
+
           {component}
+
           <div className="row">
             <div className="col-12">
-              <div id="chartdiv3"></div>
+              <div id="chartdiv3" className="chart-box chart-box-md"></div>
             </div>
           </div>
+
           <div className="row">
             <div className="col-12">
-              {this.state.isLoading ? '' : <h3 className="pt-5 text-center">Customers Due</h3>}
-              <div id="chartdiv4"></div>
+              {!isLoading && !error ? <h3 className="pt-5 text-center">Customers Due</h3> : ''}
+              <div id="chartdiv4" className="chart-box"></div>
             </div>
           </div>
-          {this.state.isLoading ? '' :
-            <p className="p-5 text-center text-secondary"> --- END OF PAGE ---</p>}
 
-
+          {!isLoading && !error ?
+            <p className="p-5 text-center text-secondary"> --- END OF PAGE ---</p> : ''}
         </div>;
       }
     }
@@ -523,14 +730,6 @@
       document.getElementById('report')
     );
   </script>
-  <div id="report"></div>
 {% endblock %}
 
-<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/dataviz.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
-
 {% include "register/footer.html" %}
-
-
