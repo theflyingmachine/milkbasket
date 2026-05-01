@@ -20,9 +20,8 @@ class SessionExpiryMiddleware:
                     # If it's been more than 45 days since the last visit, log the user out
                     request.session.flush()
                     return redirect(reverse('view_register'))
-            else:
-                # Set the last visit time if it's not already set
-                request.session['last_visit'] = now.strftime(timestamp_format)
+            # Update last visit on every authenticated request to track inactivity correctly
+            request.session['last_visit'] = now.strftime(timestamp_format)
 
         response = self.get_response(request)
         return response

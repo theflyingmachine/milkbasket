@@ -248,14 +248,14 @@ def save_bill_to_mongo(bill_metadata, bill, bill_number):
     # Upload Bill Metadata
     try:
         metadata = get_mongo_client()
-        bill_metadata_id = metadata.insert(bill_metadata)
+        bill_metadata_id = metadata.insert_one(bill_metadata).inserted_id
         bill.mongo_id = str(bill_metadata_id)
-        bill.save()
+        bill.save(update_fields=['mongo_id'])
         logger.info(f'MongoDB bill uploaded {str(bill_metadata_id)} - Bill Number: {bill_number}')
         return bill_metadata_id
-    except:
+    except Exception as e:
         logger.critical(
-            f'MongoDB bill upload failed : {bill_metadata} - Bill Number: {bill_number}')
+            f'MongoDB bill upload failed : {bill_metadata} - Bill Number: {bill_number} - Error: {str(e)}')
 
 
 def get_register_transactions(cust_id, only_paid=False, only_due=True):
@@ -355,6 +355,7 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
     bill = Bill(customer_id=customer, bill_number=bill_number,
                 amount=bill_sum_total['sum_total'],
                 bill_last_data_date=customer_register_last_updated(cust_id))
+    bill.save()
 
     # Render PDF data
     data = {'barcode': barcode, 'bill_number': bill_number, 'page_title': bill_number,

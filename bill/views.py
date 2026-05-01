@@ -129,8 +129,8 @@ def fetch_bill(bill_number, full_data=False, update_count=False):
         if tenant:
             tenant_pref = Tenant.objects.filter(tenant_id=tenant.tenant_id).first()
             if tenant_pref.customers_bill_access:
-                metadata.update({'bill_number': bill_metadata['bill_number']},
-                                {'$inc': {'views': 1, }})
+                metadata.update_one({'bill_number': bill_metadata['bill_number']},
+                                    {'$inc': {'views': 1, }})
 
     return bill_metadata
 
