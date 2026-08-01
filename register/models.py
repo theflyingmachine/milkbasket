@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Case, F, Value, When
 from django.utils.translation import gettext_lazy as _
 
 
@@ -70,6 +71,23 @@ class Register(models.Model):
     paid = models.BooleanField(default=False)
     transaction_number = models.ForeignKey(Payment, default=None, null=True, blank=True,
                                            on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [
+            # Present and absent are states of the same delivery period, so a
+            # customer can have at most one morning and one evening entry per day.
+            models.UniqueConstraint(
+                F('tenant'),
+                F('customer'),
+                F('log_date'),
+                Case(
+                    When(schedule__startswith='morning', then=Value('morning')),
+                    When(schedule__startswith='evening', then=Value('evening')),
+                    default=F('schedule'),
+                ),
+                name='unique_customer_delivery_period',
+            ),
+        ]
 
 
 class Expense(models.Model):

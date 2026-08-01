@@ -11,9 +11,10 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -218,7 +219,10 @@ def add_customer(request):
         no_redirect = request.POST.get("redirect_url", False)
         customer_contact, customer_email, customer_morning, customer_evening, m_quantity, e_quantity = '', '', '', '', '', ''
         if customer_id:
-            customer_name = Customer.objects.filter(id=customer_id).first()
+            customer_name = Customer.objects.filter(tenant_id=request.user.id, id=customer_id).first()
+            if not customer_name:
+                messages.add_message(request, messages.ERROR, 'Customer was not found')
+                return redirect('view_customers')
             customer_contact = request.POST.get("contact")
             customer_email = request.POST.get("email")
             customer_morning = True if request.POST.get("morning", False) else False
@@ -314,6 +318,9 @@ def add_entry(request, year=None, month=None):
             customer = request.POST.get("customer", None)
             customer_info = Customer.objects.filter(tenant_id=request.user.id, id=customer,
                                                     status=1).first()
+            if not customer_info:
+                return JsonResponse({'return': False, 'message': 'Customer was not found or is inactive.'},
+                                    status=404)
             log_date = request.POST.get("log_date", None)
             full_log_date = datetime.strptime(log_date, '%Y-%m-%d')
             current_price = tenant.milk_price
@@ -323,7 +330,7 @@ def add_entry(request, year=None, month=None):
                 entry = Register.objects.filter(tenant_id=request.user.id,
                                                 customer_id=customer,
                                                 log_date=full_log_date,
-                                                schedule__startswith='morning-yes').first()
+                                                schedule__startswith='morning').first()
                 if not entry:
                     entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
                                      log_date=full_log_date,
@@ -335,7 +342,7 @@ def add_entry(request, year=None, month=None):
                 entry = Register.objects.filter(tenant_id=request.user.id,
                                                 customer_id=customer,
                                                 log_date=full_log_date,
-                                                schedule__startswith='evening-yes').first()
+                                                schedule__startswith='evening').first()
                 if not entry:
                     entry = Register(tenant_id=request.user.id, customer_id=customer_info.id,
                                      log_date=full_log_date,
@@ -366,14 +373,22 @@ def add_entry(request, year=None, month=None):
             entry = Register.objects.filter(tenant_id=request.user.id, customer_id=customer,
                                             log_date=full_log_date,
                                             schedule__startswith=schedule).first()
-            cust = Customer.objects.get(id=customer)
+            cust = Customer.objects.filter(tenant_id=request.user.id, id=customer).first()
+            if not cust:
+                return JsonResponse({'return': False, 'message': 'Customer was not found.'}, status=404)
             extended_data = {'customer_name': cust.name}
             if not entry:
                 entry = Register(tenant_id=request.user.id, customer_id=customer,
                                  log_date=full_log_date,
                                  schedule=full_schedule,
                                  quantity=quantity, current_price=current_price)
-                entry.save()
+                try:
+                    entry.save()
+                except IntegrityError:
+                    return JsonResponse({
+                        'return': False,
+                        'message': 'A delivery entry already exists for this customer, date, and schedule.',
+                    }, status=409)
                 entry_status = True if entry.id else False
             else:
                 # Check if the entry is already marked paid. if yes, don't allow updating.
@@ -966,7 +981,7 @@ def customer_profile(request, cust_id=None):
     return redirect('view_customers')
 
 
-class GeneratePdf(View):
+class GeneratePdf(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         cust_id = self.kwargs['id']
         no_download = True if 'file_download' in kwargs else False
@@ -997,7 +1012,9 @@ def send_SMS(request):
 @login_required
 def send_EMAIL(request, cust_id=None):
     if cust_id:
-        customer = Customer.objects.get(id=cust_id)
+        customer = Customer.objects.filter(tenant_id=request.user.id, id=cust_id).first()
+        if not customer:
+            return JsonResponse({'status': 'failed', 'error': 'Customer was not found.'}, status=404)
         data = generate_bill(request, cust_id, raw_data=True)
         subject = f'🛍️🥛 Milk Bill due for ₹{data["raw_data"]["bill_summary"][-1]["sum_total"]} 🧾'
         bill_email_template = 'register/email_bill_template.html'

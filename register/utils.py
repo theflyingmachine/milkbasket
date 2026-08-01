@@ -18,7 +18,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.db.models import Q, Sum, F, FloatField
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.template.loader import get_template
@@ -326,7 +326,9 @@ def generate_bill(request, cust_id, no_download=False, raw_data=False):
     """Generate bill and upload to mongo """
     res = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
     bill_number = f'MB-{cust_id}-{datetime.now().year}-{datetime.now().month}-{res}'
-    customer = Customer.objects.get(id=cust_id)
+    customer = Customer.objects.filter(id=cust_id, tenant_id=request.user.id).first()
+    if not customer:
+        raise Http404('Customer not found')
     # Extract only due months for bill
     due_months = get_active_month(cust_id, only_paid=False, only_due=True)
     bill_summary = [{'month_year': f'{due_month.strftime("%B")} {due_month.year}',
