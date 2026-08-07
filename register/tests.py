@@ -1,12 +1,13 @@
 from datetime import datetime
 from decimal import Decimal
 
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from register.models import Customer, Register, Tenant
+from register.models import Customer, Payment, Register, Tenant
 
 
 class BillingIsolationTests(TestCase):
@@ -58,3 +59,28 @@ class BillingIsolationTests(TestCase):
                 quantity=500,
                 current_price=Decimal('60.00'),
             )
+
+
+class PaymentCooldownTests(TestCase):
+    def setUp(self):
+        self.seller = User.objects.create_user(username='seller', password='test-password')
+        self.tenant = Tenant.objects.create(tenant=self.seller, milk_price=Decimal('60.00'))
+        self.customer = Customer.objects.create(tenant=self.tenant, name='Alice')
+        self.client.force_login(self.seller)
+
+    def test_rejects_second_payment_for_same_customer_within_cooldown(self):
+        Payment.objects.create(tenant=self.tenant, customer=self.customer, amount=Decimal('100.00'))
+
+        response = self.client.post(reverse('accept_payment'), {
+            'c_id': self.customer.id,
+            'c_payment': '100.00',
+            'sms-notification': '0',
+        })
+
+        self.assertRedirects(response, reverse('view_account'))
+        self.assertEqual(Payment.objects.filter(customer=self.customer).count(), 1)
+        payment_messages = list(messages.get_messages(response.wsgi_request))
+        self.assertEqual(payment_messages[0].tags, 'warning')
+        self.assertIn('Payment of Rs. 100.00 from Alice was already accepted',
+                      str(payment_messages[0]))
+        self.assertIn('try again in', str(payment_messages[0]))

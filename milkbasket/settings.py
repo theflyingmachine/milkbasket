@@ -119,6 +119,9 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
+# Prevent accidental duplicate manual payments for the same customer.
+PAYMENT_COOLDOWN_SEC = 300
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 

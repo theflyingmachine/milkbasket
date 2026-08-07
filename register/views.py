@@ -5,8 +5,10 @@ import threading
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+from math import ceil
 
 from django.contrib import messages
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
@@ -21,6 +23,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic import View
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -694,7 +697,46 @@ def accept_payment(request, year=None, month=None, return_url=None):
     payment_amount = request.POST.get("c_payment", None)
     sms_notification = int(request.POST.get("sms-notification", 0))
     if c_id and payment_amount:
-        customer = Customer.objects.filter(tenant_id=request.user.id, id=c_id).first()
+        # Lock the customer while checking and creating a payment so concurrent
+        # requests cannot both pass the cooldown check.
+        customer = Customer.objects.select_for_update().filter(
+            tenant_id=request.user.id, id=c_id
+        ).first()
+        if not customer:
+            messages.add_message(request, messages.ERROR, 'Customer not found')
+            return redirect(formatted_url)
+
+        now = timezone.now()
+        cooldown_start = now - timedelta(seconds=settings.PAYMENT_COOLDOWN_SEC)
+        last_payment = Payment.objects.filter(
+            tenant_id=request.user.id,
+            customer_id=c_id,
+            log_date__gte=cooldown_start,
+        ).order_by('-log_date').first()
+        if last_payment:
+            elapsed_seconds = max(0, int((now - last_payment.log_date).total_seconds()))
+            remaining_seconds = max(
+                1,
+                ceil((last_payment.log_date + timedelta(
+                    seconds=settings.PAYMENT_COOLDOWN_SEC
+                ) - now).total_seconds()),
+            )
+            remaining_minutes, remaining_seconds = divmod(remaining_seconds, 60)
+            if remaining_minutes and remaining_seconds:
+                remaining_wait = f'{remaining_minutes} min {remaining_seconds} sec'
+            elif remaining_minutes:
+                remaining_wait = f'{remaining_minutes} min'
+            else:
+                remaining_wait = f'{remaining_seconds} sec'
+            messages.add_message(
+                request,
+                messages.ERROR,
+                f'Payment of Rs. {last_payment.amount} from {customer.name} was already accepted '
+                f'{elapsed_seconds} seconds ago. '
+                f'To accept another payment from this customer, try again after {remaining_wait}.',
+            )
+            return redirect(formatted_url)
+
         payment_amount = float(payment_amount)
         new_payment = Payment(tenant_id=request.user.id, customer_id=c_id, amount=payment_amount)
         try:
