@@ -13,6 +13,7 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_exempt
 
 from customer.models import WhatsAppMessage, LoginOTP
+from customer.oci_storage import archive_whatsapp_image
 from milkbasket.secret import WHATSAPP_WEBHOOK_TOKEN, DEV_NUMBER
 from register.constant import WA_NEW_MESSAGE, WA_NEW_MESSAGE_TEMPLATE
 from register.models import Customer, Payment, Register, Tenant
@@ -217,9 +218,19 @@ def process_wa_payload(pl):
             except KeyError:
                 media_id = None
 
-        WhatsAppMessage.insert_message(message_id, related_message_id, 'User Reply',
-                                       to_number, sender_name, sender_number,
-                                       message_type, text, media_id, pl)
+        message = WhatsAppMessage.insert_message(message_id, related_message_id, 'User Reply',
+                                                  to_number, sender_name, sender_number,
+                                                  message_type, text, media_id, pl)
+        if message_type == 'image' and media_id:
+            try:
+                from register.utils import get_whatsapp_media_by_id
+
+                media, content_type = get_whatsapp_media_by_id(media_id)
+                message.oci_object_name = archive_whatsapp_image(message_id, media, content_type)
+                message.save(update_fields=['oci_object_name'])
+            except Exception as exc:
+                # Do not reject the webhook or lose the chat message if an external service is down.
+                logger.exception('Could not archive WhatsApp image %s: %s', message_id, exc)
 
         # Send Notification to seller
         send_new_message_notification(sender_number)
