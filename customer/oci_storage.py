@@ -1,4 +1,4 @@
-"""OCI Object Storage helpers for archived WhatsApp images."""
+"""OCI Object Storage helpers for archived WhatsApp media."""
 
 import logging
 import mimetypes
@@ -11,8 +11,8 @@ from milkbasket.secret import (BUCKET_NAME, OCI_FINGERPRINT, OCI_NAMESPACE,
 logger = logging.getLogger(__name__)
 
 
-def archive_whatsapp_image(message_id, content, content_type):
-    """Store an incoming image and return its object name.
+def archive_whatsapp_media(message_id, content, content_type):
+    """Store an incoming attachment and return its object name.
 
     The message id is unique in WhatsApp, so retrying the webhook safely replaces
     the same object instead of creating duplicate files.
@@ -23,7 +23,7 @@ def archive_whatsapp_image(message_id, content, content_type):
         raise RuntimeError('OCI SDK is not installed') from exc
 
     extension = mimetypes.guess_extension(content_type or '') or ''
-    object_name = f'whatsapp/images/{message_id}{extension}'
+    object_name = f'whatsapp/media/{message_id}{extension}'
     config = {
         'user': OCI_USER,
         'fingerprint': OCI_FINGERPRINT,
@@ -42,8 +42,8 @@ def archive_whatsapp_image(message_id, content, content_type):
     return object_name
 
 
-def whatsapp_image_par_url(object_name):
-    """Return the read-only PAR URL for an archived WhatsApp image."""
+def whatsapp_media_par_url(object_name):
+    """Return the read-only PAR URL for an archived WhatsApp attachment."""
     if not object_name:
         return None
     return f"{PAR.rstrip('/')}/{quote(object_name, safe='/')}"

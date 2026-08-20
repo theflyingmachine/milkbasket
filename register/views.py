@@ -28,7 +28,7 @@ from django.views.generic import View
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from customer.models import WhatsAppMessage, LoginOTP
-from customer.oci_storage import whatsapp_image_par_url
+from customer.oci_storage import whatsapp_media_par_url
 from milkbasket.secret import RUN_ENVIRONMENT, DEV_NUMBER, WA_NUMBER_ID
 from register.constant import DUE_TEMPLATE_ID, WA_DUE_MESSAGE, \
     SMS_DUE_MESSAGE, WA_DUE_MESSAGE_TEMPLATE_V3
@@ -1255,8 +1255,8 @@ def whatsapp_chat(request, wa_number=None):
     # Get sender display name from saved customer details
     for message in all_messages:
         message.sender_display_name = distinct_users.get(message.sender_number)
-        if message.message_type == 'image':
-            message.oci_image_url = whatsapp_image_par_url(message.oci_object_name)
+        if message.oci_object_name:
+            message.oci_media_url = whatsapp_media_par_url(message.oci_object_name)
 
     # Add messages to date chunks
     chat_dates = sorted(set([m.received_at.date() for m in all_messages]))
