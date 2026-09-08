@@ -361,7 +361,7 @@
 <div class="bg-text">
 
   <!-- Login Form -->
-  <form name="login" method="post" action="{% url 'landing' %}">{% csrf_token %}
+  <form name="login" method="post" action="{% url 'landing' %}" onsubmit="return checkLoginFn(this);">{% csrf_token %}
     <h2 class="text-primary intro">Milk Basket</h2>
     {% if message %}
       <h5 class="text-danger">{{ message }}</h5>
@@ -369,29 +369,43 @@
 
     {% if not request_otp and not current_username %}
       <input autofocus type="text" id="username" class="fadeIn third" name="username"
-             placeholder="Enter username">
+             placeholder="Enter username" required>
       <input type="password" id="password" class="fadeIn third" name="password"
-             placeholder="Enter password">
-      <input type="submit" class="fadeIn fourth" value="Request OTP" onclick="checkLoginFn(this);">
+             placeholder="Enter password" required>
+      <input type="submit" class="fadeIn fourth" value="Request OTP">
     {% else %}
       <input type="number" id="otp_password" class="fadeIn third h2 text-center"
              name="otp_password"
-             placeholder="Enter OTP">
-      <input type="submit" class="fadeIn fourth" value="Login" onclick="checkLoginFn(this);">
+             placeholder="Enter OTP" required>
+      <input type="submit" class="fadeIn fourth" value="Login">
     {% endif %}
   </form>
 </div>
 
 <script>
-  function checkLoginFn(login) {
-    //Showing please wait... when login button is clicked
+  function checkLoginFn(form) {
+    const username = form.elements.username;
+    const password = form.elements.password;
+    const emptyCredential = [username, password].find(
+      field => field && !field.value.trim()
+    );
+
+    if (emptyCredential) {
+      emptyCredential.setCustomValidity(`${emptyCredential.placeholder} is required.`);
+      emptyCredential.reportValidity();
+      emptyCredential.setCustomValidity('');
+      emptyCredential.focus();
+      return false;
+    }
+
+    // Show progress only after the browser has accepted the submitted values.
+    const login = form.querySelector('input[type="submit"]');
     login.disabled = true;
     login.style.backgroundColor = 'gray';
     login.value = 'Please Wait…';
-    login.form.submit();
+    return true;
   }
 </script>
 
 <!-- Footer -->
 {% include "register/footer.html" %}
-

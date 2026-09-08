@@ -126,35 +126,43 @@ def customer_dashboard_login(request):
     template = 'customer/login.html'
     context = {}
     if request.method == "POST":
-        username = request.POST.get("username")
-        username = username.lower()
-        password = request.POST.get("password")
+        username = (request.POST.get("username") or '').strip()
+        password = (request.POST.get("password") or '').strip()
+        client_ip = get_client_ip(request)
+
+        if not (username.isdigit() and len(username) == 10):
+            logger.warning('Failed Customer Login Attempt - Mobile:%s OTP:%s IP:%s Reason:invalid mobile number',
+                           username, password, client_ip)
+            context['message'] = 'Enter a valid 10-digit mobile number.'
+            return render(request, template, context)
+
         customer = Customer.objects.filter(contact=username).first()
-        if customer:
-            otp = LoginOTP.get_otp(customer, 'customer')
-            context.update({'request_otp': otp.login_attempt < 3,
-                            'remaining_attempt': otp.login_attempt < 3,
-                            'current_username': username})
-            if otp and password:
-                if password == otp.otp_password and otp.login_attempt < 3:
-                    request.session['customer_session'] = True
-                    request.session['customer'] = customer.id
-                    request.session.save()
-                    logger.info(
-                        'Customer Login - UserName:{0} Password:{1}, IP:{2}'.format(username,
-                                                                                    password,
-                                                                                    get_client_ip(
-                                                                                        request)))
-                    otp.delete()
-                    return redirect('customer_dashboard')
-                else:
-                    otp.login_attempt += 1
-                    otp.save()
-                    logger.warning(
-                        'Failed Customer Login Attempt - UserName:{0} Password:{1} IP:{2}'.format(
-                            username, password, get_client_ip(request)))
-                    context.update({'message': 'Login Failed, {0}'.format(
-                        f'{3 - otp.login_attempt} attempt remaining' if otp.login_attempt < 3 else 'please try again later')})
+        if not customer:
+            logger.warning('Failed Customer Login Attempt - Mobile:%s OTP:%s IP:%s Reason:unknown mobile number',
+                           username, password, client_ip)
+            context['message'] = 'Login failed.'
+            return render(request, template, context)
+
+        otp = LoginOTP.get_otp(customer, 'customer')
+        context.update({'request_otp': otp.login_attempt < 3,
+                        'remaining_attempt': otp.login_attempt < 3,
+                        'current_username': username})
+        if otp and password:
+            if password == otp.otp_password and otp.login_attempt < 3:
+                request.session['customer_session'] = True
+                request.session['customer'] = customer.id
+                request.session.save()
+                logger.info('Customer Login - Mobile:%s IP:%s', username, client_ip)
+                otp.delete()
+                return redirect('customer_dashboard')
+
+            if otp.login_attempt < 3:
+                otp.login_attempt += 1
+                otp.save()
+            logger.warning('Failed Customer Login Attempt - Mobile:%s OTP:%s IP:%s Reason:invalid or expired OTP',
+                           username, password, client_ip)
+            context.update({'message': 'Login Failed, {0}'.format(
+                f'{3 - otp.login_attempt} attempt remaining' if otp.login_attempt < 3 else 'please try again later')})
     if request.session.get('customer_session'):
         return redirect('customer_dashboard')
 
